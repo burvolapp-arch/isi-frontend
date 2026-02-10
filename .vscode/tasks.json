@@ -98,6 +98,55 @@
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && git rm --cached .vscode/tasks.json 2>/dev/null; echo '.vscode/' >> .gitignore && git add -A && git commit --amend -m 'chore: initialize ISI Next.js frontend scaffold' 2>&1",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Verify commit",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Git push",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git push --force origin main 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1; echo '---EXIT:' $?",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "tsc-noEmit-v2",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1; echo 'TSC_EXIT:'$?",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "eslint-v2",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run lint 2>&1; echo 'LINT_EXIT:'$?",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "next-build",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run build 2>&1; echo 'BUILD_EXIT:'$?",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "git-stage",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git add -A && git status --short 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }
