@@ -1,0 +1,103 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Create Next.js project",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx create-next-app@latest . --typescript --eslint --tailwind --src-dir --app --import-alias '@/*' --use-npm --yes",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Create Next.js in tmp",
+			"type": "shell",
+			"command": "cd /tmp && rm -rf isi-frontend-tmp && npx create-next-app@latest isi-frontend-tmp --typescript --eslint --tailwind --src-dir --app --import-alias '@/*' --use-npm --yes 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Copy project files",
+			"type": "shell",
+			"command": "cp -a /tmp/isi-frontend-tmp/. /Users/sebastiandrazsky/isi-frontend/ 2>&1 && echo 'COPY COMPLETE'",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Sanity dev run",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && timeout 30 npm run dev 2>&1 || true",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Sanity dev check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && (npm run dev &) && sleep 15 && curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 && echo '' && echo 'DEV_SERVER_OK' && kill %1 2>/dev/null || (echo 'DEV_SERVER_FAIL' && kill %1 2>/dev/null)",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "HTTP check",
+			"type": "shell",
+			"command": "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 && echo '' && echo 'HTTP_CHECK_PASS'",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1 && echo 'TSC_PASS' || echo 'TSC_FAIL'",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "ESLint check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run lint 2>&1 && echo 'ESLINT_PASS' || echo 'ESLINT_FAIL'",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stop dev server",
+			"type": "shell",
+			"command": "lsof -ti:3000 | xargs kill -9 2>/dev/null; echo 'DEV_SERVER_STOPPED'",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Git stage",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && rm -rf .next && git add -A && git status 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Git log",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check remote",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git remote -v 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Add remote",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git remote add origin https://github.com/burvolapp-arch/isi-frontend.git 2>&1 && echo 'REMOTE_ADDED'",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Git commit",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git rm --cached .vscode/tasks.json 2>/dev/null; echo '.vscode/' >> .gitignore && git add -A && git commit --amend -m 'chore: initialize ISI Next.js frontend scaffold' 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
