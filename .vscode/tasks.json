@@ -147,6 +147,89 @@
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && git add -A && git status --short 2>&1",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "git-diff-stat",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git diff --cached --stat 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "git-stat-full",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git diff --cached --stat 2>&1 | head -20",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "git-commit",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git commit -m 'feat: connect frontend to ISI backend API\n\n- Add TypeScript data contract (src/lib/types.ts) mirroring all backend JSON shapes\n- Add fetch-based API client (src/lib/api.ts) with typed endpoints\n- Add dashboard page rendering ISI composite scores, country rankings, axis registry\n- Add country detail page with per-axis breakdown, channels, partners, warnings\n- Add reusable components: KPICard, CountryTable, AxisCard, StatusBadge, ErrorPanel\n- Add environment configuration (.env.local, .env.example)\n- All data from backend API. Zero business logic in frontend.' 2>&1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "git-push",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git push origin main 2>&1; echo 'PUSH_EXIT:'$?",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit"
+		},
+		{
+			"label": "TSC verbose",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1 | tail -50"
+		},
+		{
+			"label": "TSC check 2",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1 | tail -20"
+		},
+		{
+			"label": "ESLint check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run lint 2>&1 | tail -30"
+		},
+		{
+			"label": "ESLint detail",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run lint 2>&1 | head -80"
+		},
+		{
+			"label": "ESLint compact",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx eslint src/ --format compact 2>&1"
+		},
+		{
+			"label": "ESLint to file",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx eslint src/ 2>&1 > /tmp/eslint-out.txt; cat /tmp/eslint-out.txt"
+		},
+		{
+			"label": "ESLint full",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx eslint src/ 2>&1 > src/lint-output.txt; cat src/lint-output.txt"
+		},
+		{
+			"label": "ESLint recheck",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run lint 2>&1 > src/lint-output.txt; cat src/lint-output.txt"
+		},
+		{
+			"label": "Next.js build",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm run build 2>&1 > src/build-output.txt; echo \"EXIT:$?\" >> src/build-output.txt; cat src/build-output.txt"
+		},
+		{
+			"label": "Git status",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && rm -f src/lint-output.txt src/build-output.txt && git add -A && git status"
 		}
 	]
 }
