@@ -2,17 +2,17 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-surface-secondary">
       <main className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+        <h2 className="text-3xl font-bold text-text-primary">
           404
         </h2>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-text-tertiary">
           The page you requested could not be found.
         </p>
         <Link
           href="/"
-          className="mt-6 inline-block rounded-md bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="mt-6 inline-block border border-border-primary bg-surface-primary px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-secondary"
         >
           Back to Overview
         </Link>

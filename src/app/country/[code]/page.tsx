@@ -3,6 +3,9 @@ import { fetchCountry, fetchISI, ApiError } from "@/lib/api";
 import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
+import { RadarChart } from "@/components/RadarChart";
+import { DeviationBarChart } from "@/components/DeviationBar";
+import { DistributionHistogram } from "@/components/DistributionHistogram";
 import {
   formatScore,
   computePercentile,
@@ -31,7 +34,6 @@ export default async function CountryPage({ params }: PageProps) {
   let error: { message: string; endpoint: string; status?: number } | null =
     null;
 
-  // Fetch country detail + ISI composite (for percentile)
   const [countryResult, isiResult] = await Promise.allSettled([
     fetchCountry(upperCode),
     fetchISI(),
@@ -52,20 +54,22 @@ export default async function CountryPage({ params }: PageProps) {
 
   if (error || !country) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-surface-secondary">
         <main className="mx-auto max-w-7xl px-6 py-8">
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <ErrorPanel
-            title={`Failed to load country ${upperCode}`}
-            message={error?.message ?? "Unknown error"}
-            endpoint={error?.endpoint}
-            status={error?.status}
-          />
+          <div className="mt-4">
+            <ErrorPanel
+              title={`Failed to load country ${upperCode}`}
+              message={error?.message ?? "Unknown error"}
+              endpoint={error?.endpoint}
+              status={error?.status}
+            />
+          </div>
         </main>
       </div>
     );
@@ -87,14 +91,32 @@ export default async function CountryPage({ params }: PageProps) {
 
   const compositeMean = isi?.statistics.mean ?? null;
 
+  // Build radar data from country axes (dynamic, no hardcoded count)
+  const radarAxes = country.axes.map((a) => ({
+    label: a.axis_name.replace(/^(Axis \d+:\s*)?/, ""),
+    value: a.score,
+  }));
+
+  // Build EU mean per axis (matching order) if ISI data available
+  const euMeanPerAxis = isi
+    ? country.axes.map(() => compositeMean) // Approximate — use composite mean per axis
+    : undefined;
+
+  // Build deviation bar items
+  const deviationItems = country.axes.map((a) => ({
+    label: a.axis_name.replace(/^(Axis \d+:\s*)?/, ""),
+    score: a.score,
+    href: axisHref(a.axis_slug),
+  }));
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-8">
+    <div className="min-h-screen bg-surface-secondary">
+      <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
         {/* ── Breadcrumb ────────────────────────────────────── */}
         <div>
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
@@ -103,14 +125,14 @@ export default async function CountryPage({ params }: PageProps) {
         {/* ── Country Header ────────────────────────────────── */}
         <section>
           <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
               {country.country_name}
             </h1>
-            <span className="font-mono text-sm text-zinc-400">
+            <span className="font-mono text-sm text-text-quaternary">
               {country.country}
             </span>
           </div>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-text-tertiary">
             {country.version} · {country.window} ·{" "}
             {country.axes_available}/{country.axes_required} axes available
           </p>
@@ -118,16 +140,16 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Composite KPI Row ─────────────────────────────── */}
         <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
             Composite Score
           </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-px bg-border-primary sm:grid-cols-4">
             <KPICard
               label="ISI Composite"
               value={formatScore(country.isi_composite)}
               variant="highlight"
             />
-            <div className="flex items-center rounded-lg border border-zinc-200 bg-white px-5 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="flex items-center border border-border-primary bg-surface-primary px-5">
               <StatusBadge classification={country.isi_classification} />
             </div>
             <KPICard
@@ -151,11 +173,61 @@ export default async function CountryPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* ── Distribution Context (where does this country sit?) ── */}
+        {allScores.length > 0 && country.isi_composite !== null && (
+          <section className="border border-border-primary bg-surface-primary p-6">
+            <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+              Position in EU-27 Distribution
+            </h2>
+            <p className="mb-3 text-xs text-text-quaternary">
+              {country.country_name}&apos;s composite score relative to all EU-27 member states.
+            </p>
+            <DistributionHistogram
+              scores={allScores}
+              mean={compositeMean}
+              highlight={country.isi_composite}
+              highlightLabel={country.country}
+              height={160}
+              binCount={16}
+            />
+          </section>
+        )}
+
+        {/* ── Radar + Deviation Side-by-Side ───────────────── */}
+        <section className="grid gap-6 lg:grid-cols-2">
+          {/* Radar Chart */}
+          <div className="border border-border-primary bg-surface-primary p-6">
+            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+              Multi-Axis Profile
+            </h2>
+            <RadarChart
+              axes={radarAxes}
+              euMean={euMeanPerAxis}
+              label={country.country_name}
+            />
+          </div>
+
+          {/* Deviation Bars */}
+          <div className="border border-border-primary bg-surface-primary p-6">
+            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+              Deviation from EU-27 Mean
+            </h2>
+            <p className="mb-3 text-[11px] text-text-quaternary">
+              Bars show deviation from the EU-27 composite mean ({formatScore(compositeMean)}).
+              Red = above mean (more concentrated). Green = below mean (more diversified).
+            </p>
+            <DeviationBarChart
+              items={deviationItems}
+              mean={compositeMean}
+            />
+          </div>
+        </section>
+
         {/* ── Strengths & Vulnerabilities ───────────────────── */}
         {scoredAxes.length >= 2 && (
-          <section className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-5 dark:border-green-900 dark:bg-green-950">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">
+          <section className="grid gap-px bg-border-primary md:grid-cols-2">
+            <div className="border-l-4 border-l-deviation-negative bg-surface-primary p-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-deviation-negative">
                 Most Diversified Axes (Lowest HHI)
               </h3>
               <div className="mt-3 space-y-2">
@@ -163,19 +235,19 @@ export default async function CountryPage({ params }: PageProps) {
                   <div key={a.axis_id} className="flex items-center justify-between">
                     <Link
                       href={axisHref(a.axis_slug)}
-                      className="text-sm font-medium text-green-800 hover:underline dark:text-green-200"
+                      className="text-sm font-medium text-text-secondary hover:text-accent"
                     >
                       {a.axis_name}
                     </Link>
-                    <span className="font-mono text-sm text-green-700 dark:text-green-300">
+                    <span className="font-mono text-sm text-deviation-negative">
                       {formatScore(a.score)}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="rounded-lg border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
+            <div className="border-l-4 border-l-deviation-positive bg-surface-primary p-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-deviation-positive">
                 Most Concentrated Axes (Highest HHI)
               </h3>
               <div className="mt-3 space-y-2">
@@ -183,11 +255,11 @@ export default async function CountryPage({ params }: PageProps) {
                   <div key={a.axis_id} className="flex items-center justify-between">
                     <Link
                       href={axisHref(a.axis_slug)}
-                      className="text-sm font-medium text-red-800 hover:underline dark:text-red-200"
+                      className="text-sm font-medium text-text-secondary hover:text-accent"
                     >
                       {a.axis_name}
                     </Link>
-                    <span className="font-mono text-sm text-red-700 dark:text-red-300">
+                    <span className="font-mono text-sm text-deviation-positive">
                       {formatScore(a.score)}
                     </span>
                   </div>
@@ -196,58 +268,6 @@ export default async function CountryPage({ params }: PageProps) {
             </div>
           </section>
         )}
-
-        {/* ── Axis Contribution Breakdown ───────────────────── */}
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
-            Axis Contributions to Composite
-          </h2>
-          <p className="mb-4 text-xs text-zinc-400">
-            Each bar shows the axis HHI score. The composite is an unweighted
-            arithmetic mean of all {country.axes_required} axes.
-          </p>
-          <div className="space-y-3">
-            {country.axes.map((axis) => {
-              const dev = deviationFromMean(axis.score, compositeMean);
-              return (
-                <div key={axis.axis_id} className="flex items-center gap-3">
-                  <Link
-                    href={axisHref(axis.axis_slug)}
-                    className="w-32 shrink-0 text-sm font-medium text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
-                  >
-                    {axis.axis_name}
-                  </Link>
-                  <div className="flex-1">
-                    <div className="h-5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                      {axis.score !== null && (
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            (axis.score ?? 0) >= 0.5
-                              ? "bg-red-500"
-                              : (axis.score ?? 0) >= 0.25
-                                ? "bg-orange-500"
-                                : (axis.score ?? 0) >= 0.15
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
-                          }`}
-                          style={{ width: `${Math.min(axis.score * 100, 100)}%` }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                  <span className="w-16 shrink-0 text-right font-mono text-sm text-zinc-600 dark:text-zinc-400">
-                    {formatScore(axis.score)}
-                  </span>
-                  <span className="w-20 shrink-0 text-right text-xs text-zinc-400">
-                    {dev !== null
-                      ? `${dev >= 0 ? "+" : ""}${dev.toFixed(4)}`
-                      : ""}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
 
         {/* ── Per-Axis Details ──────────────────────────────── */}
         {country.axes.map((axis) => (
@@ -262,30 +282,30 @@ export default async function CountryPage({ params }: PageProps) {
 
 function AxisSection({ axis }: { axis: CountryAxisDetail }) {
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+    <section className="border border-border-primary bg-surface-primary">
+      <div className="border-b border-border-primary px-5 py-4">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
               Axis {axis.axis_id} — {axis.axis_slug}
             </p>
-            <h3 className="mt-1 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+            <h3 className="mt-1 text-base font-semibold text-text-primary">
               <Link
                 href={axisHref(axis.axis_slug)}
-                className="hover:text-blue-600 hover:underline dark:hover:text-blue-400"
+                className="hover:text-accent"
               >
                 {axis.axis_name}
               </Link>
             </h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-lg font-bold text-zinc-900 dark:text-zinc-100">
+            <span className="font-mono text-lg font-bold text-text-primary">
               {formatScore(axis.score)}
             </span>
             <StatusBadge classification={axis.classification} />
           </div>
         </div>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-text-tertiary">
           {axis.driver_statement}
         </p>
       </div>
@@ -294,19 +314,19 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         {/* Audit breakdown */}
         {axis.audit && (
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
               Audit Breakdown
             </h4>
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-2 grid grid-cols-2 gap-px bg-border-primary sm:grid-cols-3 lg:grid-cols-4">
               {Object.entries(axis.audit).map(([key, val]) => (
                 <div
                   key={key}
-                  className="rounded border border-zinc-100 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
+                  className="bg-surface-tertiary p-2"
                 >
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-[11px] text-text-quaternary">
                     {key.replace(/_/g, " ")}
                   </p>
-                  <p className="font-mono text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <p className="font-mono text-sm font-medium text-text-secondary">
                     {typeof val === "number" ? val.toFixed(4) : val}
                   </p>
                 </div>
@@ -318,7 +338,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         {/* Channels with partners */}
         {axis.channels && axis.channels.length > 0 && (
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
               Channels
             </h4>
             <div className="mt-2 space-y-3">
@@ -329,22 +349,22 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
           </div>
         )}
 
-        {/* Fuel concentrations (Axis 2 only) */}
+        {/* Fuel concentrations (axis-specific) */}
         {axis.fuel_concentrations && (
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
               Fuel Concentrations
             </h4>
-            <div className="mt-2 grid grid-cols-3 gap-2">
+            <div className="mt-2 grid grid-cols-3 gap-px bg-border-primary">
               {Object.entries(axis.fuel_concentrations).map(([fuel, hhi]) => (
                 <div
                   key={fuel}
-                  className="rounded border border-zinc-100 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900"
+                  className="bg-surface-tertiary p-2"
                 >
-                  <p className="text-xs capitalize text-zinc-400">
+                  <p className="text-[11px] capitalize text-text-quaternary">
                     {fuel.replace(/_/g, " ")}
                   </p>
-                  <p className="font-mono text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <p className="font-mono text-sm font-medium text-text-secondary">
                     {hhi.toFixed(4)}
                   </p>
                 </div>
@@ -356,22 +376,22 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         {/* Warnings */}
         {axis.warnings.length > 0 && (
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
               Warnings
             </h4>
             <ul className="mt-2 space-y-1">
               {axis.warnings.map((w: Warning) => (
                 <li
                   key={w.id}
-                  className="text-xs text-zinc-500 dark:text-zinc-500"
+                  className="text-xs text-text-tertiary"
                 >
                   <span
                     className={`mr-1 font-semibold ${
                       w.severity === "HIGH"
-                        ? "text-red-600 dark:text-red-400"
+                        ? "text-severity-high"
                         : w.severity === "MEDIUM"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : "text-zinc-400"
+                          ? "text-severity-medium"
+                          : "text-text-quaternary"
                     }`}
                   >
                     [{w.id}]
@@ -391,40 +411,40 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
 
 function ChannelBlock({ channel }: { channel: ChannelDetail }) {
   return (
-    <div className="rounded border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="border border-border-primary bg-surface-tertiary p-3">
       <div className="flex items-baseline justify-between">
-        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <p className="text-sm font-medium text-text-secondary">
           Ch. {channel.channel_id}: {channel.channel_name}
         </p>
         {channel.total_partners != null && (
-          <span className="text-xs text-zinc-400">
+          <span className="text-[11px] text-text-quaternary">
             {channel.total_partners} partners
           </span>
         )}
       </div>
-      <p className="text-xs text-zinc-400">{channel.source}</p>
+      <p className="text-[11px] text-text-quaternary">{channel.source}</p>
 
       {/* Top partners */}
       {channel.top_partners && channel.top_partners.length > 0 && (
         <div className="mt-2">
-          <p className="text-xs font-medium text-zinc-400">Top Partners</p>
+          <p className="text-[11px] font-medium text-text-quaternary">Top Partners</p>
           <div className="mt-1 space-y-1">
             {channel.top_partners.map((p, i) => (
               <div
                 key={`${p.partner}-${i}`}
                 className="flex items-center justify-between"
               >
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                <span className="text-xs text-text-tertiary">
                   {p.partner}
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                  <div className="h-1.5 w-24 overflow-hidden bg-border-primary">
                     <div
-                      className="h-full rounded-full bg-blue-500"
+                      className="h-full bg-accent"
                       style={{ width: `${(p.share * 100).toFixed(1)}%` }}
                     />
                   </div>
-                  <span className="w-14 text-right font-mono text-xs text-zinc-500">
+                  <span className="w-14 text-right font-mono text-[11px] text-text-quaternary">
                     {(p.share * 100).toFixed(1)}%
                   </span>
                 </div>
@@ -437,11 +457,11 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
       {/* Subcategories */}
       {channel.subcategories && channel.subcategories.length > 0 && (
         <div className="mt-2">
-          <p className="text-xs font-medium text-zinc-400">Subcategories</p>
+          <p className="text-[11px] font-medium text-text-quaternary">Subcategories</p>
           <div className="mt-1 overflow-x-auto">
             <table className="min-w-full text-xs">
               <thead>
-                <tr className="text-zinc-400">
+                <tr className="text-text-quaternary">
                   <th className="pr-3 text-left font-medium">Category</th>
                   <th className="pr-3 text-right font-medium">HHI</th>
                   <th className="text-right font-medium">Volume</th>
@@ -451,7 +471,7 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                 {channel.subcategories.map((s, i) => (
                   <tr
                     key={`${s.category}-${i}`}
-                    className="text-zinc-600 dark:text-zinc-400"
+                    className="text-text-tertiary"
                   >
                     <td className="pr-3 py-0.5">{s.category}</td>
                     <td className="pr-3 py-0.5 text-right font-mono">

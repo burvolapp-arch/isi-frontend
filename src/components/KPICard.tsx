@@ -13,21 +13,21 @@ export function KPICard({
 }: KPICardProps) {
   const borderColor =
     variant === "highlight"
-      ? "border-blue-200 dark:border-blue-800"
-      : "border-zinc-200 dark:border-zinc-800";
+      ? "border-accent/20"
+      : "border-border-primary";
 
   return (
     <div
-      className={`rounded-lg border ${borderColor} bg-white p-5 dark:bg-zinc-950`}
+      className={`border ${borderColor} bg-surface-primary p-5 dark:bg-surface-primary`}
     >
-      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-text-primary">
         {value}
       </p>
       {subtitle && (
-        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+        <p className="mt-1 text-xs text-text-quaternary">
           {subtitle}
         </p>
       )}

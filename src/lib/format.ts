@@ -5,7 +5,11 @@
 // All display logic centralized here to prevent semantic drift.
 // ============================================================================
 
-import type { ScoreClassification, ISICompositeCountry } from "./types";
+import type {
+  ScoreClassification,
+  ISICompositeCountry,
+  AxisRegistryEntry,
+} from "./types";
 
 // ─── Score Formatting ───────────────────────────────────────────────
 
@@ -59,6 +63,14 @@ export function classificationDescription(
   return CLASSIFICATION_DESCRIPTIONS[c];
 }
 
+/** Return the HHI classification for a given score */
+export function classifyScore(score: number): ScoreClassification {
+  if (score >= 0.5) return "highly_concentrated";
+  if (score >= 0.25) return "moderately_concentrated";
+  if (score >= 0.15) return "mildly_concentrated";
+  return "unconcentrated";
+}
+
 // ─── Statistics ─────────────────────────────────────────────────────
 
 /** Compute percentile rank (0–100) of a score within a set of scores */
@@ -89,18 +101,89 @@ export function extractCompositeScores(
     .filter((s): s is number => s !== null);
 }
 
-/** Get the axis score fields as an array from a composite country entry */
+/** Compute standard deviation from a set of scores */
+export function computeStdDev(scores: number[]): number {
+  if (scores.length === 0) return 0;
+  const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+  const variance =
+    scores.reduce((sum, s) => sum + (s - mean) ** 2, 0) / scores.length;
+  return Math.sqrt(variance);
+}
+
+/** Compute median from a set of scores */
+export function computeMedian(scores: number[]): number {
+  if (scores.length === 0) return 0;
+  const sorted = [...scores].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// ─── Dynamic Axis Extraction (SEMANTIC SAFEGUARD) ───────────────────
+// NEVER hardcode axis count, names, or field keys.
+// Axis fields are discovered dynamically from the registry + data shape.
+
+/**
+ * Discover axis field keys dynamically from an ISICompositeCountry object.
+ * Matches keys like "axis_N_*" where the value is number | null.
+ * Returns keys sorted by axis number.
+ */
+export function discoverAxisFieldKeys(
+  sample: ISICompositeCountry
+): string[] {
+  return Object.keys(sample)
+    .filter((key) => /^axis_\d+_/.test(key))
+    .sort((a, b) => {
+      const numA = parseInt(a.match(/^axis_(\d+)_/)?.[1] ?? "0", 10);
+      const numB = parseInt(b.match(/^axis_(\d+)_/)?.[1] ?? "0", 10);
+      return numA - numB;
+    });
+}
+
+/**
+ * Derive axis column metadata by matching discovered field keys to
+ * the axis registry. This is the ONLY way to build axis columns.
+ */
+export function deriveAxisColumns(
+  sample: ISICompositeCountry,
+  registry: AxisRegistryEntry[]
+): { fieldKey: string; axisId: number; label: string; slug: string; tooltip: string }[] {
+  const fieldKeys = discoverAxisFieldKeys(sample);
+  const registryMap = new Map<number, AxisRegistryEntry>();
+  for (const entry of registry) registryMap.set(entry.id, entry);
+
+  return fieldKeys.map((key) => {
+    const axisNum = parseInt(key.match(/^axis_(\d+)_/)?.[1] ?? "0", 10);
+    const entry = registryMap.get(axisNum);
+    return {
+      fieldKey: key,
+      axisId: axisNum,
+      label: entry?.name ?? key.replace(/^axis_\d+_/, "").replace(/_/g, " "),
+      slug: entry?.slug ?? key.replace(/^axis_\d+_/, ""),
+      tooltip: entry
+        ? `${entry.description} (${entry.unit})`
+        : "Axis metadata unavailable",
+    };
+  });
+}
+
+/**
+ * Get axis scores dynamically from a composite country entry.
+ * Uses field key discovery — never a hardcoded list.
+ */
 export function getAxisScores(
   c: ISICompositeCountry
 ): { key: string; label: string; value: number | null }[] {
-  return [
-    { key: "axis_1_financial", label: "Financial", value: c.axis_1_financial },
-    { key: "axis_2_energy", label: "Energy", value: c.axis_2_energy },
-    { key: "axis_3_technology", label: "Technology", value: c.axis_3_technology },
-    { key: "axis_4_defense", label: "Defense", value: c.axis_4_defense },
-    { key: "axis_5_critical_inputs", label: "Critical Inputs", value: c.axis_5_critical_inputs },
-    { key: "axis_6_logistics", label: "Logistics", value: c.axis_6_logistics },
-  ];
+  const fieldKeys = discoverAxisFieldKeys(c);
+  return fieldKeys.map((key) => ({
+    key,
+    label: key
+      .replace(/^axis_\d+_/, "")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (ch) => ch.toUpperCase()),
+    value: (c as unknown as Record<string, unknown>)[key] as number | null,
+  }));
 }
 
 // ─── Slug / Routing ─────────────────────────────────────────────────

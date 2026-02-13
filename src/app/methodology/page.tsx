@@ -9,30 +9,30 @@ export const metadata: Metadata = {
 
 export default function MethodologyPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-surface-secondary">
       <main className="mx-auto max-w-3xl px-6 py-10 space-y-10">
         <div>
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-text-primary">
             Methodology
           </h1>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-text-tertiary">
             How the International Sovereignty Index is computed.
           </p>
         </div>
 
         {/* Section 1 */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+          <h2 className="text-lg font-semibold text-text-secondary">
             1. Objective
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            The ISI measures the <strong>concentration of external dependencies</strong>{" "}
+          <p className="text-sm leading-relaxed text-text-tertiary">
+            The ISI measures the <strong className="text-text-secondary">concentration of external dependencies</strong>{" "}
             for each EU-27 member state across a set of strategic axes. It does{" "}
             <em>not</em> assess quality, risk, or desirability of those
             dependencies — only their structural concentration.
@@ -41,68 +41,68 @@ export default function MethodologyPage() {
 
         {/* Section 2 */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+          <h2 className="text-lg font-semibold text-text-secondary">
             2. Scoring Framework
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             Each axis produces a score on the [0, 1] interval using a{" "}
-            <strong>Herfindahl-Hirschman Index (HHI)</strong> framework:
+            <strong className="text-text-secondary">Herfindahl-Hirschman Index (HHI)</strong> framework:
           </p>
-          <ul className="list-inside list-disc space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <ul className="list-inside list-disc space-y-1 text-sm text-text-tertiary">
             <li>
-              <strong>0.00</strong> — Perfectly diversified (equal shares among
+              <strong className="text-text-secondary">0.00</strong> — Perfectly diversified (equal shares among
               infinite partners)
             </li>
             <li>
-              <strong>1.00</strong> — Total concentration (100% from a single
+              <strong className="text-text-secondary">1.00</strong> — Total concentration (100% from a single
               source)
             </li>
           </ul>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             Classification thresholds follow standard HHI bands:
           </p>
-          <div className="overflow-x-auto rounded border border-zinc-200 dark:border-zinc-800">
+          <div className="overflow-x-auto border border-border-primary">
             <table className="min-w-full text-sm">
-              <thead className="bg-zinc-100 dark:bg-zinc-900">
+              <thead className="bg-surface-tertiary">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-zinc-500">
+                  <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
                     Range
                   </th>
-                  <th className="px-4 py-2 text-left font-medium text-zinc-500">
+                  <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
                     Classification
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                <tr>
-                  <td className="px-4 py-2 font-mono text-zinc-700 dark:text-zinc-300">
+              <tbody>
+                <tr className="border-b border-border-subtle">
+                  <td className="px-4 py-2 font-mono text-text-primary">
                     ≥ 0.50
                   </td>
-                  <td className="px-4 py-2 text-red-700 dark:text-red-400">
+                  <td className="px-4 py-2 text-band-highly">
                     Highly Concentrated
                   </td>
                 </tr>
-                <tr>
-                  <td className="px-4 py-2 font-mono text-zinc-700 dark:text-zinc-300">
+                <tr className="border-b border-border-subtle">
+                  <td className="px-4 py-2 font-mono text-text-primary">
                     0.25 – 0.49
                   </td>
-                  <td className="px-4 py-2 text-orange-700 dark:text-orange-400">
+                  <td className="px-4 py-2 text-band-moderately">
                     Moderately Concentrated
                   </td>
                 </tr>
-                <tr>
-                  <td className="px-4 py-2 font-mono text-zinc-700 dark:text-zinc-300">
+                <tr className="border-b border-border-subtle">
+                  <td className="px-4 py-2 font-mono text-text-primary">
                     0.15 – 0.24
                   </td>
-                  <td className="px-4 py-2 text-yellow-700 dark:text-yellow-400">
+                  <td className="px-4 py-2 text-band-mildly">
                     Mildly Concentrated
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-2 font-mono text-zinc-700 dark:text-zinc-300">
+                  <td className="px-4 py-2 font-mono text-text-primary">
                     &lt; 0.15
                   </td>
-                  <td className="px-4 py-2 text-green-700 dark:text-green-400">
+                  <td className="px-4 py-2 text-band-unconcentrated">
                     Unconcentrated
                   </td>
                 </tr>
@@ -113,18 +113,18 @@ export default function MethodologyPage() {
 
         {/* Section 3 */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+          <h2 className="text-lg font-semibold text-text-secondary">
             3. Composite Aggregation
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             The ISI composite is computed as an{" "}
-            <strong>unweighted arithmetic mean</strong> of all available axis
+            <strong className="text-text-secondary">unweighted arithmetic mean</strong> of all available axis
             scores for each country:
           </p>
-          <div className="rounded border border-zinc-200 bg-zinc-50 px-4 py-3 font-mono text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <div className="border border-border-primary bg-surface-tertiary px-4 py-3 font-mono text-sm text-text-primary">
             ISI_composite = (1/N) × Σ axis_score_i, for i = 1 to N
           </div>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             No domain-weighting is applied. This is a deliberate design
             choice — the index does not presume which axes matter more. Users
             should consider axis-level scores when domain-specific analysis is
@@ -134,35 +134,35 @@ export default function MethodologyPage() {
 
         {/* Section 4 */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+          <h2 className="text-lg font-semibold text-text-secondary">
             4. Data Pipeline
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             All data is pre-materialized by the backend export pipeline (
-            <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
+            <code className="bg-surface-tertiary px-1 text-xs text-text-secondary">
               export_isi_backend_v01.py
             </code>
             ) and served as static JSON artifacts by the API layer (
-            <code className="rounded bg-zinc-200 px-1 text-xs dark:bg-zinc-800">
+            <code className="bg-surface-tertiary px-1 text-xs text-text-secondary">
               isi_api_v01.py
             </code>
-            ). The frontend performs <strong>zero computation</strong> — it is a
+            ). The frontend performs <strong className="text-text-secondary">zero computation</strong> — it is a
             pure rendering layer.
           </p>
         </section>
 
         {/* Section 5 */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+          <h2 className="text-lg font-semibold text-text-secondary">
             5. Axis-Level Documentation
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm leading-relaxed text-text-tertiary">
             Each axis has its own measurement definition, data sources,
             inclusion/exclusion scope, and known limitations. These are
             documented on the individual{" "}
             <Link
               href="/"
-              className="text-blue-600 hover:underline dark:text-blue-400"
+              className="text-accent hover:text-accent-muted"
             >
               axis detail pages
             </Link>

@@ -57,19 +57,19 @@ const FAQ_ITEMS: FAQItem[] = [
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-surface-secondary">
       <main className="mx-auto max-w-3xl px-6 py-10 space-y-10">
         <div>
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-text-primary">
             Frequently Asked Questions
           </h1>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-text-tertiary">
             Common questions about the International Sovereignty Index.
           </p>
         </div>
@@ -78,12 +78,12 @@ export default function FAQPage() {
           {FAQ_ITEMS.map((item, i) => (
             <section
               key={i}
-              className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950"
+              className="border border-border-primary bg-surface-primary p-5"
             >
-              <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+              <h2 className="text-sm font-semibold text-text-secondary">
                 {item.q}
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              <p className="mt-2 text-sm leading-relaxed text-text-tertiary">
                 {item.a}
               </p>
             </section>

@@ -6,34 +6,34 @@ interface AxisCardProps {
 
 export function AxisCard({ axis }: AxisCardProps) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="border border-border-primary bg-surface-primary p-5 dark:bg-surface-primary">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
             Axis {axis.id}
           </p>
-          <h3 className="mt-1 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          <h3 className="mt-1 text-base font-semibold text-text-primary">
             {axis.name}
           </h3>
         </div>
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          className={`inline-flex items-center border px-2 py-0.5 text-[11px] font-medium ${
             axis.materialized
-              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-              : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+              ? "border-severity-none/30 text-severity-none"
+              : "border-border-primary text-text-quaternary"
           }`}
         >
           {axis.materialized ? "Active" : "Pending"}
         </span>
       </div>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+      <p className="mt-2 text-sm leading-relaxed text-text-tertiary">
         {axis.description}
       </p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {axis.channels.map((ch) => (
           <span
             key={ch.id}
-            className="inline-flex items-center rounded border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400"
+            className="inline-flex items-center border border-border-primary bg-surface-tertiary px-2 py-0.5 text-[11px] text-text-tertiary"
             title={ch.source}
           >
             Ch. {ch.id}: {ch.name}
@@ -43,14 +43,14 @@ export function AxisCard({ axis }: AxisCardProps) {
       {axis.warnings.length > 0 && (
         <div className="mt-3 space-y-1">
           {axis.warnings.map((w) => (
-            <p key={w.id} className="text-xs text-zinc-500 dark:text-zinc-500">
+            <p key={w.id} className="text-[11px] text-text-quaternary">
               <span
                 className={`mr-1 font-semibold ${
                   w.severity === "HIGH"
-                    ? "text-red-600 dark:text-red-400"
+                    ? "text-severity-high"
                     : w.severity === "MEDIUM"
-                      ? "text-orange-600 dark:text-orange-400"
-                      : "text-zinc-400"
+                      ? "text-severity-medium"
+                      : "text-text-quaternary"
                 }`}
               >
                 [{w.severity}]

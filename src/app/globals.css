@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================================
+   ISI Design System — Institutional Visual Language
+   ============================================================================
+   Reference: IMF Research Portal × Palantir Foundry × Bruegel Publication
+   No SaaS. No startup. No WordPress. Authority-grade.
+   ============================================================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* ── Brand Primaries ─────────────────────────────────── */
+  --color-navy-950: #0b1120;
+  --color-navy-900: #0f172a;
+  --color-navy-800: #1e293b;
+  --color-navy-700: #334155;
+  --color-navy-600: #475569;
+
+  /* ── Semantic (Analytical, not decorative) ────────────── */
+  --color-severity-high: #b91c1c;
+  --color-severity-medium: #c2410c;
+  --color-severity-low: #a16207;
+  --color-severity-none: #15803d;
+
+  --color-deviation-positive: #991b1b;
+  --color-deviation-negative: #166534;
+
+  /* ── Classification Bands (Muted, institutional) ─────── */
+  --color-band-highly: #dc2626;
+  --color-band-moderately: #ea580c;
+  --color-band-mildly: #ca8a04;
+  --color-band-unconcentrated: #16a34a;
+
+  /* ── Accent (Restrained — used sparingly) ────────────── */
+  --color-accent: #2563eb;
+  --color-accent-muted: #3b82f6;
+
+  /* ── Surface System ──────────────────────────────────── */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-tertiary: #f1f5f9;
+  --color-surface-elevated: #ffffff;
+  --color-surface-inverse: #0f172a;
+
+  /* ── Border System ───────────────────────────────────── */
+  --color-border-primary: #e2e8f0;
+  --color-border-secondary: #cbd5e1;
+  --color-border-subtle: #f1f5f9;
+
+  /* ── Text System ─────────────────────────────────────── */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-tertiary: #64748b;
+  --color-text-quaternary: #94a3b8;
+  --color-text-inverse: #f8fafc;
+
+  /* ── Typography ──────────────────────────────────────── */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* ── Semantic Color Aliases ──────────────────────────── */
+  --color-background: var(--color-surface-secondary);
+  --color-foreground: var(--color-text-primary);
 }
 
+/* ── Dark Mode ─────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @theme inline {
+    --color-surface-primary: #0f172a;
+    --color-surface-secondary: #0b1120;
+    --color-surface-tertiary: #1e293b;
+    --color-surface-elevated: #1e293b;
+    --color-surface-inverse: #f8fafc;
+
+    --color-border-primary: #1e293b;
+    --color-border-secondary: #334155;
+    --color-border-subtle: #1e293b;
+
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #cbd5e1;
+    --color-text-tertiary: #94a3b8;
+    --color-text-quaternary: #64748b;
+    --color-text-inverse: #0f172a;
+
+    --color-background: var(--color-surface-secondary);
+    --color-foreground: var(--color-text-primary);
   }
 }
 
+/* ── Base Resets ────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Institutional Table Styling ───────────────────────── */
+table {
+  border-collapse: collapse;
+}
+
+/* ── Focus Ring (accessible, institutional) ────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Selection (subdued) ───────────────────────────────── */
+::selection {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+/* ── Scrollbar Styling (webkit) ────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-secondary);
+  border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-navy-700);
+  }
 }

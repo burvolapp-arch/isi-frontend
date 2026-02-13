@@ -12,16 +12,22 @@ import {
   classificationLabel,
   classificationDescription,
   deviationFromMean,
+  computePercentile,
+  extractCompositeScores,
+  deriveAxisColumns,
   countryHref,
-  getAxisScores,
+  axisHref,
 } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
 type SortKey =
+  | "rank"
   | "country_name"
   | "isi_composite"
+  | "percentile"
+  | "deviation"
   | `axis_${string}`
   | "classification";
 type SortDir = "asc" | "desc";
@@ -34,36 +40,42 @@ interface CountryRankingsTableProps {
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
-const AXIS_FIELD_KEYS: (keyof ISICompositeCountry)[] = [
-  "axis_1_financial",
-  "axis_2_energy",
-  "axis_3_technology",
-  "axis_4_defense",
-  "axis_5_critical_inputs",
-  "axis_6_logistics",
-];
-
-function getSortValue(c: ISICompositeCountry, key: SortKey): string | number {
+function getSortValue(
+  c: ISICompositeCountry,
+  key: SortKey,
+  allScores: number[],
+  mean: number | null
+): string | number {
   if (key === "country_name") return c.country_name;
   if (key === "isi_composite") return c.isi_composite ?? -1;
   if (key === "classification") return c.classification ?? "";
+  if (key === "percentile") {
+    return c.isi_composite !== null
+      ? computePercentile(c.isi_composite, allScores)
+      : -1;
+  }
+  if (key === "deviation") {
+    if (c.isi_composite === null || mean === null) return -999;
+    return c.isi_composite - mean;
+  }
+  if (key === "rank") return c.isi_composite ?? -1;
   // axis fields
-  const val = c[key as keyof ISICompositeCountry];
+  const val = (c as unknown as Record<string, unknown>)[key];
   return typeof val === "number" ? val : -1;
 }
 
 function deviationClass(dev: number | null): string {
   if (dev === null) return "";
   const abs = Math.abs(dev);
-  if (abs < 0.05) return "";
+  if (abs < 0.03) return "text-text-tertiary";
   if (dev > 0) {
-    return abs > 0.15
-      ? "text-red-700 dark:text-red-400 font-semibold"
-      : "text-red-600/80 dark:text-red-400/80";
+    return abs > 0.1
+      ? "text-deviation-positive font-semibold"
+      : "text-deviation-positive/80";
   }
-  return abs > 0.15
-    ? "text-green-700 dark:text-green-400 font-semibold"
-    : "text-green-600/80 dark:text-green-400/80";
+  return abs > 0.1
+    ? "text-deviation-negative font-semibold"
+    : "text-deviation-negative/80";
 }
 
 const CLASSIFICATION_OPTIONS: ScoreClassification[] = [
@@ -88,26 +100,17 @@ export function CountryRankingsTable({
   );
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  // Build axis metadata map (id → registry entry) for tooltips
-  const axisMap = useMemo(() => {
-    const m = new Map<number, AxisRegistryEntry>();
-    for (const a of axes) m.set(a.id, a);
-    return m;
-  }, [axes]);
+  // All composite scores (for percentile computation)
+  const allScores = useMemo(
+    () => extractCompositeScores(countries),
+    [countries]
+  );
 
-  // Derive column headers dynamically from axis registry
+  // SEMANTIC SAFEGUARD: derive axis columns dynamically from data + registry
   const axisColumns = useMemo(() => {
-    return AXIS_FIELD_KEYS.map((fieldKey, i) => {
-      const entry = axisMap.get(i + 1);
-      return {
-        fieldKey,
-        label: entry?.name ?? fieldKey.replace(/^axis_\d+_/, ""),
-        tooltip: entry
-          ? `${entry.description} (${entry.unit})`
-          : "Axis metadata unavailable",
-      };
-    });
-  }, [axisMap]);
+    if (countries.length === 0) return [];
+    return deriveAxisColumns(countries[0], axes);
+  }, [countries, axes]);
 
   // Filter & sort
   const rows = useMemo(() => {
@@ -130,8 +133,8 @@ export function CountryRankingsTable({
 
     // Sort
     const sorted = [...filtered].sort((a, b) => {
-      const va = getSortValue(a, sortKey);
-      const vb = getSortValue(b, sortKey);
+      const va = getSortValue(a, sortKey, allScores, mean);
+      const vb = getSortValue(b, sortKey, allScores, mean);
       if (typeof va === "string" && typeof vb === "string") {
         return sortDir === "asc"
           ? va.localeCompare(vb)
@@ -143,7 +146,17 @@ export function CountryRankingsTable({
     });
 
     return sorted;
-  }, [countries, search, classFilter, sortKey, sortDir]);
+  }, [countries, search, classFilter, sortKey, sortDir, allScores, mean]);
+
+  // Compute ranks based on composite (descending)
+  const rankMap = useMemo(() => {
+    const ranked = [...countries]
+      .filter((c) => c.isi_composite !== null)
+      .sort((a, b) => (b.isi_composite ?? 0) - (a.isi_composite ?? 0));
+    const map = new Map<string, number>();
+    ranked.forEach((c, i) => map.set(c.country, i + 1));
+    return map;
+  }, [countries]);
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -157,14 +170,14 @@ export function CountryRankingsTable({
   const sortIndicator = (colKey: SortKey) => {
     if (sortKey !== colKey) return null;
     return (
-      <span className="ml-1 text-blue-500">
+      <span className="ml-1 text-accent">
         {sortDir === "asc" ? "↑" : "↓"}
       </span>
     );
   };
 
   const thBase =
-    "px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 cursor-pointer select-none whitespace-nowrap transition-colors hover:text-zinc-700 dark:hover:text-zinc-200";
+    "px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-quaternary cursor-pointer select-none whitespace-nowrap hover:text-text-secondary";
 
   return (
     <div>
@@ -176,7 +189,7 @@ export function CountryRankingsTable({
             placeholder="Search country…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-800 placeholder-zinc-400 outline-none ring-blue-500 focus:border-blue-400 focus:ring-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:placeholder-zinc-500"
+            className="border border-border-primary bg-surface-primary px-3 py-1.5 text-sm text-text-primary placeholder-text-quaternary outline-none focus:border-accent"
           />
           <select
             value={classFilter}
@@ -185,7 +198,7 @@ export function CountryRankingsTable({
                 e.target.value as ScoreClassification | "all"
               )
             }
-            className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700 outline-none ring-blue-500 focus:border-blue-400 focus:ring-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+            className="border border-border-primary bg-surface-primary px-3 py-1.5 text-sm text-text-secondary outline-none focus:border-accent"
           >
             <option value="all">All classifications</option>
             {CLASSIFICATION_OPTIONS.map((c) => (
@@ -195,18 +208,23 @@ export function CountryRankingsTable({
             ))}
           </select>
         </div>
-        <p className="text-xs text-zinc-400">
+        <p className="text-[11px] text-text-quaternary">
           {rows.length} of {countries.length} countries
         </p>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-        <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-          <thead className="bg-zinc-50 dark:bg-zinc-900">
+      <div className="overflow-x-auto border border-border-primary">
+        <table className="min-w-full divide-y divide-border-primary">
+          <thead className="bg-surface-tertiary sticky top-0 z-10">
             <tr>
-              {/* Expand toggle placeholder */}
-              <th className="w-8 px-2 py-2.5" />
+              <th
+                className={`${thBase} w-12 text-center`}
+                onClick={() => handleSort("rank")}
+              >
+                #
+                {sortIndicator("rank")}
+              </th>
               <th
                 className={`${thBase} text-left`}
                 onClick={() => handleSort("country_name")}
@@ -218,8 +236,22 @@ export function CountryRankingsTable({
                 className={`${thBase} text-right`}
                 onClick={() => handleSort("isi_composite")}
               >
-                ISI Composite
+                Composite
                 {sortIndicator("isi_composite")}
+              </th>
+              <th
+                className={`${thBase} text-right`}
+                onClick={() => handleSort("percentile")}
+              >
+                Pctl
+                {sortIndicator("percentile")}
+              </th>
+              <th
+                className={`${thBase} text-right`}
+                onClick={() => handleSort("deviation")}
+              >
+                Δ Mean
+                {sortIndicator("deviation")}
               </th>
               {axisColumns.map((col) => (
                 <th
@@ -241,11 +273,14 @@ export function CountryRankingsTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200 bg-white dark:divide-zinc-800 dark:bg-zinc-950">
+          <tbody className="divide-y divide-border-primary bg-surface-primary">
             {rows.map((c) => {
               const isExpanded = expandedRow === c.country;
               const dev = deviationFromMean(c.isi_composite, mean);
-              const axisScores = getAxisScores(c);
+              const pctl =
+                c.isi_composite !== null
+                  ? computePercentile(c.isi_composite, allScores)
+                  : null;
 
               return (
                 <TableRow
@@ -253,8 +288,9 @@ export function CountryRankingsTable({
                   country={c}
                   isExpanded={isExpanded}
                   deviation={dev}
+                  percentile={pctl}
+                  rank={rankMap.get(c.country) ?? null}
                   axisColumns={axisColumns}
-                  axisScores={axisScores}
                   mean={mean}
                   onToggle={() =>
                     setExpandedRow(isExpanded ? null : c.country)
@@ -265,8 +301,8 @@ export function CountryRankingsTable({
             {rows.length === 0 && (
               <tr>
                 <td
-                  colSpan={axisColumns.length + 4}
-                  className="px-4 py-8 text-center text-sm text-zinc-400"
+                  colSpan={axisColumns.length + 6}
+                  className="px-4 py-8 text-center text-sm text-text-quaternary"
                 >
                   No countries match your filters.
                 </td>
@@ -277,13 +313,13 @@ export function CountryRankingsTable({
       </div>
 
       {/* Interpretation note */}
-      <p className="mt-2 text-[11px] text-zinc-400 dark:text-zinc-500">
+      <p className="mt-3 text-[11px] leading-relaxed text-text-quaternary">
         Scores are Herfindahl-Hirschman Index (HHI) values on [0, 1]. Higher
         = more concentrated dependency.{" "}
-        <span className="text-green-600 dark:text-green-400">Green</span>{" "}
+        <span className="text-deviation-negative">Green</span>{" "}
         cells are below EU-27 mean;{" "}
-        <span className="text-red-600 dark:text-red-400">red</span> cells are
-        above.
+        <span className="text-deviation-positive">red</span> cells are
+        above. Δ Mean shows deviation from the EU-27 composite average.
       </p>
     </div>
   );
@@ -295,8 +331,9 @@ interface TableRowProps {
   country: ISICompositeCountry;
   isExpanded: boolean;
   deviation: number | null;
-  axisColumns: { fieldKey: string; label: string; tooltip: string }[];
-  axisScores: { key: string; label: string; value: number | null }[];
+  percentile: number | null;
+  rank: number | null;
+  axisColumns: { fieldKey: string; axisId: number; label: string; slug: string; tooltip: string }[];
   mean: number | null;
   onToggle: () => void;
 }
@@ -305,23 +342,24 @@ function TableRow({
   country: c,
   isExpanded,
   deviation,
+  percentile,
+  rank,
   axisColumns,
-  axisScores,
   mean,
   onToggle,
 }: TableRowProps) {
   return (
     <>
-      <tr className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
-        {/* Expand toggle */}
-        <td className="px-2 py-2.5 text-center">
+      <tr className="hover:bg-surface-tertiary/50">
+        {/* Rank */}
+        <td className="whitespace-nowrap px-3 py-2.5 text-center text-sm text-text-quaternary">
           <button
             onClick={onToggle}
-            className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+            className="inline-flex items-center gap-1 text-text-quaternary hover:text-text-primary"
             aria-label={isExpanded ? "Collapse row" : "Expand row"}
           >
             <svg
-              className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+              className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`}
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
@@ -333,6 +371,7 @@ function TableRow({
                 d="M8.25 4.5l7.5 7.5-7.5 7.5"
               />
             </svg>
+            {rank ?? "—"}
           </button>
         </td>
 
@@ -340,11 +379,13 @@ function TableRow({
         <td className="whitespace-nowrap px-3 py-2.5 text-sm">
           <Link
             href={countryHref(c.country)}
-            className="font-medium text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+            className="font-medium text-text-primary hover:text-accent"
           >
             {c.country_name}
           </Link>
-          <span className="ml-1.5 text-xs text-zinc-400">{c.country}</span>
+          <span className="ml-1.5 font-mono text-[11px] text-text-quaternary">
+            {c.country}
+          </span>
         </td>
 
         {/* ISI Composite */}
@@ -354,14 +395,28 @@ function TableRow({
           {formatScore(c.isi_composite)}
         </td>
 
-        {/* Axis scores */}
-        {axisColumns.map((col, i) => {
-          const score = axisScores[i]?.value ?? null;
+        {/* Percentile */}
+        <td className="whitespace-nowrap px-3 py-2.5 text-right font-mono text-sm text-text-tertiary">
+          {percentile !== null ? `P${percentile}` : "—"}
+        </td>
+
+        {/* Deviation from mean */}
+        <td
+          className={`whitespace-nowrap px-3 py-2.5 text-right font-mono text-[12px] ${deviationClass(deviation)}`}
+        >
+          {deviation !== null
+            ? `${deviation >= 0 ? "+" : ""}${deviation.toFixed(4)}`
+            : "—"}
+        </td>
+
+        {/* Axis scores (dynamic) */}
+        {axisColumns.map((col) => {
+          const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
           const axisDev = deviationFromMean(score, mean);
           return (
             <td
               key={col.fieldKey}
-              className={`whitespace-nowrap px-3 py-2.5 text-right font-mono text-sm text-zinc-600 dark:text-zinc-400 ${deviationClass(axisDev)}`}
+              className={`whitespace-nowrap px-3 py-2.5 text-right font-mono text-sm text-text-tertiary ${deviationClass(axisDev)}`}
               title={col.tooltip}
             >
               {formatScore(score)}
@@ -379,39 +434,41 @@ function TableRow({
 
       {/* Expanded Row — Quick breakdown */}
       {isExpanded && (
-        <tr className="bg-zinc-50/50 dark:bg-zinc-900/50">
+        <tr className="bg-surface-tertiary/30">
           <td />
-          <td colSpan={axisColumns.length + 3} className="px-3 py-4">
+          <td colSpan={axisColumns.length + 5} className="px-3 py-4">
             <div className="flex flex-wrap gap-3">
-              {axisScores.map((a) => {
-                const axisDev = deviationFromMean(a.value, mean);
+              {axisColumns.map((col) => {
+                const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
+                const axisDev = deviationFromMean(score, mean);
                 return (
-                  <div
-                    key={a.key}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+                  <Link
+                    key={col.fieldKey}
+                    href={axisHref(col.slug)}
+                    className="border border-border-primary bg-surface-primary px-3 py-2 hover:border-accent/30"
                   >
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
-                      {a.label}
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-text-quaternary">
+                      {col.label}
                     </p>
                     <p
                       className={`mt-0.5 font-mono text-sm font-semibold ${deviationClass(axisDev)}`}
                     >
-                      {formatScore(a.value)}
+                      {formatScore(score)}
                     </p>
                     {axisDev !== null && (
-                      <p className="text-[10px] text-zinc-400">
+                      <p className="text-[10px] text-text-quaternary">
                         {axisDev >= 0 ? "+" : ""}
                         {axisDev.toFixed(4)} vs mean
                       </p>
                     )}
-                  </div>
+                  </Link>
                 );
               })}
             </div>
             <div className="mt-3">
               <Link
                 href={countryHref(c.country)}
-                className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                className="text-xs font-medium text-accent hover:underline"
               >
                 View full country analysis →
               </Link>

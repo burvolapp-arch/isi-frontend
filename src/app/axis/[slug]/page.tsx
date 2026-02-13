@@ -4,7 +4,8 @@ import { fetchAxes, fetchAxis, ApiError } from "@/lib/api";
 import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
-import { formatScore, countryHref } from "@/lib/format";
+import { DistributionHistogram } from "@/components/DistributionHistogram";
+import { formatScore, countryHref, computeStdDev } from "@/lib/format";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -34,19 +35,21 @@ export default async function AxisPage({ params }: PageProps) {
 
   if (registryError || axisId === null) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-surface-secondary">
         <main className="mx-auto max-w-7xl px-6 py-8">
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <ErrorPanel
-            title={`Failed to resolve axis "${slug}"`}
-            message={registryError ?? "Axis not found in registry"}
-            endpoint="/axes"
-          />
+          <div className="mt-4">
+            <ErrorPanel
+              title={`Failed to resolve axis "${slug}"`}
+              message={registryError ?? "Axis not found in registry"}
+              endpoint="/axes"
+            />
+          </div>
         </main>
       </div>
     );
@@ -69,20 +72,22 @@ export default async function AxisPage({ params }: PageProps) {
 
   if (error || !axis) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <div className="min-h-screen bg-surface-secondary">
         <main className="mx-auto max-w-7xl px-6 py-8">
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <ErrorPanel
-            title={`Failed to load axis ${slug}`}
-            message={error?.message ?? "Unknown error"}
-            endpoint={error?.endpoint}
-            status={error?.status}
-          />
+          <div className="mt-4">
+            <ErrorPanel
+              title={`Failed to load axis ${slug}`}
+              message={error?.message ?? "Unknown error"}
+              endpoint={error?.endpoint}
+              status={error?.status}
+            />
+          </div>
         </main>
       </div>
     );
@@ -93,17 +98,28 @@ export default async function AxisPage({ params }: PageProps) {
     .filter((c): c is AxisCountryEntry & { score: number } => c.score !== null)
     .sort((a, b) => b.score - a.score);
 
+  const axisScores = ranked.map((c) => c.score);
+  const stdDev = computeStdDev(axisScores);
+  const range =
+    axis.statistics.max !== null && axis.statistics.min !== null
+      ? axis.statistics.max - axis.statistics.min
+      : null;
+
   const outlierHigh = ranked.length > 0 ? ranked[0] : null;
   const outlierLow = ranked.length > 0 ? ranked[ranked.length - 1] : null;
 
+  // Identify outliers (> 1.5 std dev from mean)
+  const meanVal = axis.statistics.mean;
+  const outlierThreshold = stdDev !== null && meanVal !== null ? 1.5 * stdDev : null;
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-8">
+    <div className="min-h-screen bg-surface-secondary">
+      <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
         {/* Breadcrumb */}
         <div>
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            className="text-sm text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
@@ -111,25 +127,25 @@ export default async function AxisPage({ params }: PageProps) {
 
         {/* ── Axis Header ──────────────────────────────────── */}
         <section>
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
             Axis {axis.axis_id} — {axis.axis_slug}
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-text-primary">
             {axis.axis_name}
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 text-sm leading-relaxed text-text-tertiary">
             {axis.description}
           </p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-zinc-400">
+          <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-text-quaternary">
             <span>Version: {axis.version}</span>
             <span>Status: {axis.status}</span>
             <span>Unit: {axis.unit}</span>
             <span>
               Materialized:{" "}
               {axis.materialized ? (
-                <span className="text-green-600 dark:text-green-400">Yes</span>
+                <span className="text-deviation-negative">Yes</span>
               ) : (
-                <span className="text-zinc-500">No</span>
+                <span className="text-text-quaternary">No</span>
               )}
             </span>
           </div>
@@ -137,10 +153,10 @@ export default async function AxisPage({ params }: PageProps) {
 
         {/* ── KPI Row ──────────────────────────────────────── */}
         <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
             Cross-EU Statistics
           </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-px bg-border-primary sm:grid-cols-3 lg:grid-cols-6">
             <KPICard
               label="Countries Scored"
               value={`${axis.countries_scored}`}
@@ -162,29 +178,57 @@ export default async function AxisPage({ params }: PageProps) {
               value={formatScore(axis.statistics.mean)}
               subtitle="EU-27 average"
             />
+            <KPICard
+              label="Std Deviation"
+              value={stdDev !== null ? stdDev.toFixed(4) : "—"}
+              subtitle="Cross-country dispersion"
+            />
+            <KPICard
+              label="Range"
+              value={range !== null ? range.toFixed(4) : "—"}
+              subtitle="Max − Min spread"
+            />
           </div>
         </section>
 
+        {/* ── Distribution Histogram ───────────────────────── */}
+        {axisScores.length > 0 && (
+          <section className="border border-border-primary bg-surface-primary p-6">
+            <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+              Score Distribution — {axis.axis_name}
+            </h2>
+            <p className="mb-3 text-xs text-text-quaternary">
+              Distribution of HHI scores across all scored EU member states for this axis.
+            </p>
+            <DistributionHistogram
+              scores={axisScores}
+              mean={meanVal}
+              height={180}
+              binCount={14}
+            />
+          </section>
+        )}
+
         {/* ── Data Sources (Channels) ──────────────────────── */}
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+        <section className="border border-border-primary bg-surface-primary p-6">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
             Data Sources &amp; Channels
           </h2>
-          <p className="mb-4 text-xs text-zinc-400">
+          <p className="mb-4 text-xs text-text-quaternary">
             This axis is computed from {axis.channels.length} data
             channel(s). Each channel represents a distinct trade-flow or
             dependency dataset.
           </p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-px bg-border-primary sm:grid-cols-2">
             {axis.channels.map((ch) => (
               <div
                 key={ch.id}
-                className="rounded border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900"
+                className="bg-surface-tertiary p-3"
               >
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <p className="text-sm font-medium text-text-secondary">
                   Ch. {ch.id}: {ch.name}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-400">{ch.source}</p>
+                <p className="mt-0.5 text-[11px] text-text-quaternary">{ch.source}</p>
               </div>
             ))}
           </div>
@@ -192,20 +236,20 @@ export default async function AxisPage({ params }: PageProps) {
 
         {/* ── Warnings / Known Limitations ─────────────────── */}
         {axis.warnings.length > 0 && (
-          <section className="rounded-lg border border-amber-200 bg-amber-50 p-6 dark:border-amber-900 dark:bg-amber-950">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+          <section className="border-l-4 border-l-severity-medium border border-border-primary bg-surface-primary p-6">
+            <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-severity-medium">
               Known Limitations &amp; Warnings
             </h2>
             <ul className="space-y-2">
               {axis.warnings.map((w) => (
-                <li key={w.id} className="text-sm text-amber-700 dark:text-amber-300">
+                <li key={w.id} className="text-sm text-text-tertiary">
                   <span
                     className={`mr-1.5 font-semibold ${
                       w.severity === "HIGH"
-                        ? "text-red-600 dark:text-red-400"
+                        ? "text-severity-high"
                         : w.severity === "MEDIUM"
-                          ? "text-orange-600 dark:text-orange-400"
-                          : "text-amber-500"
+                          ? "text-severity-medium"
+                          : "text-text-quaternary"
                     }`}
                   >
                     [{w.severity}]
@@ -217,100 +261,124 @@ export default async function AxisPage({ params }: PageProps) {
           </section>
         )}
 
-        {/* ── Distribution Bar ─────────────────────────────── */}
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
-            Score Distribution Across EU-27
-          </h2>
-          <div className="space-y-2">
-            {ranked.map((c) => (
-              <div key={c.country} className="flex items-center gap-3">
-                <Link
-                  href={countryHref(c.country)}
-                  className="w-28 shrink-0 text-xs font-medium text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
-                >
-                  {c.country_name}
-                </Link>
-                <div className="flex-1">
-                  <div className="h-4 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                    <div
-                      className={`h-full rounded-full ${
-                        c.score >= 0.5
-                          ? "bg-red-500"
-                          : c.score >= 0.25
-                            ? "bg-orange-500"
-                            : c.score >= 0.15
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                      }`}
-                      style={{ width: `${Math.min(c.score * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="w-16 shrink-0 text-right font-mono text-xs text-zinc-600 dark:text-zinc-400">
-                  {formatScore(c.score)}
-                </span>
-                <span className="w-24 shrink-0">
-                  <StatusBadge classification={c.classification} />
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* ── Country Rankings Table ────────────────────────── */}
         <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
             Country Rankings — {axis.axis_name}
           </h2>
-          <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-            <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-              <thead className="bg-zinc-50 dark:bg-zinc-900">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                    Rank
+          <div className="overflow-x-auto border border-border-primary">
+            <table className="min-w-full">
+              <thead>
+                <tr className="sticky top-0 z-10 border-b border-border-primary bg-surface-tertiary">
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                    #
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
                     Country
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
                     Score
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                    Δ Mean
+                  </th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
                     Classification
+                  </th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                    Outlier
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 bg-white dark:divide-zinc-800 dark:bg-zinc-950">
-                {ranked.map((c, i) => (
-                  <tr
-                    key={c.country}
-                    className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                  >
-                    <td className="whitespace-nowrap px-4 py-2.5 text-sm text-zinc-400">
-                      {i + 1}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2.5 text-sm">
-                      <Link
-                        href={countryHref(c.country)}
-                        className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+              <tbody>
+                {ranked.map((c, i) => {
+                  const dev =
+                    meanVal !== null ? c.score - meanVal : null;
+                  const isOutlier =
+                    outlierThreshold !== null &&
+                    meanVal !== null &&
+                    Math.abs(c.score - meanVal) > outlierThreshold;
+
+                  return (
+                    <tr
+                      key={c.country}
+                      className={`border-b border-border-subtle transition-colors hover:bg-surface-secondary ${
+                        isOutlier ? "bg-surface-tertiary" : "bg-surface-primary"
+                      }`}
+                    >
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-sm text-text-quaternary">
+                        {i + 1}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-sm">
+                        <Link
+                          href={countryHref(c.country)}
+                          className="font-medium text-text-secondary hover:text-accent"
+                        >
+                          {c.country_name}
+                        </Link>
+                        <span className="ml-1.5 text-[11px] text-text-quaternary">
+                          {c.country}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono text-sm font-semibold text-text-primary">
+                        {formatScore(c.score)}
+                      </td>
+                      <td
+                        className={`whitespace-nowrap px-4 py-2.5 text-right font-mono text-sm ${
+                          dev !== null && dev > 0
+                            ? "text-deviation-positive"
+                            : dev !== null && dev < 0
+                              ? "text-deviation-negative"
+                              : "text-text-quaternary"
+                        }`}
                       >
-                        {c.country_name}
-                      </Link>
-                      <span className="ml-1.5 text-xs text-zinc-400">
-                        {c.country}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                      {formatScore(c.score)}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2.5 text-center">
-                      <StatusBadge classification={c.classification} />
-                    </td>
-                  </tr>
-                ))}
+                        {dev !== null
+                          ? `${dev >= 0 ? "+" : ""}${dev.toFixed(4)}`
+                          : "—"}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-center">
+                        <StatusBadge classification={c.classification} />
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-center text-[11px]">
+                        {isOutlier ? (
+                          <span className="font-semibold text-severity-high">●</span>
+                        ) : (
+                          <span className="text-text-quaternary">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+          {outlierThreshold !== null && (
+            <p className="mt-2 text-[11px] text-text-quaternary">
+              ● Outlier: country score deviates &gt; 1.5σ from mean ({outlierThreshold.toFixed(4)}).
+            </p>
+          )}
+        </section>
+
+        {/* ── What This Axis Does NOT Measure ──────────────── */}
+        <section className="border border-border-primary bg-surface-primary p-6">
+          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+            Interpretive Boundaries
+          </h2>
+          <div className="space-y-2 text-sm text-text-tertiary">
+            <p>
+              This axis measures <strong className="text-text-secondary">structural concentration</strong> (HHI-based)
+              in the {axis.axis_name.toLowerCase()} domain. It does{" "}
+              <strong className="text-text-secondary">not</strong> capture:
+            </p>
+            <ul className="list-inside list-disc space-y-1 pl-2 text-text-quaternary">
+              <li>Qualitative resilience or substitutability of suppliers</li>
+              <li>Political risk or geopolitical alignment of trade partners</li>
+              <li>Temporal trends or year-over-year trajectory</li>
+              <li>Intra-EU vs. extra-EU dependency decomposition</li>
+            </ul>
+            <p className="text-[11px] text-text-quaternary">
+              High concentration ≠ high vulnerability. Contextual interpretation required.
+            </p>
           </div>
         </section>
       </main>

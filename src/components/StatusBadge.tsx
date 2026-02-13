@@ -6,13 +6,13 @@ interface StatusBadgeProps {
 
 const BADGE_STYLES: Record<ScoreClassification, string> = {
   highly_concentrated:
-    "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+    "border-band-highly/30 text-band-highly bg-band-highly/5",
   moderately_concentrated:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    "border-band-moderately/30 text-band-moderately bg-band-moderately/5",
   mildly_concentrated:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    "border-band-mildly/30 text-band-mildly bg-band-mildly/5",
   unconcentrated:
-    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    "border-band-unconcentrated/30 text-band-unconcentrated bg-band-unconcentrated/5",
 };
 
 const LABELS: Record<ScoreClassification, string> = {
@@ -25,7 +25,7 @@ const LABELS: Record<ScoreClassification, string> = {
 export function StatusBadge({ classification }: StatusBadgeProps) {
   if (!classification) {
     return (
-      <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+      <span className="inline-flex items-center border border-border-primary px-2 py-0.5 text-[11px] font-medium text-text-quaternary">
         N/A
       </span>
     );
@@ -33,7 +33,7 @@ export function StatusBadge({ classification }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${BADGE_STYLES[classification]}`}
+      className={`inline-flex items-center border px-2 py-0.5 text-[11px] font-medium ${BADGE_STYLES[classification]}`}
     >
       {LABELS[classification]}
     </span>

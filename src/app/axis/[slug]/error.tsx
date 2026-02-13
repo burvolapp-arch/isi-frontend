@@ -10,24 +10,24 @@ export default function AxisError({
   reset: () => void;
 }) {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-surface-secondary">
       <main className="mx-auto max-w-3xl px-6 py-16">
         <Link
           href="/"
-          className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+          className="text-sm text-text-tertiary hover:text-text-primary"
         >
           ← Back to Overview
         </Link>
-        <div className="mt-6 rounded-lg border-2 border-red-300 bg-red-50 p-8 text-center dark:border-red-800 dark:bg-red-950">
-          <h2 className="text-xl font-bold text-red-800 dark:text-red-200">
+        <div className="mt-6 border-l-4 border-l-severity-high border border-border-primary bg-surface-primary p-8 text-center">
+          <h2 className="text-xl font-bold text-text-primary">
             Failed to load axis
           </h2>
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+          <p className="mt-2 text-sm text-text-tertiary">
             {error.message}
           </p>
           <button
             onClick={reset}
-            className="mt-4 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="mt-4 border border-border-primary bg-surface-inverse px-4 py-2 text-sm font-medium text-text-inverse hover:opacity-90"
           >
             Try again
           </button>
