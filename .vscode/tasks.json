@@ -230,6 +230,51 @@
 			"label": "Git status",
 			"type": "shell",
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && rm -f src/lint-output.txt src/build-output.txt && git add -A && git status"
+		},
+		{
+			"label": "git-commit-redesign",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git commit -m 'feat: redesign into research-grade analytical platform\n\n- Add 4-layer architecture: Executive Overview, Country Deep Dive, Axis Deep Dive, Transparency Layer\n- Replace Panargus branding with International Sovereignty Institute / ISI\n- Add interactive CountryRankingsTable with sorting, filtering, search, tooltips, expand-row, deviation highlighting\n- Add format.ts utility module (formatScore, computePercentile, deviationFromMean, classificationLabel)\n- Redesign root layout with global nav (Overview, Methodology, Transparency, FAQ) and institutional footer\n- Rebuild Executive Overview with KPIs, distribution bar, interpretation guide, scope/limitations\n- Redesign country detail with percentile, strengths/vulnerabilities, axis contribution breakdown\n- Add axis deep dive page (/axis/[slug]) with cross-EU statistics and score distribution\n- Add static pages: /methodology, /transparency, /faq\n- Add loading skeletons, error boundaries, and 404 page for all routes\n- All data from backend API. Zero business logic in frontend.' 2>&1"
+		},
+		{
+			"label": "git-log-verify",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline -3 2>&1"
+		},
+		{
+			"label": "git-log-full",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline -3 > /tmp/gitlog.txt 2>&1 && cat /tmp/gitlog.txt"
+		},
+		{
+			"label": "git-status-check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline -5 2>&1 | head -10 && echo '---' && git status --short 2>&1 | head -20"
+		},
+		{
+			"label": "verify-commit",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline -5 > /tmp/gl.txt && cat /tmp/gl.txt && echo '---STATUS---' && git status --short"
+		},
+		{
+			"label": "full-log",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git log --oneline > /tmp/gl2.txt 2>&1 && cat /tmp/gl2.txt"
+		},
+		{
+			"label": "check-staged",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git add -A && git diff --cached --stat | wc -l"
+		},
+		{
+			"label": "count-commits",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git rev-list --count HEAD"
+		},
+		{
+			"label": "git-push-redesign",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && git push origin main 2>&1; echo PUSH_EXIT:$?"
 		}
 	]
 }
