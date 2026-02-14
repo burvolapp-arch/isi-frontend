@@ -326,7 +326,7 @@ export default function ComparePage() {
             </section>
 
             {/* ── Radar Overlay ──────────────────────────────── */}
-            <section className="mt-12 rounded-md border border-border-primary p-6">
+            <section className="mt-12 rounded-md border border-border-primary p-4 sm:p-6">
               <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
                 Multi-Axis Profile Overlay
               </h2>

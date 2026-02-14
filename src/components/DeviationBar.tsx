@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 /**
  * Horizontal deviation bar centered at zero.
  * Visual reference: IMF Article IV consultation charts.
@@ -15,7 +17,7 @@ interface DeviationBarProps {
   href?: string;
 }
 
-export function DeviationBar({
+export const DeviationBar = memo(function DeviationBar({
   label,
   score,
   mean,
@@ -24,12 +26,12 @@ export function DeviationBar({
 }: DeviationBarProps) {
   if (score === null || mean === null) {
     return (
-      <div className="flex items-center gap-3 border-b border-border-subtle py-2">
-        <span className="w-32 shrink-0 text-[14px] text-text-tertiary">
+      <div className="flex flex-col gap-1 border-b border-border-subtle py-2.5 md:flex-row md:items-center md:gap-3">
+        <span className="shrink-0 text-[14px] text-text-tertiary md:w-32">
           {label}
         </span>
         <div className="h-5 flex-1 bg-surface-tertiary" />
-        <span className="w-16 shrink-0 text-right font-mono text-[13px] text-text-quaternary">
+        <span className="w-16 shrink-0 text-right font-mono text-[13px] tabular-nums text-text-quaternary">
           —
         </span>
       </div>
@@ -44,10 +46,10 @@ export function DeviationBar({
   const LabelTag = href ? "a" : "span";
 
   return (
-    <div className="flex items-center gap-3 border-b border-border-subtle py-2">
+    <div className="flex flex-col gap-1 border-b border-border-subtle py-2.5 md:flex-row md:items-center md:gap-3">
       <LabelTag
         {...(href ? { href } : {})}
-        className={`w-32 shrink-0 text-[14px] font-medium ${
+        className={`min-h-[44px] shrink-0 text-[14px] font-medium leading-tight md:min-h-0 md:w-32 flex items-center ${
           href
             ? "text-text-secondary hover:text-navy-700"
             : "text-text-secondary"
@@ -70,20 +72,24 @@ export function DeviationBar({
           }
         />
       </div>
-      <span className="w-16 shrink-0 text-right font-mono text-[13px] text-text-secondary">
-        {score.toFixed(4)}
-      </span>
-      <span
-        className={`w-16 shrink-0 text-right font-mono text-[12px] ${
-          isAbove ? "text-deviation-positive" : "text-deviation-negative"
-        }`}
-      >
-        {dev >= 0 ? "+" : ""}
-        {dev.toFixed(4)}
-      </span>
+      <div className="flex items-center justify-end gap-3 md:contents">
+        <span className="w-16 shrink-0 text-right font-mono text-[13px] tabular-nums text-text-secondary">
+          {score.toFixed(4)}
+        </span>
+        <span
+          className={`w-16 shrink-0 text-right font-mono text-[12px] tabular-nums ${
+            isAbove ? "text-deviation-positive" : "text-deviation-negative"
+          }`}
+        >
+          {dev >= 0 ? "+" : ""}
+          {dev.toFixed(4)}
+        </span>
+      </div>
     </div>
   );
-}
+});
+
+DeviationBar.displayName = "DeviationBar";
 
 /**
  * A full deviation bar chart for multiple axes.
@@ -98,15 +104,15 @@ interface DeviationBarChartProps {
   maxDev?: number;
 }
 
-export function DeviationBarChart({
+export const DeviationBarChart = memo(function DeviationBarChart({
   items,
   mean,
   maxDev = 0.3,
 }: DeviationBarChartProps) {
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center gap-3 border-b border-border-primary py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+      {/* Header — hidden on mobile, visible on md+ */}
+      <div className="hidden border-b border-border-primary py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary md:flex md:items-center md:gap-3">
         <span className="w-32 shrink-0">Axis</span>
         <div className="flex flex-1 justify-between px-1">
           <span>−{maxDev.toFixed(2)}</span>
@@ -128,4 +134,6 @@ export function DeviationBarChart({
       ))}
     </div>
   );
-}
+});
+
+DeviationBarChart.displayName = "DeviationBarChart";

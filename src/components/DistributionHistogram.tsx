@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 /**
  * SVG-based histogram for composite score distribution.
  * Visual reference: OECD Economic Outlook statistical annexes.
@@ -17,7 +19,7 @@ interface DistributionHistogramProps {
   highlightLabel?: string;
 }
 
-export function DistributionHistogram({
+export const DistributionHistogram = memo(function DistributionHistogram({
   scores,
   mean,
   median,
@@ -274,4 +276,6 @@ export function DistributionHistogram({
       ))}
     </svg>
   );
-}
+});
+
+DistributionHistogram.displayName = "DistributionHistogram";

@@ -182,7 +182,7 @@ export default async function CountryPage({ params }: PageProps) {
             <p className="mt-1.5 text-[14px] text-text-tertiary">
               {country.country_name}&apos;s composite score relative to all EU-27 member states.
             </p>
-            <div className="mt-6 rounded-md border border-border-primary p-6">
+            <div className="mt-6 rounded-md border border-border-primary p-4 sm:p-6">
             <DistributionHistogram
               scores={allScores}
               mean={compositeMean}
@@ -196,9 +196,9 @@ export default async function CountryPage({ params }: PageProps) {
         )}
 
         {/* ── Radar + Deviation Side-by-Side ───────────────── */}
-        <section className="mt-14 grid gap-4 lg:grid-cols-2">
+        <section className="mt-14 grid gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
-          <div className="rounded-md border border-border-primary p-6">
+          <div className="rounded-md border border-border-primary p-4 sm:p-6">
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Multi-Axis Profile
             </h2>
@@ -210,7 +210,7 @@ export default async function CountryPage({ params }: PageProps) {
           </div>
 
           {/* Deviation Bars */}
-          <div className="rounded-md border border-border-primary p-6">
+          <div className="rounded-md border border-border-primary p-4 sm:p-6">
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Deviation from EU-27 Mean
             </h2>
@@ -227,8 +227,8 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Strengths & Vulnerabilities ───────────────────── */}
         {scoredAxes.length >= 2 && (
-          <section className="mt-12 grid gap-3 md:grid-cols-2">
-            <div className="border-l-2 border-l-deviation-negative rounded-md border border-border-primary p-5">
+          <section className="mt-12 grid gap-4 md:grid-cols-2">
+            <div className="border-l-2 border-l-deviation-negative rounded-md border border-border-primary p-4 sm:p-5">
               <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-deviation-negative">
                 Most Diversified Axes (Lowest HHI)
               </h3>
@@ -248,7 +248,7 @@ export default async function CountryPage({ params }: PageProps) {
                 ))}
               </div>
             </div>
-            <div className="border-l-2 border-l-deviation-positive rounded-md border border-border-primary p-5">
+            <div className="border-l-2 border-l-deviation-positive rounded-md border border-border-primary p-4 sm:p-5">
               <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-deviation-positive">
                 Most Concentrated Axes (Highest HHI)
               </h3>

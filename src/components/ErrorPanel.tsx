@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 interface ErrorPanelProps {
   title: string;
   message: string;
@@ -7,7 +9,7 @@ interface ErrorPanelProps {
   status?: number;
 }
 
-export function ErrorPanel({ title, message, endpoint, status }: ErrorPanelProps) {
+export const ErrorPanel = memo(function ErrorPanel({ title, message, endpoint, status }: ErrorPanelProps) {
   return (
     <div className="rounded-md border border-border-primary bg-surface-tertiary px-5 py-4">
       <div className="flex items-start gap-3">
@@ -43,4 +45,6 @@ export function ErrorPanel({ title, message, endpoint, status }: ErrorPanelProps
       </div>
     </div>
   );
-}
+});
+
+ErrorPanel.displayName = "ErrorPanel";

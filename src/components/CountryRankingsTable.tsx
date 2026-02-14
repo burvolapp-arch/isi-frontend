@@ -175,13 +175,13 @@ export function CountryRankingsTable({
     <div>
       {/* Controls Bar */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <input
             type="text"
             placeholder="Search country…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-primary placeholder-text-quaternary outline-none focus:border-navy-700"
+            className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-primary placeholder-text-quaternary outline-none focus:border-navy-700 sm:min-h-0"
           />
           <select
             value={classFilter}
@@ -190,7 +190,7 @@ export function CountryRankingsTable({
                 e.target.value as ScoreClassification | "all"
               )
             }
-            className="border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-secondary outline-none focus:border-navy-700"
+            className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-secondary outline-none focus:border-navy-700 sm:min-h-0"
           >
             <option value="all">All classifications</option>
             {CLASSIFICATION_OPTIONS.map((c) => (
@@ -211,14 +211,14 @@ export function CountryRankingsTable({
           <thead>
             <tr className="border-b-2 border-navy-900">
               <th
-                className={`${thBase} w-12 text-center`}
+                className={`${thBase} sticky left-0 z-10 w-12 bg-white text-center`}
                 onClick={() => handleSort("rank")}
               >
                 #
                 {sortIndicator("rank")}
               </th>
               <th
-                className={`${thBase} text-left`}
+                className={`${thBase} sticky left-12 z-10 bg-white text-left`}
                 onClick={() => handleSort("country_name")}
               >
                 Country
@@ -366,10 +366,10 @@ function TableRow({
     <>
       <tr className={`border-b border-border-subtle hover:bg-surface-tertiary transition-colors ${zebraClass} ${borderIndicator}`}>
         {/* Rank */}
-        <td className="whitespace-nowrap px-3 py-2.5 text-center text-[13px] text-text-quaternary">
+        <td className={`sticky left-0 z-10 whitespace-nowrap px-3 py-2.5 text-center text-[13px] text-text-quaternary ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-white"}`}>
           <button
             onClick={onToggle}
-            className="inline-flex items-center gap-1.5 text-text-quaternary hover:text-text-primary transition-colors"
+            className="inline-flex min-h-[44px] items-center gap-1.5 text-text-quaternary hover:text-text-primary transition-colors sm:min-h-0"
             aria-label={isExpanded ? "Collapse row" : "Expand row"}
           >
             <svg
@@ -390,7 +390,7 @@ function TableRow({
         </td>
 
         {/* Country */}
-        <td className="whitespace-nowrap px-3 py-2.5 text-[14px]">
+        <td className={`sticky left-12 z-10 whitespace-nowrap px-3 py-2.5 text-[14px] ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-white"}`}>
           <Link
             href={countryHref(c.country)}
             className="font-medium text-text-primary hover:text-navy-700 transition-colors"
