@@ -94,6 +94,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          id="ms-clarity"
+          strategy="afterInteractive"
+        >
+          {`(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "vhg0bs7xjn");`}
+        </Script>
+      </head>
       <body
         className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`}
       >
@@ -111,15 +123,6 @@ export default function RootLayout({
             }),
           }}
         />
-        {process.env.NODE_ENV === "production" && (
-          <Script
-            id="microsoft-clarity"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "vhg0bs7xjn");`,
-            }}
-          />
-        )}
         {/* ── Institutional Header ───────────────────────── */}
         <header className="sticky top-0 z-50 bg-navy-900">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
