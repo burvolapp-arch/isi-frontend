@@ -24,12 +24,58 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://isi.internationalsovereignty.org"),
   title: {
-    default: "ISI — International Sovereignty Index",
+    default: "International Sovereignty Index (ISI)",
     template: "%s — ISI",
   },
   description:
-    "International Sovereignty Index — Measuring external dependency concentration across EU-27 member states.",
+    "Measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      { rel: "android-chrome", url: "/android-chrome-192x192.png" },
+      { rel: "android-chrome", url: "/android-chrome-512x512.png" },
+    ],
+  },
+  openGraph: {
+    title: "International Sovereignty Index (ISI)",
+    description:
+      "Measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+    url: "https://isi.internationalsovereignty.org",
+    siteName: "International Sovereignty Index",
+    images: [
+      {
+        url: "/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute Emblem",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "International Sovereignty Index (ISI)",
+    description:
+      "Measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+    images: ["/android-chrome-512x512.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const NAV_ITEMS = [
@@ -50,6 +96,20 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "International Sovereignty Institute",
+              url: "https://isi.internationalsovereignty.org",
+              logo: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+              description:
+                "Independent research initiative measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+            }),
+          }}
+        />
         {/* ── Institutional Header ───────────────────────── */}
         <header className="sticky top-0 z-50 bg-navy-900">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
