@@ -8,7 +8,7 @@ import { DistributionHistogram } from "@/components/DistributionHistogram";
 import { formatScore, countryHref, computeStdDev } from "@/lib/format";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // ISR: rebuild at most every 5 minutes
 
 interface PageProps {
   params: Promise<{ slug: string }>;

@@ -20,7 +20,7 @@ import type {
   Warning,
 } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // ISR: rebuild at most every 5 minutes
 
 interface PageProps {
   params: Promise<{ code: string }>;

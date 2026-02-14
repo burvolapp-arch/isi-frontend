@@ -14,7 +14,7 @@ import {
   axisHref,
 } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // ISR: rebuild at most every 5 minutes
 
 export default async function ExecutiveOverviewPage() {
   let isiError: { message: string; endpoint: string; status?: number } | null =

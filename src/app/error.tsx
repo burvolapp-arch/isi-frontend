@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 
 export default function RootError({
@@ -9,6 +10,9 @@ export default function RootError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("[ISI] Unhandled error:", error.digest ?? error.message);
+  }, [error]);
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-[1400px] px-6 py-20 text-center lg:px-16">

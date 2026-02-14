@@ -3,16 +3,16 @@
 // ============================================================================
 // Uses NEXT_PUBLIC_API_URL environment variable.
 // Throws on non-200 responses. Returns typed data. No `any`.
+//
+// Caching strategy:
+//   Server-side fetches use next.revalidate=300 (5 min ISR).
+//   Data changes infrequently (backend re-materializes on schedule).
+//   This eliminates per-request round-trips while staying fresh.
 // ============================================================================
 
 import type {
-  Meta,
-  Health,
-  CountrySummary,
   ISIComposite,
   CountryDetail,
-  CountryAxesSummary,
-  CountryAxisResponse,
   AxisRegistryEntry,
   AxisDetail,
 } from "./types";
@@ -47,7 +47,7 @@ async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(url, {
     method: "GET",
     headers: { Accept: "application/json" },
-    cache: "no-store", // SSR: always fresh from backend
+    next: { revalidate: 300 },
   });
 
   if (!res.ok) {
@@ -60,21 +60,6 @@ async function fetchJson<T>(path: string): Promise<T> {
 
 // ─── Endpoint wrappers ──────────────────────────────────────────────
 
-/** GET / — API metadata */
-export function fetchMeta(): Promise<Meta> {
-  return fetchJson<Meta>("/");
-}
-
-/** GET /health — Backend health check */
-export function fetchHealth(): Promise<Health> {
-  return fetchJson<Health>("/health");
-}
-
-/** GET /countries — All EU-27 countries with summary scores */
-export function fetchCountries(): Promise<CountrySummary[]> {
-  return fetchJson<CountrySummary[]>("/countries");
-}
-
 /** GET /isi — Composite ISI scores for all countries */
 export function fetchISI(): Promise<ISIComposite> {
   return fetchJson<ISIComposite>("/isi");
@@ -83,23 +68,6 @@ export function fetchISI(): Promise<ISIComposite> {
 /** GET /country/{code} — Full country detail */
 export function fetchCountry(code: string): Promise<CountryDetail> {
   return fetchJson<CountryDetail>(`/country/${encodeURIComponent(code)}`);
-}
-
-/** GET /country/{code}/axes — All axis scores for one country */
-export function fetchCountryAxes(code: string): Promise<CountryAxesSummary> {
-  return fetchJson<CountryAxesSummary>(
-    `/country/${encodeURIComponent(code)}/axes`
-  );
-}
-
-/** GET /country/{code}/axis/{axis_id} — Single axis for one country */
-export function fetchCountryAxis(
-  code: string,
-  axisId: number
-): Promise<CountryAxisResponse> {
-  return fetchJson<CountryAxisResponse>(
-    `/country/${encodeURIComponent(code)}/axis/${axisId}`
-  );
 }
 
 /** GET /axes — Axis registry */

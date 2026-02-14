@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 
 export default function AxisError({
@@ -9,6 +10,9 @@ export default function AxisError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("[ISI] Axis error:", error.digest ?? error.message);
+  }, [error]);
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">

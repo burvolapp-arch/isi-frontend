@@ -14,6 +14,23 @@ import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+// ── Client-side fetch dedup ────────────────────────────────────────
+// Prevents duplicate /isi fetches on StrictMode double-mount or
+// rapid re-renders. Cache lives for the page session only.
+let _isiCache: { data: ISIComposite; ts: number } | null = null;
+const ISI_CACHE_TTL = 60_000; // 60 seconds
+
+async function fetchISIOnce(): Promise<ISIComposite> {
+  if (_isiCache && Date.now() - _isiCache.ts < ISI_CACHE_TTL) {
+    return _isiCache.data;
+  }
+  const r = await fetch(`${API}/isi`);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const d: ISIComposite = await r.json();
+  _isiCache = { data: d, ts: Date.now() };
+  return d;
+}
+
 export default function ComparePage() {
   const [data, setData] = useState<ISIComposite | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,12 +38,8 @@ export default function ComparePage() {
   const [codeB, setCodeB] = useState("");
 
   useEffect(() => {
-    fetch(`${API}/isi`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d: ISIComposite) => setData(d))
+    fetchISIOnce()
+      .then((d) => setData(d))
       .catch((e) => setError(e.message));
   }, []);
 
