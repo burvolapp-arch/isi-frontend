@@ -55,14 +55,14 @@ export default async function CountryPage({ params }: PageProps) {
   if (error || !country) {
     return (
       <div className="min-h-screen bg-surface-secondary">
-        <main className="mx-auto max-w-7xl px-6 py-8">
+        <main className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <div className="mt-4">
+          <div className="mt-6">
             <ErrorPanel
               title={`Failed to load country ${upperCode}`}
               message={error?.message ?? "Unknown error"}
@@ -111,45 +111,45 @@ export default async function CountryPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
+      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
         {/* ── Breadcrumb ────────────────────────────────────── */}
-        <div>
+        <div className="pt-12">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
         </div>
 
         {/* ── Country Header ────────────────────────────────── */}
-        <section>
+        <section className="mt-8">
           <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            <h1 className="font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
               {country.country_name}
             </h1>
-            <span className="font-mono text-sm text-text-quaternary">
+            <span className="font-mono text-[15px] text-text-quaternary">
               {country.country}
             </span>
           </div>
-          <p className="mt-1 text-sm text-text-tertiary">
+          <p className="mt-3 text-[15px] text-text-tertiary">
             {country.version} · {country.window} ·{" "}
             {country.axes_available}/{country.axes_required} axes available
           </p>
         </section>
 
         {/* ── Composite KPI Row ─────────────────────────────── */}
-        <section>
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+        <section className="mt-16">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Composite Score
           </h2>
-          <div className="grid grid-cols-2 gap-px bg-border-primary sm:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <KPICard
               label="ISI Composite"
               value={formatScore(country.isi_composite)}
               variant="highlight"
             />
-            <div className="flex items-center border border-border-primary bg-surface-primary px-5">
+            <div className="flex items-center bg-surface-tertiary/60 px-6">
               <StatusBadge classification={country.isi_classification} />
             </div>
             <KPICard
@@ -175,13 +175,14 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Distribution Context (where does this country sit?) ── */}
         {allScores.length > 0 && country.isi_composite !== null && (
-          <section className="border border-border-primary bg-surface-primary p-6">
-            <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+          <section className="mt-16">
+            <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
               Position in EU-27 Distribution
             </h2>
-            <p className="mb-3 text-xs text-text-quaternary">
+            <p className="mt-2 text-[15px] text-text-tertiary">
               {country.country_name}&apos;s composite score relative to all EU-27 member states.
             </p>
+            <div className="mt-8 bg-surface-primary p-8">
             <DistributionHistogram
               scores={allScores}
               mean={compositeMean}
@@ -190,14 +191,15 @@ export default async function CountryPage({ params }: PageProps) {
               height={160}
               binCount={16}
             />
+            </div>
           </section>
         )}
 
         {/* ── Radar + Deviation Side-by-Side ───────────────── */}
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="mt-20 grid gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
-          <div className="border border-border-primary bg-surface-primary p-6">
-            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+          <div className="bg-surface-primary p-8">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Multi-Axis Profile
             </h2>
             <RadarChart
@@ -208,11 +210,11 @@ export default async function CountryPage({ params }: PageProps) {
           </div>
 
           {/* Deviation Bars */}
-          <div className="border border-border-primary bg-surface-primary p-6">
-            <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+          <div className="bg-surface-primary p-8">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Deviation from EU-27 Mean
             </h2>
-            <p className="mb-3 text-[11px] text-text-quaternary">
+            <p className="mt-3 mb-4 text-[13px] text-text-quaternary">
               Bars show deviation from the EU-27 composite mean ({formatScore(compositeMean)}).
               Red = above mean (more concentrated). Green = below mean (more diversified).
             </p>
@@ -225,41 +227,41 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Strengths & Vulnerabilities ───────────────────── */}
         {scoredAxes.length >= 2 && (
-          <section className="grid gap-px bg-border-primary md:grid-cols-2">
-            <div className="border-l-4 border-l-deviation-negative bg-surface-primary p-5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-deviation-negative">
+          <section className="mt-16 grid gap-3 md:grid-cols-2">
+            <div className="border-l-2 border-l-deviation-negative bg-surface-tertiary/60 p-6">
+              <h3 className="text-[11px] font-medium uppercase tracking-[0.14em] text-deviation-negative">
                 Most Diversified Axes (Lowest HHI)
               </h3>
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2">
                 {strengths.map((a) => (
                   <div key={a.axis_id} className="flex items-center justify-between">
                     <Link
                       href={axisHref(a.axis_slug)}
-                      className="text-sm font-medium text-text-secondary hover:text-accent"
+                      className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
                     >
                       {a.axis_name}
                     </Link>
-                    <span className="font-mono text-sm text-deviation-negative">
+                    <span className="font-mono text-[14px] text-deviation-negative">
                       {formatScore(a.score)}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="border-l-4 border-l-deviation-positive bg-surface-primary p-5">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-deviation-positive">
+            <div className="border-l-2 border-l-deviation-positive bg-surface-tertiary/60 p-6">
+              <h3 className="text-[11px] font-medium uppercase tracking-[0.14em] text-deviation-positive">
                 Most Concentrated Axes (Highest HHI)
               </h3>
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2">
                 {vulnerabilities.map((a) => (
                   <div key={a.axis_id} className="flex items-center justify-between">
                     <Link
                       href={axisHref(a.axis_slug)}
-                      className="text-sm font-medium text-text-secondary hover:text-accent"
+                      className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
                     >
                       {a.axis_name}
                     </Link>
-                    <span className="font-mono text-sm text-deviation-positive">
+                    <span className="font-mono text-[14px] text-deviation-positive">
                       {formatScore(a.score)}
                     </span>
                   </div>
@@ -270,9 +272,11 @@ export default async function CountryPage({ params }: PageProps) {
         )}
 
         {/* ── Per-Axis Details ──────────────────────────────── */}
+        <div className="mt-20 mb-24 space-y-4">
         {country.axes.map((axis) => (
           <AxisSection key={axis.axis_id} axis={axis} />
         ))}
+        </div>
       </main>
     </div>
   );
@@ -282,17 +286,17 @@ export default async function CountryPage({ params }: PageProps) {
 
 function AxisSection({ axis }: { axis: CountryAxisDetail }) {
   return (
-    <section className="border border-border-primary bg-surface-primary">
-      <div className="border-b border-border-primary px-5 py-4">
+    <section className="mt-10 bg-surface-primary">
+      <div className="border-b border-border-subtle px-6 py-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Axis {axis.axis_id} — {axis.axis_slug}
             </p>
-            <h3 className="mt-1 text-base font-semibold text-text-primary">
+            <h3 className="mt-1 font-serif text-[17px] font-semibold text-text-primary">
               <Link
                 href={axisHref(axis.axis_slug)}
-                className="hover:text-accent"
+                className="hover:text-navy-700"
               >
                 {axis.axis_name}
               </Link>
@@ -310,18 +314,18 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         </p>
       </div>
 
-      <div className="px-5 py-4 space-y-4">
+      <div className="px-6 py-5 space-y-5">
         {/* Audit breakdown */}
         {axis.audit && (
           <div>
-            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Audit Breakdown
             </h4>
-            <div className="mt-2 grid grid-cols-2 gap-px bg-border-primary sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {Object.entries(axis.audit).map(([key, val]) => (
                 <div
                   key={key}
-                  className="bg-surface-tertiary p-2"
+                  className="bg-surface-tertiary/60 p-3"
                 >
                   <p className="text-[11px] text-text-quaternary">
                     {key.replace(/_/g, " ")}
@@ -338,7 +342,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         {/* Channels with partners */}
         {axis.channels && axis.channels.length > 0 && (
           <div>
-            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Channels
             </h4>
             <div className="mt-2 space-y-3">
@@ -352,14 +356,14 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         {/* Fuel concentrations (axis-specific) */}
         {axis.fuel_concentrations && (
           <div>
-            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Fuel Concentrations
             </h4>
-            <div className="mt-2 grid grid-cols-3 gap-px bg-border-primary">
+            <div className="mt-3 grid grid-cols-3 gap-2">
               {Object.entries(axis.fuel_concentrations).map(([fuel, hhi]) => (
                 <div
                   key={fuel}
-                  className="bg-surface-tertiary p-2"
+                  className="bg-surface-tertiary/60 p-3"
                 >
                   <p className="text-[11px] capitalize text-text-quaternary">
                     {fuel.replace(/_/g, " ")}
@@ -376,7 +380,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         {/* Warnings */}
         {axis.warnings.length > 0 && (
           <div>
-            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Warnings
             </h4>
             <ul className="mt-2 space-y-1">
@@ -411,7 +415,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
 
 function ChannelBlock({ channel }: { channel: ChannelDetail }) {
   return (
-    <div className="border border-border-primary bg-surface-tertiary p-3">
+    <div className="bg-surface-tertiary/60 p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-medium text-text-secondary">
           Ch. {channel.channel_id}: {channel.channel_name}
@@ -438,9 +442,9 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                   {p.partner}
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-24 overflow-hidden bg-border-primary">
+                  <div className="h-1.5 w-24 overflow-hidden bg-stone-200">
                     <div
-                      className="h-full bg-accent"
+                      className="h-full bg-navy-700"
                       style={{ width: `${(p.share * 100).toFixed(1)}%` }}
                     />
                   </div>

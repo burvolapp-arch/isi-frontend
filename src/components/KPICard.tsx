@@ -11,23 +11,20 @@ export function KPICard({
   subtitle,
   variant = "default",
 }: KPICardProps) {
-  const borderColor =
-    variant === "highlight"
-      ? "border-accent/20"
-      : "border-border-primary";
-
   return (
     <div
-      className={`border ${borderColor} bg-surface-primary p-5 dark:bg-surface-primary`}
+      className={`bg-surface-tertiary/60 px-6 py-5 ${
+        variant === "highlight" ? "border-l-2 border-accent" : ""
+      }`}
     >
-      <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
+      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-text-primary">
+      <p className="mt-1.5 font-mono text-[28px] font-medium leading-none tracking-tight text-text-primary">
         {value}
       </p>
       {subtitle && (
-        <p className="mt-1 text-xs text-text-quaternary">
+        <p className="mt-2 text-[13px] text-text-tertiary">
           {subtitle}
         </p>
       )}

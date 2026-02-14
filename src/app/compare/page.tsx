@@ -106,7 +106,7 @@ export default function ComparePage() {
   if (error) {
     return (
       <div className="min-h-screen bg-surface-secondary">
-        <main className="mx-auto max-w-7xl px-6 py-10">
+        <main className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
           <ErrorPanel
             title="Failed to load ISI data"
             message={error}
@@ -120,10 +120,10 @@ export default function ComparePage() {
   if (!data) {
     return (
       <div className="min-h-screen bg-surface-secondary">
-        <main className="mx-auto max-w-7xl px-6 py-10">
+        <main className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
           <div className="animate-pulse space-y-4">
-            <div className="h-6 w-48 bg-border-primary" />
-            <div className="h-64 bg-border-primary" />
+            <div className="h-6 w-48 bg-surface-tertiary" />
+            <div className="h-64 bg-surface-tertiary" />
           </div>
         </main>
       </div>
@@ -134,28 +134,28 @@ export default function ComparePage() {
 
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
-        {/* ── Header ───────────────────────────────────────── */}
-        <section>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
+        {/* ── Header ─────────────────────────────────────────── */}
+        <section className="pt-12">
+          <h1 className="font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
             Comparative Analysis
           </h1>
-          <p className="mt-1 text-sm text-text-tertiary">
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-text-tertiary">
             Select two EU member states to compare their ISI profiles
             side-by-side.
           </p>
         </section>
 
         {/* ── Country Selectors ─────────────────────────────── */}
-        <section className="grid gap-6 sm:grid-cols-2">
+        <section className="mt-10 grid gap-6 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Country A
             </label>
             <select
               value={codeA}
               onChange={(e) => setCodeA(e.target.value)}
-              className="w-full border border-border-primary bg-surface-primary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+              className="w-full border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none"
             >
               <option value="">— Select —</option>
               {countries.map((c) => (
@@ -166,13 +166,13 @@ export default function ComparePage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Country B
             </label>
             <select
               value={codeB}
               onChange={(e) => setCodeB(e.target.value)}
-              className="w-full border border-border-primary bg-surface-primary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+              className="w-full border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none"
             >
               <option value="">— Select —</option>
               {countries.map((c) => (
@@ -185,7 +185,7 @@ export default function ComparePage() {
         </section>
 
         {codeA === codeB && codeA !== "" && (
-          <p className="text-sm text-severity-medium">
+          <p className="mt-4 text-[14px] text-severity-medium">
             Select two different countries for comparison.
           </p>
         )}
@@ -193,26 +193,26 @@ export default function ComparePage() {
         {ready && countryA && countryB && (
           <>
             {/* ── Composite Comparison KPIs ──────────────────── */}
-            <section className="border border-border-primary bg-surface-primary">
-              <div className="border-b border-border-primary px-5 py-3">
-                <h2 className="text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <section className="mt-16 bg-surface-primary">
+              <div className="px-5 py-4">
+                <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
                   Composite Comparison
                 </h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
+                <table className="min-w-full text-[14px]">
                   <thead>
-                    <tr className="border-b border-border-primary bg-surface-tertiary text-[11px] uppercase tracking-wider text-text-quaternary">
-                      <th className="px-4 py-3 text-left font-semibold">
+                    <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                      <th className="px-4 py-3 text-left font-medium">
                         Metric
                       </th>
-                      <th className="px-4 py-3 text-right font-semibold">
+                      <th className="px-4 py-3 text-right font-medium">
                         {countryA.country_name}
                       </th>
-                      <th className="px-4 py-3 text-right font-semibold">
+                      <th className="px-4 py-3 text-right font-medium">
                         {countryB.country_name}
                       </th>
-                      <th className="px-4 py-3 text-right font-semibold">
+                      <th className="px-4 py-3 text-right font-medium">
                         Delta (A − B)
                       </th>
                     </tr>
@@ -313,42 +313,44 @@ export default function ComparePage() {
             </section>
 
             {/* ── Radar Overlay ──────────────────────────────── */}
-            <section className="border border-border-primary bg-surface-primary p-6">
-              <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <section className="mt-16 bg-surface-primary p-8">
+              <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
                 Multi-Axis Profile Overlay
               </h2>
+              <div className="mt-6">
               <RadarChart
                 axes={radarAxesA}
                 compareAxes={radarAxesB}
                 compareLabel={countryB.country_name}
                 label={countryA.country_name}
               />
+              </div>
             </section>
 
             {/* ── Per-Axis Delta Table ───────────────────────── */}
-            <section className="border border-border-primary bg-surface-primary">
-              <div className="border-b border-border-primary px-5 py-3">
-                <h2 className="text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+            <section className="mt-16 bg-surface-primary">
+              <div className="px-5 py-4">
+                <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
                   Axis-by-Axis Comparison
                 </h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
+                <table className="min-w-full text-[14px]">
                   <thead>
-                    <tr className="border-b border-border-primary bg-surface-tertiary text-[11px] uppercase tracking-wider text-text-quaternary">
-                      <th className="px-4 py-3 text-left font-semibold">
+                    <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                      <th className="px-4 py-3 text-left font-medium">
                         Axis
                       </th>
-                      <th className="px-4 py-3 text-right font-semibold">
+                      <th className="px-4 py-3 text-right font-medium">
                         {countryA.country_name}
                       </th>
-                      <th className="px-4 py-3 text-right font-semibold">
+                      <th className="px-4 py-3 text-right font-medium">
                         {countryB.country_name}
                       </th>
-                      <th className="px-4 py-3 text-right font-semibold">
+                      <th className="px-4 py-3 text-right font-medium">
                         Delta
                       </th>
-                      <th className="px-4 py-3 text-center font-semibold">
+                      <th className="px-4 py-3 text-center font-medium">
                         More Concentrated
                       </th>
                     </tr>
@@ -372,7 +374,7 @@ export default function ComparePage() {
                       return (
                         <tr
                           key={k}
-                          className="border-b border-border-subtle hover:bg-surface-secondary"
+                          className="border-b border-border-subtle transition-colors hover:bg-stone-100/60"
                         >
                           <td className="px-4 py-2.5 text-text-secondary">
                             {name}
@@ -422,17 +424,15 @@ export default function ComparePage() {
             </section>
 
             {/* ── Deep Dive Links ────────────────────────────── */}
-            <section className="flex gap-4">
+            <section className="mt-16 mb-24 flex gap-4">
               <Link
                 href={countryHref(countryA.country)}
-                className="border border-border-primary bg-surface-primary px-4 py-2 text-sm text-text-secondary hover:bg-surface-secondary"
-              >
+                className="bg-surface-tertiary/60 px-5 py-3 text-[14px] text-text-secondary transition-colors hover:bg-stone-100">
                 View {countryA.country_name} Profile →
               </Link>
               <Link
                 href={countryHref(countryB.country)}
-                className="border border-border-primary bg-surface-primary px-4 py-2 text-sm text-text-secondary hover:bg-surface-secondary"
-              >
+                className="bg-surface-tertiary/60 px-5 py-3 text-[14px] text-text-secondary transition-colors hover:bg-stone-100">
                 View {countryB.country_name} Profile →
               </Link>
             </section>
@@ -440,11 +440,11 @@ export default function ComparePage() {
         )}
 
         {!ready && codeA === "" && codeB === "" && (
-          <section className="border border-border-primary bg-surface-primary p-8 text-center">
-            <p className="text-sm text-text-tertiary">
+          <section className="mt-16 mb-24 bg-surface-tertiary/40 p-12 text-center">
+            <p className="text-[15px] text-text-tertiary">
               Select two countries above to begin the comparison.
             </p>
-            <p className="mt-2 text-[11px] text-text-quaternary">
+            <p className="mt-3 text-[13px] text-text-quaternary">
               The comparative view overlays radar profiles, computes per-axis
               deltas, and highlights structural divergence between member
               states.

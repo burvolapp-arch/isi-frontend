@@ -1,118 +1,153 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   ISI Design System — Institutional Visual Language
+   ISI Design System — Institutional Research Infrastructure
    ============================================================================
-   Reference: IMF Research Portal × Palantir Foundry × Bruegel Publication
-   No SaaS. No startup. No WordPress. Authority-grade.
+   Visual reference: OECD Statistical Compendium × IMF World Economic Outlook
+   × Bruegel Policy Brief × NATO Review typography.
+
+   WHY each decision:
+   - Warm white (#FAFAF8): Reduces clinical sterility. Print journals use
+     warm stock, not blue-white. Creates a sense of material permanence.
+   - Deep navy (#0B1E3B): Anchors authority. NATO, UN, IMF all use navy
+     primaries. It reads as "government" not "startup."
+   - Serif headings (Source Serif 4): Signals editorial rigor. Sans-only
+     reads as tech/SaaS. Serif says "we publish findings, not features."
+   - Monospace numerics (JetBrains Mono): Tabular alignment. Numbers must
+     stack vertically in columns. Geist Mono tracks too wide.
+   - 1520px max-width: Research publications are wide. 1280px is a blog.
+     1520px lets tables breathe without horizontal scroll.
+   - 80px horizontal margins: Creates the "printed margin" feel. Tight
+     gutters (24px) scream mobile-first SaaS.
+   - 120/64/24px spacing rhythm: Creates visual breathing room that says
+     "this content deserves space" not "we need to pack features."
    ============================================================================ */
 
 @theme inline {
-  /* ── Brand Primaries ─────────────────────────────────── */
-  --color-navy-950: #0b1120;
-  --color-navy-900: #0f172a;
-  --color-navy-800: #1e293b;
-  --color-navy-700: #334155;
-  --color-navy-600: #475569;
+  /* ── Institutional Primaries ─────────────────────────── */
+  --color-navy-950: #06101f;
+  --color-navy-900: #0b1e3b;
+  --color-navy-800: #132d54;
+  --color-navy-700: #1e3f6e;
+  --color-navy-600: #2d5490;
+  --color-navy-500: #3d6ba8;
 
-  /* ── Semantic (Analytical, not decorative) ────────────── */
-  --color-severity-high: #b91c1c;
-  --color-severity-medium: #c2410c;
-  --color-severity-low: #a16207;
-  --color-severity-none: #15803d;
+  /* ── Warm Neutrals (not blue-gray — warm stone) ──────── */
+  --color-stone-50: #fafaf8;
+  --color-stone-100: #f5f4f0;
+  --color-stone-200: #ebe9e3;
+  --color-stone-300: #d6d3cb;
+  --color-stone-400: #a8a49b;
+  --color-stone-500: #7a766d;
+  --color-stone-600: #57534a;
+  --color-stone-700: #44413b;
+  --color-stone-800: #292723;
+  --color-stone-900: #1c1a17;
 
-  --color-deviation-positive: #991b1b;
+  /* ── Surface System (warm, not clinical) ─────────────── */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #fafaf8;
+  --color-surface-tertiary: #f5f4f0;
+  --color-surface-elevated: #ffffff;
+  --color-surface-inverse: #0b1e3b;
+
+  /* ── Border System (warm undertone) ──────────────────── */
+  --color-border-primary: #ebe9e3;
+  --color-border-secondary: #d6d3cb;
+  --color-border-subtle: #f5f4f0;
+
+  /* ── Text System (warm blacks, not blue-blacks) ──────── */
+  --color-text-primary: #1c1a17;
+  --color-text-secondary: #44413b;
+  --color-text-tertiary: #7a766d;
+  --color-text-quaternary: #a8a49b;
+  --color-text-inverse: #fafaf8;
+
+  /* ── Classification Bands (muted — not neon) ─────────── */
+  --color-band-highly: #9f1239;
+  --color-band-moderately: #b45309;
+  --color-band-mildly: #a16207;
+  --color-band-unconcentrated: #15803d;
+
+  /* ── Severity (restrained) ───────────────────────────── */
+  --color-severity-high: #9f1239;
+  --color-severity-medium: #92400e;
+  --color-severity-low: #854d0e;
+  --color-severity-none: #166534;
+
+  /* ── Deviation (muted, not aggressive) ───────────────── */
+  --color-deviation-positive: #9f1239;
   --color-deviation-negative: #166534;
 
-  /* ── Classification Bands (Muted, institutional) ─────── */
-  --color-band-highly: #dc2626;
-  --color-band-moderately: #ea580c;
-  --color-band-mildly: #ca8a04;
-  --color-band-unconcentrated: #16a34a;
-
-  /* ── Accent (Restrained — used sparingly) ────────────── */
-  --color-accent: #2563eb;
-  --color-accent-muted: #3b82f6;
-
-  /* ── Surface System ──────────────────────────────────── */
-  --color-surface-primary: #ffffff;
-  --color-surface-secondary: #f8fafc;
-  --color-surface-tertiary: #f1f5f9;
-  --color-surface-elevated: #ffffff;
-  --color-surface-inverse: #0f172a;
-
-  /* ── Border System ───────────────────────────────────── */
-  --color-border-primary: #e2e8f0;
-  --color-border-secondary: #cbd5e1;
-  --color-border-subtle: #f1f5f9;
-
-  /* ── Text System ─────────────────────────────────────── */
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #334155;
-  --color-text-tertiary: #64748b;
-  --color-text-quaternary: #94a3b8;
-  --color-text-inverse: #f8fafc;
+  /* ── Accent (navy-derived, not blue-500) ─────────────── */
+  --color-accent: #1e3f6e;
+  --color-accent-muted: #2d5490;
 
   /* ── Typography ──────────────────────────────────────── */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-source-serif), "Georgia", "Times New Roman", serif;
+  --font-sans: var(--font-inter), "Helvetica Neue", "Arial", sans-serif;
+  --font-mono: var(--font-jetbrains), "SF Mono", "Consolas", monospace;
 
-  /* ── Semantic Color Aliases ──────────────────────────── */
+  /* ── Semantic Aliases ────────────────────────────────── */
   --color-background: var(--color-surface-secondary);
   --color-foreground: var(--color-text-primary);
 }
 
-/* ── Dark Mode ─────────────────────────────────────────── */
+/* ── Dark Mode (minimal — this is a publication, not an app) ─── */
 @media (prefers-color-scheme: dark) {
   @theme inline {
-    --color-surface-primary: #0f172a;
-    --color-surface-secondary: #0b1120;
-    --color-surface-tertiary: #1e293b;
-    --color-surface-elevated: #1e293b;
-    --color-surface-inverse: #f8fafc;
+    --color-surface-primary: #1c1a17;
+    --color-surface-secondary: #141210;
+    --color-surface-tertiary: #292723;
+    --color-surface-elevated: #292723;
+    --color-surface-inverse: #fafaf8;
 
-    --color-border-primary: #1e293b;
-    --color-border-secondary: #334155;
-    --color-border-subtle: #1e293b;
+    --color-border-primary: #292723;
+    --color-border-secondary: #44413b;
+    --color-border-subtle: #292723;
 
-    --color-text-primary: #f1f5f9;
-    --color-text-secondary: #cbd5e1;
-    --color-text-tertiary: #94a3b8;
-    --color-text-quaternary: #64748b;
-    --color-text-inverse: #0f172a;
+    --color-text-primary: #f5f4f0;
+    --color-text-secondary: #d6d3cb;
+    --color-text-tertiary: #a8a49b;
+    --color-text-quaternary: #7a766d;
+    --color-text-inverse: #1c1a17;
 
     --color-background: var(--color-surface-secondary);
     --color-foreground: var(--color-text-primary);
   }
 }
 
-/* ── Base Resets ────────────────────────────────────────── */
+/* ── Base ───────────────────────────────────────────────── */
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
 }
 
-/* ── Institutional Table Styling ───────────────────────── */
+/* ── Institutional Table ───────────────────────────────── */
 table {
   border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Focus Ring (accessible, institutional) ────────────── */
+/* ── Focus Ring ────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-navy-700);
   outline-offset: 2px;
 }
 
-/* ── Selection (subdued) ───────────────────────────────── */
+/* ── Selection ─────────────────────────────────────────── */
 ::selection {
-  background-color: var(--color-accent);
+  background-color: var(--color-navy-900);
   color: white;
 }
 
-/* ── Scrollbar Styling (webkit) ────────────────────────── */
+/* ── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -123,12 +158,12 @@ table {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-secondary);
+  background: var(--color-stone-300);
   border-radius: 3px;
 }
 
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-thumb {
-    background: var(--color-navy-700);
+    background: var(--color-stone-700);
   }
 }

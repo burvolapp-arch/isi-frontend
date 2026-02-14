@@ -2,8 +2,8 @@
 
 /**
  * SVG-based histogram for composite score distribution.
- * Shows frequency bars with quartile shading and EU mean/median markers.
- * Pure client component — no hardcoded axis assumptions.
+ * Visual reference: OECD Economic Outlook statistical annexes.
+ * Muted palette, subtle gridlines, no neon. Authority-grade.
  */
 
 interface DistributionHistogramProps {
@@ -17,7 +17,7 @@ interface DistributionHistogramProps {
   highlightLabel?: string;
 }
 
-// Classification band colors (institutional)
+// Muted classification band tones (desaturated, institutional)
 function bandColor(midpoint: number): string {
   if (midpoint >= 0.5) return "var(--color-band-highly)";
   if (midpoint >= 0.25) return "var(--color-band-moderately)";
@@ -58,8 +58,8 @@ export function DistributionHistogram({
   const maxCount = Math.max(...bins.map((b) => b.count), 1);
 
   // SVG dimensions
-  const padding = { top: 20, right: 16, bottom: 40, left: 40 };
-  const svgWidth = 600;
+  const padding = { top: 24, right: 20, bottom: 44, left: 44 };
+  const svgWidth = 640;
   const chartWidth = svgWidth - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const barWidth = chartWidth / binCount;
@@ -84,7 +84,7 @@ export function DistributionHistogram({
       role="img"
       aria-label="Composite score distribution histogram"
     >
-      {/* Classification band shading */}
+      {/* Classification band shading — very subtle wash */}
       {bands.map((band) => (
         <rect
           key={band.label}
@@ -93,11 +93,11 @@ export function DistributionHistogram({
           width={xScale(band.end) - xScale(band.start)}
           height={chartHeight}
           fill={bandColor((band.start + band.end) / 2)}
-          opacity={0.06}
+          opacity={0.04}
         />
       ))}
 
-      {/* Y-axis gridlines */}
+      {/* Horizontal gridlines — hairline, understated */}
       {[0.25, 0.5, 0.75, 1].map((frac) => {
         const count = Math.round(maxCount * frac);
         const y = yScale(count);
@@ -110,12 +110,15 @@ export function DistributionHistogram({
               y2={y}
               stroke="var(--color-border-primary)"
               strokeWidth={0.5}
+              strokeDasharray="2,4"
             />
             <text
-              x={padding.left - 6}
+              x={padding.left - 8}
               y={y + 3}
               textAnchor="end"
-              className="fill-text-quaternary text-[10px]"
+              fill="var(--color-text-quaternary)"
+              fontSize="10"
+              fontFamily="var(--font-mono)"
             >
               {count}
             </text>
@@ -123,17 +126,16 @@ export function DistributionHistogram({
         );
       })}
 
-      {/* Histogram bars */}
+      {/* Histogram bars — restrained opacity, no border-radius for print feel */}
       {bins.map((bin, i) => (
         <rect
           key={i}
-          x={padding.left + i * barWidth + 1}
+          x={padding.left + i * barWidth + 0.5}
           y={yScale(bin.count)}
-          width={Math.max(barWidth - 2, 1)}
+          width={Math.max(barWidth - 1, 1)}
           height={chartHeight - (yScale(bin.count) - padding.top)}
           fill={bandColor((bin.start + bin.end) / 2)}
-          opacity={bin.count > 0 ? 0.7 : 0.1}
-          rx={1}
+          opacity={bin.count > 0 ? 0.5 : 0.05}
         />
       ))}
 
@@ -145,15 +147,18 @@ export function DistributionHistogram({
             y1={padding.top - 4}
             x2={xScale(mean)}
             y2={padding.top + chartHeight}
-            stroke="var(--color-accent)"
+            stroke="var(--color-navy-700)"
             strokeWidth={1.5}
-            strokeDasharray="4,3"
+            strokeDasharray="6,3"
           />
           <text
             x={xScale(mean)}
-            y={padding.top - 8}
+            y={padding.top - 10}
             textAnchor="middle"
-            className="fill-accent text-[10px] font-medium"
+            fill="var(--color-navy-700)"
+            fontSize="10"
+            fontFamily="var(--font-mono)"
+            fontWeight="500"
           >
             Mean {mean.toFixed(3)}
           </text>
@@ -173,10 +178,12 @@ export function DistributionHistogram({
             strokeDasharray="2,3"
           />
           <text
-            x={xScale(median) + 4}
+            x={xScale(median) + 5}
             y={padding.top + 12}
             textAnchor="start"
-            className="fill-text-tertiary text-[9px]"
+            fill="var(--color-text-tertiary)"
+            fontSize="9"
+            fontFamily="var(--font-mono)"
           >
             Mdn {median.toFixed(3)}
           </text>
@@ -191,15 +198,24 @@ export function DistributionHistogram({
             y1={padding.top}
             x2={xScale(highlight)}
             y2={padding.top + chartHeight}
-            stroke="var(--color-text-primary)"
+            stroke="var(--color-navy-900)"
             strokeWidth={2}
+          />
+          <circle
+            cx={xScale(highlight)}
+            cy={padding.top - 2}
+            r={3}
+            fill="var(--color-navy-900)"
           />
           {highlightLabel && (
             <text
               x={xScale(highlight)}
-              y={padding.top + chartHeight + 24}
+              y={padding.top + chartHeight + 26}
               textAnchor="middle"
-              className="fill-text-primary text-[10px] font-semibold"
+              fill="var(--color-navy-900)"
+              fontSize="10"
+              fontWeight="600"
+              fontFamily="var(--font-sans)"
             >
               {highlightLabel}
             </text>
@@ -207,27 +223,38 @@ export function DistributionHistogram({
         </g>
       )}
 
-      {/* X-axis */}
+      {/* X-axis baseline */}
       <line
         x1={padding.left}
         y1={padding.top + chartHeight}
         x2={svgWidth - padding.right}
         y2={padding.top + chartHeight}
-        stroke="var(--color-border-secondary)"
+        stroke="var(--color-stone-300)"
         strokeWidth={1}
       />
 
-      {/* X-axis labels */}
+      {/* X-axis tick labels */}
       {[0, 0.15, 0.25, 0.5, 0.75, 1.0].map((v) => (
-        <text
-          key={v}
-          x={xScale(v)}
-          y={padding.top + chartHeight + 16}
-          textAnchor="middle"
-          className="fill-text-quaternary text-[10px]"
-        >
-          {v.toFixed(2)}
-        </text>
+        <g key={v}>
+          <line
+            x1={xScale(v)}
+            y1={padding.top + chartHeight}
+            x2={xScale(v)}
+            y2={padding.top + chartHeight + 4}
+            stroke="var(--color-stone-300)"
+            strokeWidth={1}
+          />
+          <text
+            x={xScale(v)}
+            y={padding.top + chartHeight + 16}
+            textAnchor="middle"
+            fill="var(--color-text-quaternary)"
+            fontSize="10"
+            fontFamily="var(--font-mono)"
+          >
+            {v.toFixed(2)}
+          </text>
+        </g>
       ))}
 
       {/* Classification band labels */}
@@ -235,9 +262,12 @@ export function DistributionHistogram({
         <text
           key={band.label}
           x={(xScale(band.start) + xScale(band.end)) / 2}
-          y={padding.top + chartHeight + 30}
+          y={padding.top + chartHeight + 32}
           textAnchor="middle"
-          className="fill-text-quaternary text-[8px] uppercase tracking-wider"
+          fill="var(--color-text-quaternary)"
+          fontSize="8"
+          letterSpacing="0.08em"
+          style={{ textTransform: "uppercase" }}
         >
           {band.label}
         </text>

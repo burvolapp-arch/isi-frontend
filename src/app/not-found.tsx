@@ -3,16 +3,16 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <h2 className="text-3xl font-bold text-text-primary">
+      <main className="mx-auto max-w-[1520px] px-6 py-24 text-center lg:px-20">
+        <h2 className="font-serif text-[64px] font-bold text-text-primary">
           404
         </h2>
-        <p className="mt-2 text-sm text-text-tertiary">
+        <p className="mt-3 text-[15px] text-text-tertiary">
           The page you requested could not be found.
         </p>
         <Link
           href="/"
-          className="mt-6 inline-block border border-border-primary bg-surface-primary px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-secondary"
+          className="mt-8 inline-block bg-surface-tertiary/60 px-5 py-3 text-[14px] font-medium text-text-secondary transition-colors hover:bg-stone-100"
         >
           Back to Overview
         </Link>

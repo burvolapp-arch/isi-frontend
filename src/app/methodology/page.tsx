@@ -10,28 +10,30 @@ export const metadata: Metadata = {
 export default function MethodologyPage() {
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-3xl px-6 py-10 space-y-10">
-        <div>
+      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
+        <div className="max-w-3xl pt-12">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
             Methodology
           </h1>
-          <p className="mt-2 text-sm text-text-tertiary">
+          <p className="mt-3 text-[15px] leading-relaxed text-text-tertiary">
             How the International Sovereignty Index is computed.
           </p>
         </div>
 
+        <div className="mt-16 max-w-3xl space-y-12">
+
         {/* Section 1 */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-text-secondary">
+        <section className="space-y-4">
+          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
             1. Objective
           </h2>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             The ISI measures the <strong className="text-text-secondary">concentration of external dependencies</strong>{" "}
             for each EU-27 member state across a set of strategic axes. It does{" "}
             <em>not</em> assess quality, risk, or desirability of those
@@ -40,15 +42,15 @@ export default function MethodologyPage() {
         </section>
 
         {/* Section 2 */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-text-secondary">
+        <section className="space-y-4">
+          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
             2. Scoring Framework
           </h2>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             Each axis produces a score on the [0, 1] interval using a{" "}
             <strong className="text-text-secondary">Herfindahl-Hirschman Index (HHI)</strong> framework:
           </p>
-          <ul className="list-inside list-disc space-y-1 text-sm text-text-tertiary">
+          <ul className="list-inside list-disc space-y-1 text-[15px] text-text-tertiary">
             <li>
               <strong className="text-text-secondary">0.00</strong> — Perfectly diversified (equal shares among
               infinite partners)
@@ -58,17 +60,17 @@ export default function MethodologyPage() {
               source)
             </li>
           </ul>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             Classification thresholds follow standard HHI bands:
           </p>
-          <div className="overflow-x-auto border border-border-primary">
-            <table className="min-w-full text-sm">
-              <thead className="bg-surface-tertiary">
-                <tr>
-                  <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-[14px]">
+              <thead>
+                <tr className="border-b-2 border-navy-900">
+                  <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Range
                   </th>
-                  <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                  <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Classification
                   </th>
                 </tr>
@@ -112,19 +114,19 @@ export default function MethodologyPage() {
         </section>
 
         {/* Section 3 */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-text-secondary">
+        <section className="space-y-4">
+          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
             3. Composite Aggregation
           </h2>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             The ISI composite is computed as an{" "}
             <strong className="text-text-secondary">unweighted arithmetic mean</strong> of all available axis
             scores for each country:
           </p>
-          <div className="border border-border-primary bg-surface-tertiary px-4 py-3 font-mono text-sm text-text-primary">
+          <div className="bg-surface-tertiary/60 px-5 py-4 font-mono text-[14px] text-text-primary">
             ISI_composite = (1/N) × Σ axis_score_i, for i = 1 to N
           </div>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             No domain-weighting is applied. This is a deliberate design
             choice — the index does not presume which axes matter more. Users
             should consider axis-level scores when domain-specific analysis is
@@ -133,11 +135,11 @@ export default function MethodologyPage() {
         </section>
 
         {/* Section 4 */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-text-secondary">
+        <section className="space-y-4">
+          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
             4. Data Pipeline
           </h2>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             All data is pre-materialized by the backend export pipeline (
             <code className="bg-surface-tertiary px-1 text-xs text-text-secondary">
               export_isi_backend_v01.py
@@ -152,23 +154,24 @@ export default function MethodologyPage() {
         </section>
 
         {/* Section 5 */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-text-secondary">
+        <section className="space-y-4">
+          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
             5. Axis-Level Documentation
           </h2>
-          <p className="text-sm leading-relaxed text-text-tertiary">
+          <p className="text-[15px] leading-relaxed text-text-tertiary">
             Each axis has its own measurement definition, data sources,
             inclusion/exclusion scope, and known limitations. These are
             documented on the individual{" "}
             <Link
               href="/"
-              className="text-accent hover:text-accent-muted"
+              className="text-navy-700 hover:text-navy-900"
             >
               axis detail pages
             </Link>
             , which are driven entirely by the backend axis registry.
           </p>
         </section>
+        </div>
       </main>
     </div>
   );

@@ -58,37 +58,38 @@ const FAQ_ITEMS: FAQItem[] = [
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-3xl px-6 py-10 space-y-10">
-        <div>
+      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
+        <div className="max-w-3xl pt-12">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
             Frequently Asked Questions
           </h1>
-          <p className="mt-2 text-sm text-text-tertiary">
+          <p className="mt-3 text-[15px] leading-relaxed text-text-tertiary">
             Common questions about the International Sovereignty Index.
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="mt-16 max-w-3xl space-y-4">
           {FAQ_ITEMS.map((item, i) => (
             <section
               key={i}
-              className="border border-border-primary bg-surface-primary p-5"
+              className="bg-surface-tertiary/40 p-6"
             >
-              <h2 className="text-sm font-semibold text-text-secondary">
+              <h2 className="text-[15px] font-semibold text-text-secondary">
                 {item.q}
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-text-tertiary">
+              <p className="mt-2 text-[15px] leading-relaxed text-text-tertiary">
                 {item.a}
               </p>
             </section>
           ))}
         </div>
+        <div className="mb-24" />
       </main>
     </div>
   );

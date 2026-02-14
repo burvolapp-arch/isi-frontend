@@ -1,16 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "600", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -38,25 +48,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`}
       >
         {/* ── Institutional Header ───────────────────────── */}
-        <header className="sticky top-0 z-50 border-b border-border-primary bg-surface-primary/95 backdrop-blur-sm dark:bg-surface-primary/95">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
-            <Link href="/" className="flex items-baseline gap-2.5">
-              <span className="text-lg font-bold tracking-tight text-text-primary">
+        <header className="sticky top-0 z-50 bg-navy-900">
+          <div className="mx-auto flex max-w-[1520px] items-center justify-between px-6 py-5 lg:px-20">
+            <Link href="/" className="flex items-baseline gap-3">
+              <span className="font-serif text-xl font-bold tracking-tight text-white">
                 ISI
               </span>
-              <span className="hidden text-[11px] font-medium uppercase tracking-widest text-text-quaternary sm:inline">
+              <span className="hidden text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400 sm:inline">
                 International Sovereignty Index
               </span>
             </Link>
-            <nav className="flex items-center gap-0.5">
+            <nav className="flex items-center gap-1">
               {NAV_ITEMS.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
-                  className="px-3 py-1.5 text-[13px] font-medium text-text-tertiary hover:text-text-primary"
+                  className="px-3 py-1.5 text-[13px] text-stone-400 transition-colors hover:text-white"
                 >
                   {label}
                 </Link>
@@ -69,19 +79,19 @@ export default function RootLayout({
         {children}
 
         {/* ── Institutional Footer ───────────────────────── */}
-        <footer className="border-t border-border-primary bg-surface-primary dark:bg-surface-primary">
-          <div className="mx-auto max-w-7xl px-6 py-8">
+        <footer className="border-t border-border-primary bg-surface-primary">
+          <div className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
             <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
               <div>
-                <p className="text-[13px] font-semibold text-text-secondary">
+                <p className="font-serif text-[15px] font-semibold text-text-primary">
                   International Sovereignty Index
                 </p>
-                <p className="mt-1 text-xs text-text-quaternary">
+                <p className="mt-1 text-[13px] text-text-quaternary">
                   Measuring external dependency concentration across EU-27
                   member states · HHI framework
                 </p>
               </div>
-              <div className="flex gap-6 text-xs text-text-tertiary">
+              <div className="flex gap-6 text-[13px] text-text-tertiary">
                 <Link href="/methodology" className="hover:text-text-primary">
                   Methodology
                 </Link>
@@ -96,8 +106,8 @@ export default function RootLayout({
                 </Link>
               </div>
             </div>
-            <div className="mt-6 border-t border-border-subtle pt-6">
-              <p className="text-[11px] leading-relaxed text-text-quaternary">
+            <div className="mt-8 border-t border-border-subtle pt-8">
+              <p className="max-w-3xl text-[12px] leading-relaxed text-text-quaternary">
                 This frontend is a pure rendering layer. It performs zero
                 computation and contains zero business logic. All scores,
                 classifications, and descriptions are served verbatim from the

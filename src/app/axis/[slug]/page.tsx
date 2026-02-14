@@ -36,10 +36,10 @@ export default async function AxisPage({ params }: PageProps) {
   if (registryError || axisId === null) {
     return (
       <div className="min-h-screen bg-surface-secondary">
-        <main className="mx-auto max-w-7xl px-6 py-8">
+        <main className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
@@ -73,10 +73,10 @@ export default async function AxisPage({ params }: PageProps) {
   if (error || !axis) {
     return (
       <div className="min-h-screen bg-surface-secondary">
-        <main className="mx-auto max-w-7xl px-6 py-8">
+        <main className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
@@ -114,29 +114,29 @@ export default async function AxisPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
+      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
         {/* Breadcrumb */}
-        <div>
+        <div className="pt-12">
           <Link
             href="/"
-            className="text-sm text-text-tertiary hover:text-text-primary"
+            className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
         </div>
 
         {/* ── Axis Header ──────────────────────────────────── */}
-        <section>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-text-quaternary">
+        <section className="mt-8">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Axis {axis.axis_id} — {axis.axis_slug}
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-text-primary">
+          <h1 className="mt-2 font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
             {axis.axis_name}
           </h1>
-          <p className="mt-2 text-sm leading-relaxed text-text-tertiary">
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-text-tertiary">
             {axis.description}
           </p>
-          <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-text-quaternary">
+          <div className="mt-3 flex flex-wrap gap-3 text-[12px] text-text-quaternary">
             <span>Version: {axis.version}</span>
             <span>Status: {axis.status}</span>
             <span>Unit: {axis.unit}</span>
@@ -152,11 +152,11 @@ export default async function AxisPage({ params }: PageProps) {
         </section>
 
         {/* ── KPI Row ──────────────────────────────────────── */}
-        <section>
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+        <section className="mt-16">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Cross-EU Statistics
           </h2>
-          <div className="grid grid-cols-2 gap-px bg-border-primary sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <KPICard
               label="Countries Scored"
               value={`${axis.countries_scored}`}
@@ -193,39 +193,41 @@ export default async function AxisPage({ params }: PageProps) {
 
         {/* ── Distribution Histogram ───────────────────────── */}
         {axisScores.length > 0 && (
-          <section className="border border-border-primary bg-surface-primary p-6">
-            <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+          <section className="mt-20">
+            <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
               Score Distribution — {axis.axis_name}
             </h2>
-            <p className="mb-3 text-xs text-text-quaternary">
+            <p className="mt-2 text-[15px] text-text-tertiary">
               Distribution of HHI scores across all scored EU member states for this axis.
             </p>
+            <div className="mt-8 bg-surface-primary p-8">
             <DistributionHistogram
               scores={axisScores}
               mean={meanVal}
               height={180}
               binCount={14}
             />
+            </div>
           </section>
         )}
 
         {/* ── Data Sources (Channels) ──────────────────────── */}
-        <section className="border border-border-primary bg-surface-primary p-6">
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+        <section className="mt-16">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Data Sources &amp; Channels
           </h2>
-          <p className="mb-4 text-xs text-text-quaternary">
+          <p className="mt-3 text-[14px] text-text-quaternary">
             This axis is computed from {axis.channels.length} data
             channel(s). Each channel represents a distinct trade-flow or
             dependency dataset.
           </p>
-          <div className="grid gap-px bg-border-primary sm:grid-cols-2">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {axis.channels.map((ch) => (
               <div
                 key={ch.id}
-                className="bg-surface-tertiary p-3"
+                className="bg-surface-tertiary/60 p-4"
               >
-                <p className="text-sm font-medium text-text-secondary">
+                <p className="text-[14px] font-medium text-text-secondary">
                   Ch. {ch.id}: {ch.name}
                 </p>
                 <p className="mt-0.5 text-[11px] text-text-quaternary">{ch.source}</p>
@@ -236,8 +238,8 @@ export default async function AxisPage({ params }: PageProps) {
 
         {/* ── Warnings / Known Limitations ─────────────────── */}
         {axis.warnings.length > 0 && (
-          <section className="border-l-4 border-l-severity-medium border border-border-primary bg-surface-primary p-6">
-            <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-severity-medium">
+          <section className="mt-12 border-l-2 border-l-severity-medium bg-severity-medium/5 py-5 pl-6 pr-8">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-severity-medium">
               Known Limitations &amp; Warnings
             </h2>
             <ul className="space-y-2">
@@ -262,30 +264,30 @@ export default async function AxisPage({ params }: PageProps) {
         )}
 
         {/* ── Country Rankings Table ────────────────────────── */}
-        <section>
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+        <section className="mt-20">
+          <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
             Country Rankings — {axis.axis_name}
           </h2>
-          <div className="overflow-x-auto border border-border-primary">
+          <div className="mt-8 overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="sticky top-0 z-10 border-b border-border-primary bg-surface-tertiary">
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                <tr className="border-b-2 border-navy-900">
+                  <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     #
                   </th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                  <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Country
                   </th>
-                  <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                  <th className="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Score
                   </th>
-                  <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                  <th className="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Δ Mean
                   </th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                  <th className="px-4 py-3 text-center text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Classification
                   </th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-text-quaternary">
+                  <th className="px-4 py-3 text-center text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     Outlier
                   </th>
                 </tr>
@@ -302,17 +304,19 @@ export default async function AxisPage({ params }: PageProps) {
                   return (
                     <tr
                       key={c.country}
-                      className={`border-b border-border-subtle transition-colors hover:bg-surface-secondary ${
-                        isOutlier ? "bg-surface-tertiary" : "bg-surface-primary"
+                      className={`border-b border-border-subtle transition-colors hover:bg-stone-100/60 ${
+                        i % 2 === 1 ? "bg-stone-50/60" : ""
+                      } ${
+                        isOutlier ? "border-l-2 border-l-severity-high" : "border-l-2 border-l-transparent"
                       }`}
                     >
-                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-sm text-text-quaternary">
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-[13px] text-text-quaternary">
                         {i + 1}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-sm">
                         <Link
                           href={countryHref(c.country)}
-                          className="font-medium text-text-secondary hover:text-accent"
+                          className="font-medium text-text-secondary hover:text-navy-700"
                         >
                           {c.country_name}
                         </Link>
@@ -360,11 +364,11 @@ export default async function AxisPage({ params }: PageProps) {
         </section>
 
         {/* ── What This Axis Does NOT Measure ──────────────── */}
-        <section className="border border-border-primary bg-surface-primary p-6">
-          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-text-quaternary">
+        <section className="mt-16 mb-24 border-l-2 border-l-stone-300 bg-surface-tertiary/50 py-6 pl-6 pr-8">
+          <h3 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Interpretive Boundaries
-          </h2>
-          <div className="space-y-2 text-sm text-text-tertiary">
+          </h3>
+          <div className="mt-4 space-y-2 text-[15px] text-text-tertiary">
             <p>
               This axis measures <strong className="text-text-secondary">structural concentration</strong> (HHI-based)
               in the {axis.axis_name.toLowerCase()} domain. It does{" "}

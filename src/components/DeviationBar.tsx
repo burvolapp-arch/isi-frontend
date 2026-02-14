@@ -2,8 +2,8 @@
 
 /**
  * Horizontal deviation bar centered at zero.
- * Shows how a score deviates from a reference (e.g., EU mean).
- * Bar extends left (below mean — green) or right (above mean — red).
+ * Visual reference: IMF Article IV consultation charts.
+ * Restrained color, clean alignment, monospace numerics.
  */
 
 interface DeviationBarProps {
@@ -24,12 +24,12 @@ export function DeviationBar({
 }: DeviationBarProps) {
   if (score === null || mean === null) {
     return (
-      <div className="flex items-center gap-3 py-1.5">
-        <span className="w-28 shrink-0 text-sm text-text-tertiary">
+      <div className="flex items-center gap-3 border-b border-border-subtle py-2">
+        <span className="w-32 shrink-0 text-[14px] text-text-tertiary">
           {label}
         </span>
-        <div className="flex-1 h-5 bg-surface-tertiary" />
-        <span className="w-16 shrink-0 text-right font-mono text-xs text-text-quaternary">
+        <div className="h-5 flex-1 bg-surface-tertiary/50" />
+        <span className="w-16 shrink-0 text-right font-mono text-[13px] text-text-quaternary">
           —
         </span>
       </div>
@@ -38,30 +38,30 @@ export function DeviationBar({
 
   const dev = score - mean;
   const clampedDev = Math.max(-maxDev, Math.min(maxDev, dev));
-  const pct = (Math.abs(clampedDev) / maxDev) * 50; // 50% is half the bar
+  const pct = (Math.abs(clampedDev) / maxDev) * 50;
   const isAbove = dev >= 0;
 
   const LabelTag = href ? "a" : "span";
 
   return (
-    <div className="flex items-center gap-3 py-1.5">
+    <div className="flex items-center gap-3 border-b border-border-subtle py-2">
       <LabelTag
         {...(href ? { href } : {})}
-        className={`w-28 shrink-0 text-sm font-medium ${
+        className={`w-32 shrink-0 text-[14px] font-medium ${
           href
-            ? "text-text-secondary hover:text-accent"
+            ? "text-text-secondary hover:text-navy-700"
             : "text-text-secondary"
         }`}
       >
         {label}
       </LabelTag>
-      <div className="flex-1 h-5 bg-surface-tertiary relative">
+      <div className="relative h-5 flex-1 bg-surface-tertiary/50">
         {/* Center line (mean) */}
-        <div className="absolute left-1/2 top-0 h-full w-px bg-border-secondary" />
+        <div className="absolute left-1/2 top-0 h-full w-px bg-stone-300" />
         {/* Deviation bar */}
         <div
-          className={`absolute top-0 h-full ${
-            isAbove ? "bg-deviation-positive/60" : "bg-deviation-negative/60"
+          className={`absolute top-0.5 bottom-0.5 ${
+            isAbove ? "bg-deviation-positive/40" : "bg-deviation-negative/40"
           }`}
           style={
             isAbove
@@ -70,11 +70,11 @@ export function DeviationBar({
           }
         />
       </div>
-      <span className="w-16 shrink-0 text-right font-mono text-xs text-text-secondary">
+      <span className="w-16 shrink-0 text-right font-mono text-[13px] text-text-secondary">
         {score.toFixed(4)}
       </span>
       <span
-        className={`w-16 shrink-0 text-right font-mono text-[11px] ${
+        className={`w-16 shrink-0 text-right font-mono text-[12px] ${
           isAbove ? "text-deviation-positive" : "text-deviation-negative"
         }`}
       >
@@ -104,11 +104,11 @@ export function DeviationBarChart({
   maxDev = 0.3,
 }: DeviationBarChartProps) {
   return (
-    <div className="space-y-0.5">
+    <div>
       {/* Header */}
-      <div className="flex items-center gap-3 py-1 text-[10px] font-medium uppercase tracking-wider text-text-quaternary">
-        <span className="w-28 shrink-0">Axis</span>
-        <div className="flex-1 flex justify-between px-1">
+      <div className="flex items-center gap-3 border-b border-border-primary py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+        <span className="w-32 shrink-0">Axis</span>
+        <div className="flex flex-1 justify-between px-1">
           <span>−{maxDev.toFixed(2)}</span>
           <span>EU Mean</span>
           <span>+{maxDev.toFixed(2)}</span>

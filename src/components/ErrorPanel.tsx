@@ -9,14 +9,14 @@ interface ErrorPanelProps {
 
 export function ErrorPanel({ title, message, endpoint, status }: ErrorPanelProps) {
   return (
-    <div className="border-l-4 border-severity-high bg-severity-high/5 p-6">
+    <div className="border-l-2 border-severity-high bg-severity-high/5 px-6 py-5">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 text-severity-high">
           <svg
             className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
-            strokeWidth={2}
+            strokeWidth={1.5}
             stroke="currentColor"
           >
             <path
@@ -27,14 +27,14 @@ export function ErrorPanel({ title, message, endpoint, status }: ErrorPanelProps
           </svg>
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-severity-high">
+          <h3 className="text-[14px] font-semibold text-severity-high">
             {title}
           </h3>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="mt-1 text-[14px] text-text-secondary">
             {message}
           </p>
           {endpoint && (
-            <p className="mt-2 font-mono text-[11px] text-text-quaternary">
+            <p className="mt-2 font-mono text-[12px] text-text-quaternary">
               Endpoint: {endpoint}
               {status != null && ` — HTTP ${status}`}
             </p>
