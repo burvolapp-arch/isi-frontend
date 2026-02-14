@@ -52,7 +52,7 @@ export default function RootLayout({
       >
         {/* ── Institutional Header ───────────────────────── */}
         <header className="sticky top-0 z-50 bg-navy-900">
-          <div className="mx-auto flex max-w-[1520px] items-center justify-between px-6 py-5 lg:px-20">
+          <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
             <Link href="/" className="flex items-baseline gap-3">
               <span className="font-serif text-xl font-bold tracking-tight text-white">
                 ISI
@@ -80,7 +80,7 @@ export default function RootLayout({
 
         {/* ── Institutional Footer ───────────────────────── */}
         <footer className="border-t border-border-primary bg-surface-primary">
-          <div className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
+          <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-16">
             <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
               <div>
                 <p className="font-serif text-[15px] font-semibold text-text-primary">

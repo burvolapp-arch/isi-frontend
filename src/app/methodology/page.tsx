@@ -9,31 +9,31 @@ export const metadata: Metadata = {
 
 export default function MethodologyPage() {
   return (
-    <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
-        <div className="max-w-3xl pt-12">
+    <div className="min-h-screen bg-white">
+      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+        <div className="max-w-3xl pt-10">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
             Methodology
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-text-tertiary">
+          <p className="mt-2 text-[14px] leading-relaxed text-text-tertiary">
             How the International Sovereignty Index is computed.
           </p>
         </div>
 
-        <div className="mt-16 max-w-3xl space-y-12">
+        <div className="mt-12 max-w-3xl space-y-10">
 
         {/* Section 1 */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             1. Objective
           </h2>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
             The ISI measures the <strong className="text-text-secondary">concentration of external dependencies</strong>{" "}
             for each EU-27 member state across a set of strategic axes. It does{" "}
             <em>not</em> assess quality, risk, or desirability of those
@@ -43,14 +43,14 @@ export default function MethodologyPage() {
 
         {/* Section 2 */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             2. Scoring Framework
           </h2>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
             Each axis produces a score on the [0, 1] interval using a{" "}
             <strong className="text-text-secondary">Herfindahl-Hirschman Index (HHI)</strong> framework:
           </p>
-          <ul className="list-inside list-disc space-y-1 text-[15px] text-text-tertiary">
+          <ul className="list-inside list-disc space-y-1 text-[14px] text-text-tertiary">
             <li>
               <strong className="text-text-secondary">0.00</strong> — Perfectly diversified (equal shares among
               infinite partners)
@@ -60,8 +60,7 @@ export default function MethodologyPage() {
               source)
             </li>
           </ul>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
-            Classification thresholds follow standard HHI bands:
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
           </p>
           <div className="overflow-x-auto">
             <table className="min-w-full text-[14px]">
@@ -115,18 +114,18 @@ export default function MethodologyPage() {
 
         {/* Section 3 */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             3. Composite Aggregation
           </h2>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
             The ISI composite is computed as an{" "}
             <strong className="text-text-secondary">unweighted arithmetic mean</strong> of all available axis
             scores for each country:
           </p>
-          <div className="bg-surface-tertiary/60 px-5 py-4 font-mono text-[14px] text-text-primary">
+          <div className="rounded-md border border-border-primary bg-surface-tertiary px-5 py-3 font-mono text-[13px] text-text-primary">
             ISI_composite = (1/N) × Σ axis_score_i, for i = 1 to N
           </div>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
             No domain-weighting is applied. This is a deliberate design
             choice — the index does not presume which axes matter more. Users
             should consider axis-level scores when domain-specific analysis is
@@ -136,10 +135,10 @@ export default function MethodologyPage() {
 
         {/* Section 4 */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             4. Data Pipeline
           </h2>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
             All data is pre-materialized by the backend export pipeline (
             <code className="bg-surface-tertiary px-1 text-xs text-text-secondary">
               export_isi_backend_v01.py
@@ -155,10 +154,10 @@ export default function MethodologyPage() {
 
         {/* Section 5 */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             5. Axis-Level Documentation
           </h2>
-          <p className="text-[15px] leading-relaxed text-text-tertiary">
+          <p className="text-[14px] leading-relaxed text-text-tertiary">
             Each axis has its own measurement definition, data sources,
             inclusion/exclusion scope, and known limitations. These are
             documented on the individual{" "}

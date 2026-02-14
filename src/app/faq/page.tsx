@@ -57,39 +57,39 @@ const FAQ_ITEMS: FAQItem[] = [
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
-        <div className="max-w-3xl pt-12">
+    <div className="min-h-screen bg-white">
+      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+        <div className="max-w-3xl pt-10">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
             Frequently Asked Questions
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-text-tertiary">
+          <p className="mt-2 text-[14px] leading-relaxed text-text-tertiary">
             Common questions about the International Sovereignty Index.
           </p>
         </div>
 
-        <div className="mt-16 max-w-3xl space-y-4">
+        <div className="mt-12 max-w-3xl space-y-3">
           {FAQ_ITEMS.map((item, i) => (
             <section
               key={i}
-              className="bg-surface-tertiary/40 p-6"
+              className="rounded-md border border-border-primary bg-surface-tertiary p-5"
             >
-              <h2 className="text-[15px] font-semibold text-text-secondary">
+              <h2 className="text-[14px] font-semibold text-text-secondary">
                 {item.q}
               </h2>
-              <p className="mt-2 text-[15px] leading-relaxed text-text-tertiary">
+              <p className="mt-1.5 text-[14px] leading-relaxed text-text-tertiary">
                 {item.a}
               </p>
             </section>
           ))}
         </div>
-        <div className="mb-24" />
+        <div className="mb-16" />
       </main>
     </div>
   );

@@ -1,87 +1,74 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   ISI Design System — Institutional Research Infrastructure
+   ISI Design System — Institutional Research Publication
    ============================================================================
-   Visual reference: OECD Statistical Compendium × IMF World Economic Outlook
-   × Bruegel Policy Brief × NATO Review typography.
+   Visual reference: IMF Working Papers × ECB Statistical Dashboard ×
+   OECD Data Portal × Government Research Briefing.
 
-   WHY each decision:
-   - Warm white (#FAFAF8): Reduces clinical sterility. Print journals use
-     warm stock, not blue-white. Creates a sense of material permanence.
-   - Deep navy (#0B1E3B): Anchors authority. NATO, UN, IMF all use navy
-     primaries. It reads as "government" not "startup."
-   - Serif headings (Source Serif 4): Signals editorial rigor. Sans-only
-     reads as tech/SaaS. Serif says "we publish findings, not features."
-   - Monospace numerics (JetBrains Mono): Tabular alignment. Numbers must
-     stack vertically in columns. Geist Mono tracks too wide.
-   - 1520px max-width: Research publications are wide. 1280px is a blog.
-     1520px lets tables breathe without horizontal scroll.
-   - 80px horizontal margins: Creates the "printed margin" feel. Tight
-     gutters (24px) scream mobile-first SaaS.
-   - 120/64/24px spacing rhythm: Creates visual breathing room that says
-     "this content deserves space" not "we need to pack features."
+   Pure white background. No gradients. No glow. No glass.
+   Authority through restraint.
    ============================================================================ */
 
 @theme inline {
-  /* ── Institutional Primaries ─────────────────────────── */
-  --color-navy-950: #06101f;
-  --color-navy-900: #0b1e3b;
-  --color-navy-800: #132d54;
-  --color-navy-700: #1e3f6e;
-  --color-navy-600: #2d5490;
-  --color-navy-500: #3d6ba8;
+  /* ── Navy (header only) ─────────────────────────────── */
+  --color-navy-950: #061224;
+  --color-navy-900: #0b2545;
+  --color-navy-800: #133260;
+  --color-navy-700: #1b4278;
+  --color-navy-600: #245694;
+  --color-navy-500: #336ca8;
 
-  /* ── Warm Neutrals (not blue-gray — warm stone) ──────── */
-  --color-stone-50: #fafaf8;
-  --color-stone-100: #f5f4f0;
-  --color-stone-200: #ebe9e3;
-  --color-stone-300: #d6d3cb;
-  --color-stone-400: #a8a49b;
-  --color-stone-500: #7a766d;
-  --color-stone-600: #57534a;
-  --color-stone-700: #44413b;
-  --color-stone-800: #292723;
-  --color-stone-900: #1c1a17;
+  /* ── Neutrals ────────────────────────────────────────── */
+  --color-stone-50: #f9fafb;
+  --color-stone-100: #f3f4f6;
+  --color-stone-200: #e5e7eb;
+  --color-stone-300: #d1d5db;
+  --color-stone-400: #9ca3af;
+  --color-stone-500: #6b7280;
+  --color-stone-600: #4b5563;
+  --color-stone-700: #374151;
+  --color-stone-800: #1f2937;
+  --color-stone-900: #111827;
 
-  /* ── Surface System (warm, not clinical) ─────────────── */
+  /* ── Surface System ──────────────────────────────────── */
   --color-surface-primary: #ffffff;
-  --color-surface-secondary: #fafaf8;
-  --color-surface-tertiary: #f5f4f0;
+  --color-surface-secondary: #ffffff;
+  --color-surface-tertiary: #f5f7fa;
   --color-surface-elevated: #ffffff;
-  --color-surface-inverse: #0b1e3b;
+  --color-surface-inverse: #0b2545;
 
-  /* ── Border System (warm undertone) ──────────────────── */
-  --color-border-primary: #ebe9e3;
-  --color-border-secondary: #d6d3cb;
-  --color-border-subtle: #f5f4f0;
+  /* ── Border System ───────────────────────────────────── */
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-border-subtle: #f3f4f6;
 
-  /* ── Text System (warm blacks, not blue-blacks) ──────── */
-  --color-text-primary: #1c1a17;
-  --color-text-secondary: #44413b;
-  --color-text-tertiary: #7a766d;
-  --color-text-quaternary: #a8a49b;
-  --color-text-inverse: #fafaf8;
+  /* ── Text System ─────────────────────────────────────── */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-quaternary: #9ca3af;
+  --color-text-inverse: #f9fafb;
 
-  /* ── Classification Bands (muted — not neon) ─────────── */
-  --color-band-highly: #9f1239;
+  /* ── Classification Bands (text-only emphasis) ───────── */
+  --color-band-highly: #b91c1c;
   --color-band-moderately: #b45309;
   --color-band-mildly: #a16207;
-  --color-band-unconcentrated: #15803d;
+  --color-band-unconcentrated: #065f46;
 
-  /* ── Severity (restrained) ───────────────────────────── */
-  --color-severity-high: #9f1239;
-  --color-severity-medium: #92400e;
-  --color-severity-low: #854d0e;
-  --color-severity-none: #166534;
+  /* ── Severity ────────────────────────────────────────── */
+  --color-severity-high: #b91c1c;
+  --color-severity-medium: #b45309;
+  --color-severity-low: #a16207;
+  --color-severity-none: #065f46;
 
-  /* ── Deviation (muted, not aggressive) ───────────────── */
-  --color-deviation-positive: #9f1239;
-  --color-deviation-negative: #166534;
+  /* ── Deviation ───────────────────────────────────────── */
+  --color-deviation-positive: #b91c1c;
+  --color-deviation-negative: #065f46;
 
-  /* ── Accent (navy-derived, not blue-500) ─────────────── */
-  --color-accent: #1e3f6e;
-  --color-accent-muted: #2d5490;
+  /* ── Accent ──────────────────────────────────────────── */
+  --color-accent: #0b2545;
+  --color-accent-muted: #1b4278;
 
   /* ── Typography ──────────────────────────────────────── */
   --font-serif: var(--font-source-serif), "Georgia", "Times New Roman", serif;
@@ -89,32 +76,8 @@
   --font-mono: var(--font-jetbrains), "SF Mono", "Consolas", monospace;
 
   /* ── Semantic Aliases ────────────────────────────────── */
-  --color-background: var(--color-surface-secondary);
-  --color-foreground: var(--color-text-primary);
-}
-
-/* ── Dark Mode (minimal — this is a publication, not an app) ─── */
-@media (prefers-color-scheme: dark) {
-  @theme inline {
-    --color-surface-primary: #1c1a17;
-    --color-surface-secondary: #141210;
-    --color-surface-tertiary: #292723;
-    --color-surface-elevated: #292723;
-    --color-surface-inverse: #fafaf8;
-
-    --color-border-primary: #292723;
-    --color-border-secondary: #44413b;
-    --color-border-subtle: #292723;
-
-    --color-text-primary: #f5f4f0;
-    --color-text-secondary: #d6d3cb;
-    --color-text-tertiary: #a8a49b;
-    --color-text-quaternary: #7a766d;
-    --color-text-inverse: #1c1a17;
-
-    --color-background: var(--color-surface-secondary);
-    --color-foreground: var(--color-text-primary);
-  }
+  --color-background: #ffffff;
+  --color-foreground: #111827;
 }
 
 /* ── Base ───────────────────────────────────────────────── */
@@ -125,7 +88,7 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
+  line-height: 1.5;
   letter-spacing: -0.011em;
 }
 
@@ -158,12 +121,6 @@ table {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-stone-300);
+  background: var(--color-gray-300);
   border-radius: 3px;
-}
-
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-stone-700);
-  }
 }

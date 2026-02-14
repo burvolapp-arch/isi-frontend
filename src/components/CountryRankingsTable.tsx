@@ -344,7 +344,7 @@ function TableRow({
   onToggle,
 }: TableRowProps) {
   // Zebra striping — warm tone
-  const zebraClass = rowIndex % 2 === 1 ? "bg-stone-50/60" : "";
+  const zebraClass = rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "";
 
   // Border-left indicator based on classification
   const borderIndicator = (() => {
@@ -364,7 +364,7 @@ function TableRow({
 
   return (
     <>
-      <tr className={`border-b border-border-subtle hover:bg-stone-100/60 transition-colors ${zebraClass} ${borderIndicator}`}>
+      <tr className={`border-b border-border-subtle hover:bg-surface-tertiary transition-colors ${zebraClass} ${borderIndicator}`}>
         {/* Rank */}
         <td className="whitespace-nowrap px-3 py-2.5 text-center text-[13px] text-text-quaternary">
           <button
@@ -448,9 +448,9 @@ function TableRow({
 
       {/* Expanded Row — Quick breakdown */}
       {isExpanded && (
-        <tr className="bg-surface-tertiary/40">
+        <tr className="bg-surface-tertiary">
           <td />
-          <td colSpan={axisColumns.length + 5} className="px-4 py-5">
+          <td colSpan={axisColumns.length + 5} className="px-4 py-4">
             <div className="flex flex-wrap gap-3">
               {axisColumns.map((col) => {
                 const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
@@ -459,7 +459,7 @@ function TableRow({
                   <Link
                     key={col.fieldKey}
                     href={axisHref(col.slug)}
-                    className="bg-surface-primary px-4 py-3 transition-colors hover:bg-stone-100"
+                    className="rounded-md border border-border-primary bg-white px-3 py-2.5 transition-colors hover:bg-surface-tertiary"
                   >
                     <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                       {col.label}

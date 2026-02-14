@@ -28,7 +28,7 @@ export function DeviationBar({
         <span className="w-32 shrink-0 text-[14px] text-text-tertiary">
           {label}
         </span>
-        <div className="h-5 flex-1 bg-surface-tertiary/50" />
+        <div className="h-5 flex-1 bg-surface-tertiary" />
         <span className="w-16 shrink-0 text-right font-mono text-[13px] text-text-quaternary">
           —
         </span>
@@ -55,7 +55,7 @@ export function DeviationBar({
       >
         {label}
       </LabelTag>
-      <div className="relative h-5 flex-1 bg-surface-tertiary/50">
+      <div className="relative h-5 flex-1 bg-surface-tertiary">
         {/* Center line (mean) */}
         <div className="absolute left-1/2 top-0 h-full w-px bg-stone-300" />
         {/* Deviation bar */}

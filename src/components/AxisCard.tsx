@@ -6,7 +6,7 @@ interface AxisCardProps {
 
 export function AxisCard({ axis }: AxisCardProps) {
   return (
-    <div className="bg-surface-tertiary/60 p-6">
+    <div className="rounded-md border border-border-primary bg-white p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
@@ -17,10 +17,10 @@ export function AxisCard({ axis }: AxisCardProps) {
           </h3>
         </div>
         <span
-          className={`inline-flex items-center rounded-sm px-2.5 py-1 text-[11px] font-medium ${
+          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium ${
             axis.materialized
-              ? "bg-band-unconcentrated/8 text-band-unconcentrated"
-              : "bg-surface-tertiary text-text-quaternary"
+              ? "text-band-unconcentrated"
+              : "text-text-quaternary"
           }`}
         >
           {axis.materialized ? "Active" : "Pending"}
@@ -33,7 +33,7 @@ export function AxisCard({ axis }: AxisCardProps) {
         {axis.channels.map((ch) => (
           <span
             key={ch.id}
-            className="inline-flex items-center bg-surface-primary px-2.5 py-1 text-[11px] text-text-tertiary"
+            className="inline-flex items-center rounded-md border border-border-primary px-2 py-0.5 text-[10px] text-text-tertiary"
             title={ch.source}
           >
             Ch. {ch.id}: {ch.name}

@@ -9,31 +9,31 @@ export const metadata: Metadata = {
 
 export default function TransparencyPage() {
   return (
-    <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
-        <div className="max-w-3xl pt-12">
+    <div className="min-h-screen bg-white">
+      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+        <div className="max-w-3xl pt-10">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
             Transparency &amp; Scope Disclosure
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-text-tertiary">
+          <p className="mt-2 text-[14px] leading-relaxed text-text-tertiary">
             Understanding what the ISI measures — and what it does not.
           </p>
         </div>
 
-        <div className="mt-16 max-w-3xl space-y-12">
+        <div className="mt-12 max-w-3xl space-y-10">
 
         {/* What the ISI measures */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             What the ISI Measures
           </h2>
-          <ul className="list-inside list-disc space-y-1 text-[15px] text-text-tertiary">
+          <ul className="list-inside list-disc space-y-1 text-[14px] text-text-tertiary">
             <li>
               <strong className="text-text-secondary">Concentration of external dependencies</strong> — how much
               a country relies on a small number of external sources for
@@ -52,11 +52,11 @@ export default function TransparencyPage() {
         </section>
 
         {/* What the ISI does NOT measure */}
-        <section className="border-l-2 border-l-severity-medium bg-severity-medium/5 py-6 pl-6 pr-8">
-          <h2 className="font-serif text-[22px] font-semibold text-text-primary">
+        <section className="rounded-md border border-border-primary py-5 pl-5 pr-6">
+          <h2 className="font-serif text-[20px] font-semibold text-text-primary">
             What the ISI Does NOT Measure
           </h2>
-          <ul className="mt-4 space-y-3 text-[15px] text-text-tertiary">
+          <ul className="mt-3 space-y-3 text-[14px] text-text-tertiary">
             <li>
               <strong className="text-text-secondary">Risk or threat level.</strong> High concentration on a
               stable, allied partner is structurally different from
@@ -95,10 +95,10 @@ export default function TransparencyPage() {
 
         {/* Known Limitations */}
         <section className="space-y-4">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             Known Limitations
           </h2>
-          <ul className="list-inside list-disc space-y-2 text-[15px] text-text-tertiary">
+          <ul className="list-inside list-disc space-y-2 text-[14px] text-text-tertiary">
             <li>
               <strong className="text-text-secondary">Unweighted aggregation.</strong> The composite treats all
               axes equally. This is a simplification — energy dependency may be
@@ -124,11 +124,11 @@ export default function TransparencyPage() {
         </section>
 
         {/* Frontend Disclaimer */}
-        <section className="bg-surface-tertiary/40 p-8">
-          <h2 className="font-serif text-[22px] font-semibold text-text-secondary">
+        <section className="rounded-md border border-border-primary bg-surface-tertiary p-6">
+          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
             Frontend Architecture Note
           </h2>
-          <p className="mt-3 text-[15px] text-text-tertiary">
+          <p className="mt-2 text-[14px] text-text-tertiary">
             This frontend is a <strong className="text-text-secondary">pure rendering layer</strong>. It
             performs zero computation, zero data transformation, and zero
             business logic. Every number, classification, warning, and
@@ -138,7 +138,7 @@ export default function TransparencyPage() {
           </p>
         </section>
         </div>
-        <div className="mb-24" />
+        <div className="mb-16" />
       </main>
     </div>
   );

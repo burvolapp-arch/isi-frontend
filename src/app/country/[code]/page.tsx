@@ -54,8 +54,8 @@ export default async function CountryPage({ params }: PageProps) {
 
   if (error || !country) {
     return (
-      <div className="min-h-screen bg-surface-secondary">
-        <main className="mx-auto max-w-[1520px] px-6 py-12 lg:px-20">
+      <div className="min-h-screen bg-white">
+        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
@@ -110,10 +110,10 @@ export default async function CountryPage({ params }: PageProps) {
   }));
 
   return (
-    <div className="min-h-screen bg-surface-secondary">
-      <main className="mx-auto max-w-[1520px] px-6 lg:px-20">
+    <div className="min-h-screen bg-white">
+      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
         {/* ── Breadcrumb ────────────────────────────────────── */}
-        <div className="pt-12">
+        <div className="pt-10">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
@@ -123,33 +123,33 @@ export default async function CountryPage({ params }: PageProps) {
         </div>
 
         {/* ── Country Header ────────────────────────────────── */}
-        <section className="mt-8">
+        <section className="mt-6">
           <div className="flex items-baseline gap-3">
-            <h1 className="font-serif text-[48px] font-bold leading-[1.1] tracking-tight text-text-primary">
+            <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
               {country.country_name}
             </h1>
             <span className="font-mono text-[15px] text-text-quaternary">
               {country.country}
             </span>
           </div>
-          <p className="mt-3 text-[15px] text-text-tertiary">
+          <p className="mt-2 text-[14px] text-text-tertiary">
             {country.version} · {country.window} ·{" "}
             {country.axes_available}/{country.axes_required} axes available
           </p>
         </section>
 
         {/* ── Composite KPI Row ─────────────────────────────── */}
-        <section className="mt-16">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+        <section className="mt-12">
+          <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Composite Score
           </h2>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <KPICard
               label="ISI Composite"
               value={formatScore(country.isi_composite)}
               variant="highlight"
             />
-            <div className="flex items-center bg-surface-tertiary/60 px-6">
+            <div className="flex items-center rounded-md border border-border-primary bg-surface-tertiary px-5">
               <StatusBadge classification={country.isi_classification} />
             </div>
             <KPICard
@@ -175,14 +175,14 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Distribution Context (where does this country sit?) ── */}
         {allScores.length > 0 && country.isi_composite !== null && (
-          <section className="mt-16">
-            <h2 className="font-serif text-[32px] font-semibold tracking-tight text-text-primary">
+          <section className="mt-12">
+            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
               Position in EU-27 Distribution
             </h2>
-            <p className="mt-2 text-[15px] text-text-tertiary">
+            <p className="mt-1.5 text-[14px] text-text-tertiary">
               {country.country_name}&apos;s composite score relative to all EU-27 member states.
             </p>
-            <div className="mt-8 bg-surface-primary p-8">
+            <div className="mt-6 rounded-md border border-border-primary p-6">
             <DistributionHistogram
               scores={allScores}
               mean={compositeMean}
@@ -196,10 +196,10 @@ export default async function CountryPage({ params }: PageProps) {
         )}
 
         {/* ── Radar + Deviation Side-by-Side ───────────────── */}
-        <section className="mt-20 grid gap-6 lg:grid-cols-2">
+        <section className="mt-14 grid gap-4 lg:grid-cols-2">
           {/* Radar Chart */}
-          <div className="bg-surface-primary p-8">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+          <div className="rounded-md border border-border-primary p-6">
+            <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Multi-Axis Profile
             </h2>
             <RadarChart
@@ -210,11 +210,11 @@ export default async function CountryPage({ params }: PageProps) {
           </div>
 
           {/* Deviation Bars */}
-          <div className="bg-surface-primary p-8">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+          <div className="rounded-md border border-border-primary p-6">
+            <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Deviation from EU-27 Mean
             </h2>
-            <p className="mt-3 mb-4 text-[13px] text-text-quaternary">
+            <p className="mt-2 mb-3 text-[12px] text-text-quaternary">
               Bars show deviation from the EU-27 composite mean ({formatScore(compositeMean)}).
               Red = above mean (more concentrated). Green = below mean (more diversified).
             </p>
@@ -227,9 +227,9 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Strengths & Vulnerabilities ───────────────────── */}
         {scoredAxes.length >= 2 && (
-          <section className="mt-16 grid gap-3 md:grid-cols-2">
-            <div className="border-l-2 border-l-deviation-negative bg-surface-tertiary/60 p-6">
-              <h3 className="text-[11px] font-medium uppercase tracking-[0.14em] text-deviation-negative">
+          <section className="mt-12 grid gap-3 md:grid-cols-2">
+            <div className="border-l-2 border-l-deviation-negative rounded-md border border-border-primary p-5">
+              <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-deviation-negative">
                 Most Diversified Axes (Lowest HHI)
               </h3>
               <div className="mt-4 space-y-2">
@@ -248,8 +248,8 @@ export default async function CountryPage({ params }: PageProps) {
                 ))}
               </div>
             </div>
-            <div className="border-l-2 border-l-deviation-positive bg-surface-tertiary/60 p-6">
-              <h3 className="text-[11px] font-medium uppercase tracking-[0.14em] text-deviation-positive">
+            <div className="border-l-2 border-l-deviation-positive rounded-md border border-border-primary p-5">
+              <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-deviation-positive">
                 Most Concentrated Axes (Highest HHI)
               </h3>
               <div className="mt-4 space-y-2">
@@ -272,7 +272,7 @@ export default async function CountryPage({ params }: PageProps) {
         )}
 
         {/* ── Per-Axis Details ──────────────────────────────── */}
-        <div className="mt-20 mb-24 space-y-4">
+        <div className="mt-14 mb-16 space-y-4">
         {country.axes.map((axis) => (
           <AxisSection key={axis.axis_id} axis={axis} />
         ))}
@@ -286,8 +286,8 @@ export default async function CountryPage({ params }: PageProps) {
 
 function AxisSection({ axis }: { axis: CountryAxisDetail }) {
   return (
-    <section className="mt-10 bg-surface-primary">
-      <div className="border-b border-border-subtle px-6 py-5">
+    <section className="mt-8 rounded-md border border-border-primary">
+      <div className="border-b border-border-subtle px-5 py-4">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
@@ -314,7 +314,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         </p>
       </div>
 
-      <div className="px-6 py-5 space-y-5">
+      <div className="px-5 py-4 space-y-4">
         {/* Audit breakdown */}
         {axis.audit && (
           <div>
@@ -325,7 +325,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
               {Object.entries(axis.audit).map(([key, val]) => (
                 <div
                   key={key}
-                  className="bg-surface-tertiary/60 p-3"
+                  className="rounded-md border border-border-primary bg-surface-tertiary p-3"
                 >
                   <p className="text-[11px] text-text-quaternary">
                     {key.replace(/_/g, " ")}
@@ -363,7 +363,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
               {Object.entries(axis.fuel_concentrations).map(([fuel, hhi]) => (
                 <div
                   key={fuel}
-                  className="bg-surface-tertiary/60 p-3"
+                  className="rounded-md border border-border-primary bg-surface-tertiary p-3"
                 >
                   <p className="text-[11px] capitalize text-text-quaternary">
                     {fuel.replace(/_/g, " ")}
@@ -415,7 +415,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
 
 function ChannelBlock({ channel }: { channel: ChannelDetail }) {
   return (
-    <div className="bg-surface-tertiary/60 p-4">
+    <div className="rounded-md border border-border-primary bg-surface-tertiary p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-medium text-text-secondary">
           Ch. {channel.channel_id}: {channel.channel_name}
