@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -110,6 +111,15 @@ export default function RootLayout({
             }),
           }}
         />
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            id="microsoft-clarity"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "vhg0bs7xjn");`,
+            }}
+          />
+        )}
         {/* ── Institutional Header ───────────────────────── */}
         <header className="sticky top-0 z-50 bg-navy-900">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
