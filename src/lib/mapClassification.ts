@@ -1,29 +1,32 @@
 // ============================================================================
 // ISI Map Classification — Deterministic score-to-color mapping
 // ============================================================================
-// Pure functions. No side effects. No state. No imports beyond types.
 //
-// Color scale follows HHI concentration thresholds:
-//   < 0.15  → Unconcentrated (lightest)
-//   0.15–0.24 → Mildly concentrated
-//   0.25–0.49 → Moderately concentrated
-//   ≥ 0.50  → Highly concentrated (darkest)
-//   null    → No data (neutral gray)
+// Pure functions. No side effects. No state. No external imports.
+//
+// Band thresholds follow HHI concentration convention:
+//   null/NaN → No data        (#e5e7eb)
+//   < 0.15   → Unconcentrated (#e2e8f0)
+//   0.15–0.24 → Mildly        (#94a3b8)
+//   0.25–0.49 → Moderately    (#475569)
+//   ≥ 0.50   → Highly         (#0f172a)
+//
+// Every function is deterministic: same input → same output, always.
 // ============================================================================
 
-// ─── Thresholds (HHI standard bands) ───────────────────────────────
+// ─── Thresholds ─────────────────────────────────────────────────────
 
-const THRESHOLD_MILDLY = 0.15;
-const THRESHOLD_MODERATELY = 0.25;
-const THRESHOLD_HIGHLY = 0.50;
+const T_MILD = 0.15;
+const T_MODERATE = 0.25;
+const T_HIGH = 0.50;
 
 // ─── Color Palette ──────────────────────────────────────────────────
 
-const COLOR_UNCONCENTRATED = "#e2e8f0";
-const COLOR_MILDLY = "#94a3b8";
-const COLOR_MODERATELY = "#475569";
-const COLOR_HIGHLY = "#0f172a";
-const COLOR_NO_DATA = "#e5e7eb";
+const C_UNCONCENTRATED = "#e2e8f0";
+const C_MILD = "#94a3b8";
+const C_MODERATE = "#475569";
+const C_HIGH = "#0f172a";
+const C_NO_DATA = "#e5e7eb";
 
 // ─── Classification Bands ───────────────────────────────────────────
 
@@ -34,44 +37,38 @@ export type ClassificationBand =
   | "highly_concentrated"
   | "no_data";
 
-// ─── Deterministic Score → Color ────────────────────────────────────
+// ─── Score → Fill Color ─────────────────────────────────────────────
 
 /**
- * Map a composite ISI score to its fill color.
- *
  * Deterministic: same input always produces same output.
- * Handles null/undefined gracefully with no-data color.
+ * Handles null, undefined, NaN, Infinity gracefully.
  */
 export function classify(score: number | null | undefined): string {
   if (score === null || score === undefined || !Number.isFinite(score)) {
-    return COLOR_NO_DATA;
+    return C_NO_DATA;
   }
-  if (score < THRESHOLD_MILDLY) return COLOR_UNCONCENTRATED;
-  if (score < THRESHOLD_MODERATELY) return COLOR_MILDLY;
-  if (score < THRESHOLD_HIGHLY) return COLOR_MODERATELY;
-  return COLOR_HIGHLY;
+  if (score < T_MILD) return C_UNCONCENTRATED;
+  if (score < T_MODERATE) return C_MILD;
+  if (score < T_HIGH) return C_MODERATE;
+  return C_HIGH;
 }
 
-/**
- * Map a composite ISI score to its classification band label.
- *
- * Used for tooltip display and diagnostics.
- */
+// ─── Score → Band Enum ──────────────────────────────────────────────
+
 export function classifyBand(
   score: number | null | undefined,
 ): ClassificationBand {
   if (score === null || score === undefined || !Number.isFinite(score)) {
     return "no_data";
   }
-  if (score < THRESHOLD_MILDLY) return "unconcentrated";
-  if (score < THRESHOLD_MODERATELY) return "mildly_concentrated";
-  if (score < THRESHOLD_HIGHLY) return "moderately_concentrated";
+  if (score < T_MILD) return "unconcentrated";
+  if (score < T_MODERATE) return "mildly_concentrated";
+  if (score < T_HIGH) return "moderately_concentrated";
   return "highly_concentrated";
 }
 
-/**
- * Human-readable label for a classification band.
- */
+// ─── Band → Human Label ─────────────────────────────────────────────
+
 export function classificationBandLabel(band: ClassificationBand): string {
   switch (band) {
     case "unconcentrated":
@@ -96,60 +93,24 @@ export interface LegendItem {
 }
 
 export const LEGEND_ITEMS: readonly LegendItem[] = [
-  {
-    color: COLOR_UNCONCENTRATED,
-    label: "< 0.15",
-    band: "unconcentrated",
-  },
-  {
-    color: COLOR_MILDLY,
-    label: "0.15\u20130.24",
-    band: "mildly_concentrated",
-  },
-  {
-    color: COLOR_MODERATELY,
-    label: "0.25\u20130.49",
-    band: "moderately_concentrated",
-  },
-  {
-    color: COLOR_HIGHLY,
-    label: "\u2265 0.50",
-    band: "highly_concentrated",
-  },
-  {
-    color: COLOR_NO_DATA,
-    label: "No data",
-    band: "no_data",
-  },
+  { color: C_UNCONCENTRATED, label: "< 0.15", band: "unconcentrated" },
+  { color: C_MILD, label: "0.15\u20130.24", band: "mildly_concentrated" },
+  { color: C_MODERATE, label: "0.25\u20130.49", band: "moderately_concentrated" },
+  { color: C_HIGH, label: "\u2265 0.50", band: "highly_concentrated" },
+  { color: C_NO_DATA, label: "No data", band: "no_data" },
 ] as const;
 
-// ─── Statistics Helpers ─────────────────────────────────────────────
+// ─── Display Formatters ─────────────────────────────────────────────
 
-/**
- * Compute the arithmetic mean of a set of scores.
- * Returns null if the array is empty.
- */
-export function computeMean(scores: readonly number[]): number | null {
-  if (scores.length === 0) return null;
-  const sum = scores.reduce((acc, s) => acc + s, 0);
-  return sum / scores.length;
-}
-
-/**
- * Format a score to 4 decimal places, or em-dash for null.
- */
-export function formatMapScore(
-  score: number | null | undefined,
-): string {
+/** Format score to 4 decimal places, or em-dash for null. */
+export function formatMapScore(score: number | null | undefined): string {
   if (score === null || score === undefined || !Number.isFinite(score)) {
     return "\u2014";
   }
   return score.toFixed(4);
 }
 
-/**
- * Format a delta value with +/- prefix.
- */
+/** Format delta with +/- prefix, or em-dash for null. */
 export function formatDelta(delta: number | null | undefined): string {
   if (delta === null || delta === undefined || !Number.isFinite(delta)) {
     return "\u2014";

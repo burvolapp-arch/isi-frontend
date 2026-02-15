@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 // ============================================================================
-// useResizeObserver — Production-grade responsive dimension tracking
+// useResizeObserver — Fail-safe responsive dimension tracking
 // ============================================================================
-// Tracks the content-box dimensions of a container element via ResizeObserver.
-// Returns stable [width, height] tuple that updates on layout changes.
-// Includes SSR-safe fallback dimensions and debounce guard.
+//
+// Tracks content-box dimensions via ResizeObserver with:
+// - SSR-safe guard (no ResizeObserver in Node)
+// - Non-zero fallback dimensions to prevent zero-size SVG
+// - Stable state updates (only fires when dimensions actually change)
+// - Cleanup on unmount
+// - rAF batching to avoid layout thrash
+//
 // ============================================================================
 
 interface Dimensions {
@@ -15,60 +20,60 @@ interface Dimensions {
   readonly height: number;
 }
 
-const FALLBACK_WIDTH = 960;
-const FALLBACK_HEIGHT = 540;
-const INITIAL_DIMENSIONS: Dimensions = {
-  width: FALLBACK_WIDTH,
-  height: FALLBACK_HEIGHT,
-};
+const FALLBACK: Dimensions = { width: 960, height: 540 } as const;
 
 /**
  * Observe the content-box size of a referenced HTML element.
  *
- * @returns A tuple of [ref, dimensions] where ref is attached to the
- *          container and dimensions tracks its live width/height.
+ * @returns `[ref, dimensions]` — attach `ref` to a container,
+ *          `dimensions` gives its live `{ width, height }`.
  *
  * Guarantees:
- * - No layout shift: initial dimensions are non-zero fallbacks.
- * - SSR-safe: ResizeObserver is only instantiated in useEffect.
- * - Cleanup: observer disconnects on unmount.
- * - Stable: only updates state when dimensions actually change.
+ * - Returns non-zero dimensions from the first render (fallback).
+ * - Only updates React state when width or height actually changes.
+ * - Disconnects observer on unmount.
+ * - Does nothing on the server.
  */
 export function useResizeObserver<
   T extends HTMLElement = HTMLDivElement,
 >(): [React.RefObject<T | null>, Dimensions] {
   const ref = useRef<T | null>(null);
-  const [dimensions, setDimensions] = useState<Dimensions>(INITIAL_DIMENSIONS);
+  const [dims, setDims] = useState<Dimensions>(FALLBACK);
+  const rafRef = useRef<number>(0);
+
+  const measure = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    if (w > 0 && h > 0) {
+      setDims((prev) => {
+        if (prev.width === w && prev.height === h) return prev;
+        return { width: w, height: h };
+      });
+    }
+  }, []);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
+    const el = ref.current;
+    if (!el) return;
+    if (typeof ResizeObserver === "undefined") return;
 
-    // Measure immediately on mount
-    const measure = (): void => {
-      const { clientWidth, clientHeight } = element;
-      if (clientWidth > 0 && clientHeight > 0) {
-        setDimensions((prev) => {
-          if (prev.width === clientWidth && prev.height === clientHeight) {
-            return prev;
-          }
-          return { width: clientWidth, height: clientHeight };
-        });
-      }
-    };
-
+    // Measure immediately
     measure();
 
     const observer = new ResizeObserver(() => {
-      measure();
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(measure);
     });
 
-    observer.observe(element);
+    observer.observe(el);
 
     return () => {
+      cancelAnimationFrame(rafRef.current);
       observer.disconnect();
     };
-  }, []);
+  }, [measure]);
 
-  return [ref, dimensions];
+  return [ref, dims];
 }
