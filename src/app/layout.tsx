@@ -95,7 +95,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} min-h-screen flex flex-col antialiased`}
       >
         <ClarityAnalytics />
         <script
@@ -112,7 +112,7 @@ export default function RootLayout({
             }),
           }}
         />
-        <div className="flex min-h-screen flex-col">
+
         {/* ── Institutional Header ───────────────────────── */}
         <header className="sticky top-0 z-50 bg-navy-900">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
@@ -139,13 +139,14 @@ export default function RootLayout({
         </header>
 
         {/* ── Page Content ───────────────────────────────── */}
-        <div className="flex-1">
+        <main className="flex-1">
           {children}
-        </div>
+        </main>
 
         {/* ── Institutional Footer ───────────────────────── */}
         <footer className="border-t border-border-primary bg-surface-primary">
-          <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-16">
+          <div className="mx-auto max-w-[1400px] px-6 py-12 lg:px-16">
+            {/* Section 1: Title + Nav */}
             <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
               <div>
                 <p className="font-serif text-[15px] font-semibold text-text-primary">
@@ -153,7 +154,7 @@ export default function RootLayout({
                 </p>
                 <p className="mt-1 text-[13px] text-text-quaternary">
                   Measuring external dependency concentration across EU-27
-                  member states · HHI framework
+                  member states &middot; HHI framework
                 </p>
               </div>
               <div className="flex gap-6 text-[13px] text-text-tertiary">
@@ -171,6 +172,8 @@ export default function RootLayout({
                 </Link>
               </div>
             </div>
+
+            {/* Section 2: Rendering Layer Disclaimer */}
             <div className="mt-8 border-t border-border-subtle pt-8">
               <p className="max-w-3xl text-[12px] leading-relaxed text-text-quaternary">
                 This frontend is a pure rendering layer. It performs zero
@@ -180,12 +183,13 @@ export default function RootLayout({
                 backend materialization pipeline.
               </p>
             </div>
-            {/* ── Citation Block ────────────────────────────── */}
+
+            {/* Section 3: Citation Block + Downloads */}
             <div className="mt-8 border-t border-border-subtle pt-8">
               <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                 Cite the ISI
               </h3>
-              <p className="mt-3 rounded-md bg-surface-tertiary border border-border-primary px-4 py-3 font-mono text-[12px] leading-relaxed text-text-tertiary">
+              <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 font-mono text-[12px] leading-relaxed text-text-tertiary">
                 International Sovereignty Index (2025).{" "}
                 <em>
                   External Dependency Concentration in EU-27 Member States.
@@ -215,7 +219,6 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
-        </div>
       </body>
     </html>
   );

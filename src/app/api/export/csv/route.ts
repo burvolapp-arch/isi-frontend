@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { fetchISI } from "@/lib/api";
 
 export const revalidate = 300;
@@ -34,18 +33,21 @@ export async function GET() {
     const rows = data.countries.map((c) =>
       COLUMNS.map((col) => escapeCSV(c[col])).join(",")
     );
-    const csv = [header, ...rows].join("\n");
+    const csvString = [header, ...rows].join("\n");
 
-    return new NextResponse(csv, {
+    const encoder = new TextEncoder();
+    const body = encoder.encode(csvString);
+
+    return new Response(body, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="isi-${data.version}-${data.window}.csv"`,
+        "Content-Disposition": `attachment; filename="isi-${data.version}.csv"`,
         "Cache-Control": "public, max-age=300, s-maxage=300",
       },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Export failed";
-    return NextResponse.json({ error: message }, { status: 502 });
+    return Response.json({ error: message }, { status: 502 });
   }
 }

@@ -5,10 +5,16 @@
 // ============================================================================
 // D3-geo + TopoJSON SVG choropleth of EU-27 ISI composite scores.
 // Monochrome slate scale. Hover tooltip. Click navigates to country page.
-// 16:9 responsive aspect ratio. Proper fitExtent projection.
+// Responsive via ResizeObserver. Proper fitSize projection.
 // ============================================================================
 
-import { useCallback, useMemo, useState, useRef, useEffect } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import { useRouter } from "next/navigation";
 import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
@@ -21,29 +27,10 @@ import {
   countryHref,
 } from "@/lib/format";
 
-// ─── Local TopoJSON type stubs ─────────────────────────────────────
-// Avoids direct dependency on @types/topojson-specification
-
-interface TopoGeometry {
-  type: string;
-  geometries?: TopoGeometry[];
-  arcs?: unknown;
-  coordinates?: unknown;
-  properties?: Record<string, unknown>;
-}
-
-interface TopoTopology {
-  type: "Topology";
-  objects: Record<string, TopoGeometry>;
-  arcs: number[][][];
-  bbox?: number[];
-  transform?: { scale: [number, number]; translate: [number, number] };
-}
-
 // ─── Color Scale (monochrome slate) ────────────────────────────────
 
-function scoreColor(score: number | null): string {
-  if (score === null) return "#e5e7eb";
+function scoreColor(score: number | null | undefined): string {
+  if (score === null || score === undefined) return "#e5e7eb";
   if (score < 0.15) return "#e2e8f0";
   if (score < 0.25) return "#94a3b8";
   if (score < 0.5) return "#475569";
@@ -52,17 +39,21 @@ function scoreColor(score: number | null): string {
 
 // ─── Constants ──────────────────────────────────────────────────────
 
-const VIEW_W = 960;
-const VIEW_H = 540; // 16:9
-const PAD = 24;
-
 const LEGEND_ITEMS = [
   { color: "#e2e8f0", label: "< 0.15" },
   { color: "#94a3b8", label: "0.15–0.24" },
   { color: "#475569", label: "0.25–0.49" },
-  { color: "#0f172a", label: "≥ 0.50" },
+  { color: "#0f172a", label: "\u2265 0.50" },
   { color: "#e5e7eb", label: "No data" },
 ];
+
+// EU uses "EL" for Greece; ISO 3166 / Natural Earth use "GR".
+// Normalize backend codes so they match TopoJSON ISO_A2.
+const ISO_ALIAS: Record<string, string> = { EL: "GR" };
+function normalizeISO(code: string): string {
+  const upper = code.toUpperCase();
+  return ISO_ALIAS[upper] ?? upper;
+}
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -79,27 +70,42 @@ interface TooltipState {
   deviation: number | null;
 }
 
-interface CountryProperties {
-  ISO_A2: string;
-  NAME: string;
-}
-
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function EUMap({ countries, mean }: EUMapProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const [topology, setTopology] = useState<TopoTopology | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [topo, setTopo] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [size, setSize] = useState({ width: 960, height: 540 });
 
+  // ── Responsive sizing via ResizeObserver ──────────────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const w = Math.round(entry.contentRect.width);
+      const h = Math.round(entry.contentRect.height);
+      if (w > 0 && h > 0) setSize({ width: w, height: h });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // ── Build lookup: normalized ISO_A2 → country data ────────────────
   const lookup = useMemo(() => {
     const map = new Map<string, ISICompositeCountry>();
-    for (const c of countries) map.set(c.country.toUpperCase(), c);
+    for (const c of countries) {
+      map.set(normalizeISO(c.country), c);
+    }
     return map;
   }, [countries]);
 
-  // Load TopoJSON
+  // ── Load TopoJSON ─────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
     fetch("/eu27.topo.json")
@@ -107,8 +113,8 @@ export default function EUMap({ countries, mean }: EUMapProps) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data: TopoTopology) => {
-        if (!cancelled) setTopology(data);
+      .then((data) => {
+        if (!cancelled) setTopo(data);
       })
       .catch(() => {
         if (!cancelled) setError("Map geometry unavailable");
@@ -118,26 +124,25 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     };
   }, []);
 
-  // Project & path generator
+  // ── Convert TopoJSON → GeoJSON, build projection + path ──────────
   const { pathFn, features } = useMemo(() => {
-    if (!topology) return { pathFn: null, features: [] as GeoJSON.Feature[] };
+    if (!topo) return { pathFn: null, features: [] as GeoJSON.Feature[] };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const geom = (topology as any).objects.countries;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fc = feature(topology as any, geom) as unknown as GeoJSON.FeatureCollection;
+    // Dynamically pick the first (and only) object layer
+    const objectKey = Object.keys(topo.objects)[0];
+    if (!objectKey) return { pathFn: null, features: [] as GeoJSON.Feature[] };
 
-    const projection = geoMercator().fitExtent(
-      [
-        [PAD, PAD],
-        [VIEW_W - PAD, VIEW_H - PAD],
-      ],
-      fc,
+    const geo = feature(topo, topo.objects[objectKey]) as unknown as GeoJSON.FeatureCollection;
+
+    const projection = geoMercator().fitSize(
+      [size.width, size.height],
+      geo,
     );
 
-    return { pathFn: geoPath(projection), features: fc.features };
-  }, [topology]);
+    return { pathFn: geoPath(projection), features: geo.features };
+  }, [topo, size]);
 
+  // ── Event handlers ────────────────────────────────────────────────
   const handleMouseMove = useCallback(
     (e: React.MouseEvent, iso: string, name: string) => {
       const el = containerRef.current;
@@ -160,7 +165,8 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   const handleClick = useCallback(
     (iso: string) => {
-      if (lookup.has(iso)) router.push(countryHref(iso));
+      const data = lookup.get(iso);
+      if (data) router.push(countryHref(data.country));
     },
     [lookup, router],
   );
@@ -169,36 +175,35 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   if (error) {
     return (
-      <div className="flex aspect-[16/9] items-center justify-center rounded-lg border border-gray-200 bg-white text-sm text-gray-400">
+      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-lg border border-gray-200 bg-white text-sm text-gray-400">
         {error}
       </div>
     );
   }
 
-  if (!topology || !pathFn) {
+  if (!topo || !pathFn) {
     return (
-      <div className="flex aspect-[16/9] items-center justify-center rounded-lg border border-gray-200 bg-white text-sm text-gray-400">
-        Loading map…
+      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-lg border border-gray-200 bg-white text-sm text-gray-400">
+        Loading map&hellip;
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* 16:9 aspect-ratio container — no layout shift */}
       <div
         ref={containerRef}
-        className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-gray-200 bg-white"
+        className="relative w-full aspect-[16/9] overflow-hidden rounded-lg border border-gray-200 bg-white"
       >
         <svg
-          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          viewBox={`0 0 ${size.width} ${size.height}`}
           preserveAspectRatio="xMidYMid meet"
           className="absolute inset-0 h-full w-full"
           role="img"
           aria-label="EU-27 ISI composite score choropleth map"
         >
-          {features.map((f) => {
-            const props = f.properties as CountryProperties | null;
+          {features.map((f, idx) => {
+            const props = f.properties as { ISO_A2?: string; NAME?: string } | null;
             const iso = props?.ISO_A2 ?? "";
             const name = props?.NAME ?? iso;
             const data = lookup.get(iso);
@@ -208,7 +213,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
             return (
               <path
-                key={iso}
+                key={iso || idx}
                 d={d}
                 fill={scoreColor(score)}
                 stroke="#ffffff"
@@ -230,7 +235,6 @@ export default function EUMap({ countries, mean }: EUMapProps) {
           })}
         </svg>
 
-        {/* Tooltip */}
         {tooltip && (
           <div
             className="pointer-events-none absolute z-10 rounded bg-gray-900 px-3 py-2 text-xs text-white shadow-lg"
@@ -251,7 +255,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             )}
             {tooltip.deviation !== null && (
               <p className="tabular-nums text-gray-300">
-                Δ {tooltip.deviation > 0 ? "+" : ""}
+                &Delta; {tooltip.deviation > 0 ? "+" : ""}
                 {formatScore(tooltip.deviation)} from mean
               </p>
             )}
@@ -259,7 +263,6 @@ export default function EUMap({ countries, mean }: EUMapProps) {
         )}
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
         <span className="font-medium text-gray-700">ISI Composite</span>
         {LEGEND_ITEMS.map((item) => (
