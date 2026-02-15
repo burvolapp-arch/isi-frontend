@@ -123,7 +123,7 @@ export default async function ExecutiveOverviewPage() {
           </div>
 
           {/* Right column — structural framework diagram */}
-          <div className="w-full max-w-[340px] shrink-0 lg:w-[340px]">
+          <div className="w-full max-w-[420px] shrink-0 lg:w-[420px]">
             <StructuralFrameworkDiagram />
           </div>
         </div>
