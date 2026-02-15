@@ -25,8 +25,9 @@ import {
 // content are overlaid inside it. This ensures the ResizeObserver ref never
 // changes DOM elements between loading ↔ map transitions.
 //
-// The TopoJSON uses raw WGS84 lon/lat arcs → geoMercator + fitSize.
-// Each country arc is independent (no shared arcs), so mesh() uses no filter.
+// TopoJSON: Natural Earth 50m data with SHARED arcs between neighbors.
+// mesh() with (a,b) => a !== b produces clean internal borders only.
+// geoMercator + fitSize for WGS84 projection.
 // ============================================================================
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -66,7 +67,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [topoData, setTopoData] = useState<EUTopology | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const hoverRef = useRef<SVGPathElement | null>(null);
+  const [hoveredIso, setHoveredIso] = useState<string | null>(null);
   const rafRef = useRef(0);
 
   // ── ResizeObserver — always watches the ONE container div ─────────
@@ -85,7 +86,6 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       }
     };
 
-    // Immediate measure
     measure();
 
     if (typeof ResizeObserver === "undefined") return;
@@ -100,9 +100,9 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
     };
-  }, []); // Container div is always mounted — this is safe
+  }, []);
 
-  // ── ISO-2 lookup map (strict) ─────────────────────────────────────
+  // ── ISO-2 lookup map ──────────────────────────────────────────────
 
   const lookup = useMemo(() => {
     const m = new Map<string, ISICompositeCountry>();
@@ -158,21 +158,43 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     }
     if (!geojson.features?.length) return null;
 
-    // Build projection: raw WGS84 → geoMercator, fitted to container
-    const projection = geoMercator().fitSize(
-      [dims.width, dims.height],
-      geojson,
-    );
+    // Pad to give breathing room — 4% on each side
+    const pad = 0.04;
+    const usableW = dims.width * (1 - 2 * pad);
+    const usableH = dims.height * (1 - 2 * pad);
+    const projection = geoMercator().fitSize([usableW, usableH], geojson);
+    // Offset the fitted projection so it's centered with padding
+    const [tx, ty] = projection.translate();
+    projection.translate([tx + dims.width * pad, ty + dims.height * pad]);
     const pathFn = geoPath(projection);
 
-    // All-boundaries mesh (no shared arcs in this TopoJSON, so no filter)
+    // Internal borders only — shared arcs between neighboring countries
     let borderPath = "";
     try {
-      const borderGeom = mesh(topoData, topoObj);
+      const borderGeom = mesh(
+        topoData,
+        topoObj,
+        (a, b) => a !== b,
+      );
       borderPath = pathFn(borderGeom) ?? "";
     } catch {
-      // non-fatal
+      // Fallback: all boundaries if filter fails
+      try {
+        const borderGeom = mesh(topoData, topoObj);
+        borderPath = pathFn(borderGeom) ?? "";
+      } catch { /* non-fatal */ }
     }
+
+    // Outer coastline / external boundary
+    let outerPath = "";
+    try {
+      const outerGeom = mesh(
+        topoData,
+        topoObj,
+        (a, b) => a === b,
+      );
+      outerPath = pathFn(outerGeom) ?? "";
+    } catch { /* non-fatal */ }
 
     // Match features to backend data
     let matchedCount = 0;
@@ -190,6 +212,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       features: geojson.features,
       pathFn,
       borderPath,
+      outerPath,
       featureCount: geojson.features.length,
       matchedCount,
       unmatchedCodes,
@@ -221,12 +244,19 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       const score = rec?.isi_composite ?? null;
       const band = classifyBand(score);
 
-      const pad = 8;
+      // Position tooltip with smart edge clamping
+      const tooltipW = 240;
+      const tooltipH = 90;
       let tx = e.clientX - rect.left;
-      let ty = e.clientY - rect.top - 14;
-      tx = Math.max(pad, Math.min(tx, rect.width - pad));
-      ty = Math.max(pad, Math.min(ty, rect.height - pad));
+      let ty = e.clientY - rect.top - 16;
 
+      // Clamp horizontally
+      if (tx - tooltipW / 2 < 8) tx = tooltipW / 2 + 8;
+      if (tx + tooltipW / 2 > rect.width - 8) tx = rect.width - tooltipW / 2 - 8;
+      // Flip below cursor if too close to top
+      if (ty - tooltipH < 8) ty = e.clientY - rect.top + 24;
+
+      setHoveredIso(iso || null);
       setTooltip({
         x: tx,
         y: ty,
@@ -245,10 +275,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   const onLeave = useCallback(() => {
     setTooltip(null);
-    if (hoverRef.current) {
-      hoverRef.current.style.filter = "";
-      hoverRef.current = null;
-    }
+    setHoveredIso(null);
   }, []);
 
   const onClick = useCallback(
@@ -260,26 +287,14 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     [lookup, router, iso2Of],
   );
 
-  const onEnter = useCallback((e: React.MouseEvent<SVGPathElement>) => {
-    if (hoverRef.current && hoverRef.current !== e.currentTarget) {
-      hoverRef.current.style.filter = "";
-    }
-    e.currentTarget.style.filter = "brightness(1.15)";
-    hoverRef.current = e.currentTarget;
-  }, []);
-
   // ── Determine ready state ─────────────────────────────────────────
 
   const ready = mapData !== null;
 
   // ── Render ────────────────────────────────────────────────────────
-  //
-  // CRITICAL: The container div with ref={containerRef} is ALWAYS rendered.
-  // Loading, error, and map content are overlaid inside it. This prevents
-  // the ResizeObserver from losing its target element.
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Mismatch warning */}
       {ready && mapData.matchedCount < mapData.featureCount && (
         <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-800">
@@ -292,12 +307,19 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       {/* ── STABLE CONTAINER — always mounted, ref never moves ─── */}
       <div
         ref={containerRef}
-        className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-gray-200"
+        className="relative w-full overflow-hidden rounded-lg border border-border-primary bg-stone-50"
+        style={{ minHeight: "520px", aspectRatio: "4 / 3" }}
       >
         {/* Loading overlay */}
         {!ready && !loadError && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm text-gray-400">Loading map…</span>
+            <div className="flex items-center gap-2.5 text-sm text-stone-400">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+              Loading map…
+            </div>
           </div>
         )}
 
@@ -331,18 +353,24 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   const d = mapData.pathFn(f as GeoPermissibleObjects);
                   if (!d) return null;
 
+                  const isHovered = hoveredIso === iso && iso !== "";
+                  const baseColor = classify(score);
+
                   return (
                     <path
                       key={iso || `f-${i}`}
                       d={d}
-                      fill={classify(score)}
-                      stroke="#ffffff"
-                      strokeWidth={0.5}
+                      fill={baseColor}
+                      stroke={isHovered ? "#0b2545" : "#ffffff"}
+                      strokeWidth={isHovered ? 1.8 : 0.5}
+                      opacity={hoveredIso && !isHovered ? 0.6 : 1}
                       className="cursor-pointer"
+                      style={{
+                        transition: "fill 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease, opacity 0.2s ease",
+                      }}
                       onMouseMove={(e) => onMove(e, f)}
                       onMouseLeave={onLeave}
                       onClick={() => onClick(f)}
-                      onMouseEnter={onEnter}
                     >
                       <title>
                         {nameOf(f)} ({iso || "?"})
@@ -353,13 +381,27 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 })}
               </g>
 
-              {/* Border overlay */}
+              {/* Internal borders — thin, subtle */}
               {mapData.borderPath.length > 0 && (
                 <path
                   d={mapData.borderPath}
                   fill="none"
                   stroke="#ffffff"
-                  strokeWidth={0.7}
+                  strokeWidth={0.8}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  pointerEvents="none"
+                  style={{ opacity: 0.9 }}
+                />
+              )}
+
+              {/* Outer coastline — slightly heavier */}
+              {mapData.outerPath.length > 0 && (
+                <path
+                  d={mapData.outerPath}
+                  fill="none"
+                  stroke="#94a3b8"
+                  strokeWidth={0.6}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   pointerEvents="none"
@@ -370,30 +412,37 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             {/* Tooltip */}
             {tooltip && (
               <div
-                className="pointer-events-none absolute z-10 max-w-[230px] rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg"
+                className="pointer-events-none absolute z-10 rounded-lg border border-stone-700 bg-navy-900 px-4 py-3 text-xs text-white shadow-xl"
                 style={{
                   left: tooltip.x,
                   top: tooltip.y,
                   transform: "translate(-50%, -100%)",
+                  maxWidth: "260px",
+                  animation: "fadeIn 0.1s ease-out",
                 }}
               >
-                <p className="font-medium leading-tight">
-                  {tooltip.name}{" "}
-                  <span className="font-mono text-gray-400">
-                    ({tooltip.iso2})
+                <p className="text-[13px] font-semibold leading-tight">
+                  {tooltip.name}
+                  <span className="ml-1.5 font-mono text-[11px] font-normal text-stone-400">
+                    {tooltip.iso2}
                   </span>
                 </p>
-                <p className="mt-1 font-mono tabular-nums">
-                  Composite: {formatMapScore(tooltip.score)}
-                </p>
-                {tooltip.score !== null && (
-                  <p className="tabular-nums text-gray-300">
-                    {tooltip.classification}
-                  </p>
-                )}
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="font-mono text-[15px] font-medium tabular-nums">
+                    {formatMapScore(tooltip.score)}
+                  </span>
+                  {tooltip.score !== null && (
+                    <span className="text-[11px] text-stone-400">
+                      {tooltip.classification}
+                    </span>
+                  )}
+                </div>
                 {tooltip.delta !== null && (
-                  <p className="tabular-nums text-gray-300">
-                    Δ {formatDelta(tooltip.delta)} from mean
+                  <p className="mt-1 text-[11px] tabular-nums text-stone-400">
+                    <span className={tooltip.delta > 0 ? "text-red-400" : "text-emerald-400"}>
+                      {formatDelta(tooltip.delta)}
+                    </span>
+                    {" "}from EU-27 mean
                   </p>
                 )}
               </div>
@@ -403,15 +452,17 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
-        <span className="font-medium text-gray-700">ISI Composite</span>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-text-tertiary">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-text-quaternary">
+          ISI Composite
+        </span>
         {LEGEND_ITEMS.map((item) => (
           <span key={item.label} className="inline-flex items-center gap-1.5">
             <span
-              className="inline-block h-3 w-3 rounded-sm border border-gray-300"
+              className="inline-block h-3 w-6 rounded-sm border border-stone-300"
               style={{ backgroundColor: item.color }}
             />
-            {item.label}
+            <span className="font-mono tabular-nums">{item.label}</span>
           </span>
         ))}
       </div>

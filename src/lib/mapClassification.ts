@@ -5,13 +5,14 @@
 // Pure functions. No side effects. No state. No external imports.
 //
 // Band thresholds follow HHI concentration convention:
-//   null/NaN → No data        (#e5e7eb)
-//   < 0.15   → Unconcentrated (#e2e8f0)
-//   0.15–0.24 → Mildly        (#94a3b8)
-//   0.25–0.49 → Moderately    (#475569)
-//   ≥ 0.50   → Highly         (#0f172a)
+//   null/NaN → No data        (#f3f4f6)  stone-100
+//   < 0.15   → Unconcentrated (#dbeafe)  blue-100
+//   0.15–0.24 → Mildly        (#60a5fa)  blue-400
+//   0.25–0.49 → Moderately    (#2563eb)  blue-600
+//   ≥ 0.50   → Highly         (#1e3a5f)  navy-800
 //
-// Every function is deterministic: same input → same output, always.
+// Sequential blue palette: light → dark correlates with low → high
+// concentration. Perceptually ordered, colourblind-safe, print-friendly.
 // ============================================================================
 
 // ─── Thresholds ─────────────────────────────────────────────────────
@@ -20,13 +21,15 @@ const T_MILD = 0.15;
 const T_MODERATE = 0.25;
 const T_HIGH = 0.50;
 
-// ─── Color Palette ──────────────────────────────────────────────────
+// ─── Color Palette — Sequential Blues ───────────────────────────────
+// Aligned with the institutional navy design system.
+// Each step has clear perceptual distance from its neighbors.
 
-const C_UNCONCENTRATED = "#e2e8f0";
-const C_MILD = "#94a3b8";
-const C_MODERATE = "#475569";
-const C_HIGH = "#0f172a";
-const C_NO_DATA = "#e5e7eb";
+const C_UNCONCENTRATED = "#dbeafe"; // blue-100 — lightest
+const C_MILD           = "#60a5fa"; // blue-400
+const C_MODERATE       = "#2563eb"; // blue-600
+const C_HIGH           = "#1e3a5f"; // navy-800 — darkest
+const C_NO_DATA        = "#f3f4f6"; // stone-100 — neutral grey
 
 // ─── Classification Bands ───────────────────────────────────────────
 
