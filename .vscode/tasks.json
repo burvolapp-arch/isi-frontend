@@ -275,6 +275,11 @@
 			"label": "git-push-redesign",
 			"type": "shell",
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && git push origin main 2>&1; echo PUSH_EXIT:$?"
+		},
+		{
+			"label": "Install @microsoft/clarity",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm install @microsoft/clarity"
 		}
 	]
 }
