@@ -7,7 +7,7 @@ import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
 import OutliersPanel from "@/components/OutliersPanel";
 import EUMap from "@/components/EUMap";
-import StructuralFrameworkDiagram from "@/components/StructuralFrameworkDiagram";
+import SovereigntyMatrix from "@/components/SovereigntyMatrix";
 import {
   formatScore,
   classificationLabel,
@@ -125,10 +125,12 @@ export default async function ExecutiveOverviewPage() {
             </div>
           </div>
 
-          {/* Right column — structural framework diagram */}
-          <div className="w-full max-w-[280px] shrink-0 sm:max-w-[340px] lg:w-[420px] lg:max-w-[420px]">
-            <StructuralFrameworkDiagram />
-          </div>
+          {/* Right column — sovereignty decomposition matrix */}
+          {isi && (
+            <div className="w-full max-w-[360px] shrink-0">
+              <SovereigntyMatrix countries={isi.countries} />
+            </div>
+          )}
         </div>
       </section>
 
