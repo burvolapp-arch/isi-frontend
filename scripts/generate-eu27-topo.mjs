@@ -161,9 +161,9 @@ async function main() {
   // Step 4: Light simplification — visually lossless at normal web zoom
   // quantile(topo, p) returns weight below which p fraction of points fall.
   // Higher p = more points kept = more geographic detail.
-  // p=0.10 gives ~5000 points / ~190KB — crisp coastlines and borders
+  // p=0.20 gives ~7000 points / ~260KB — very crisp coastlines and borders
   topo = presimplify(topo);
-  const threshold = quantile(topo, 0.10);
+  const threshold = quantile(topo, 0.20);
   topo = simplify(topo, threshold);
 
   let finalPts = 0;

@@ -365,6 +365,16 @@
 			"label": "Verify all 27 countries",
 			"type": "shell",
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"const t=require('./public/eu27.topo.json'); console.log('bbox:', t.bbox); const g=t.objects.countries.geometries; g.forEach(gg=>console.log(gg.properties.ISO_A2, gg.properties.NAME, gg.type)); console.log('total:', g.length);\""
+		},
+		{
+			"label": "Regenerate EU27 TopoJSON (10m, p=0.20 high-accuracy)",
+			"type": "shell",
+			"command": "node scripts/generate-eu27-topo.mjs"
+		},
+		{
+			"label": "Verify TopoJSON quality",
+			"type": "shell",
+			"command": "node -e \"const t=JSON.parse(require('fs').readFileSync('public/eu27.topo.json','utf8')); const g=t.objects.countries.geometries; console.log('Countries:',g.length); console.log(g.map(x=>x.properties.ISO_A2).sort().join(', ')); let pts=0; t.arcs.forEach(a=>pts+=a.length); console.log('Total points:',pts.toLocaleString()); console.log('File size:',(JSON.stringify(t).length/1024).toFixed(1),'KB');\""
 		}
 	]
 }

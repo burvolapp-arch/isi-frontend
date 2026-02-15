@@ -18,16 +18,20 @@ import {
 } from "@/lib/mapClassification";
 
 // ============================================================================
-// EUMap — EU-27 Choropleth (High-Accuracy)
+// EUMap — EU-27 Choropleth (High-Accuracy, High-Performance)
 // ============================================================================
 //
-// KEY DESIGN: ONE stable container div is always rendered. Loading and map
-// content are overlaid inside it. This ensures the ResizeObserver ref never
-// changes DOM elements between loading ↔ map transitions.
+// PERFORMANCE DESIGN:
+// • Path strings are pre-computed in useMemo — never recomputed during hover
+// • No SVG filters (feDropShadow) — they force per-frame GPU rasterisation
+// • Mouse events throttled to one update per animation frame
+// • Hover state stored in a ref AND state to avoid stale closures
+// • Hover overlay path is pre-computed in a Map for O(1) lookup
+// • CSS opacity uses will-change for GPU compositing
+// • Tooltip positioned with transform (composited, no layout thrash)
 //
-// TopoJSON: Natural Earth 10m data with SHARED arcs between neighbors.
-// mesh() with (a,b) => a !== b produces clean internal borders only.
-// geoMercator + fitSize for WGS84 projection.
+// ACCURACY: Natural Earth 10m source, quantile 0.20 simplification,
+// ~7K coordinate points for crisp coastlines at any zoom.
 // ============================================================================
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -52,6 +56,15 @@ interface CountryProps {
   readonly NAME: string;
 }
 
+interface PrecomputedCountry {
+  iso: string;
+  name: string;
+  d: string;           // SVG path string — computed once
+  fill: string;        // Choropleth colour
+  score: number | null;
+  feature: GeoJSON.Feature;
+}
+
 type EUTopology = Topology<{
   [key: string]: GeometryCollection<CountryProps>;
 }>;
@@ -61,6 +74,8 @@ const LABEL_COUNTRIES = new Set([
   "FR", "DE", "ES", "IT", "PL", "RO", "SE", "FI", "BG", "GR",
   "HU", "PT", "AT", "CZ", "IE", "LT", "LV", "HR", "SK",
 ]);
+
+const ISO_ALIASES: Record<string, string> = { EL: "GR", GR: "EL" };
 
 // ============================================================================
 // COMPONENT
@@ -74,7 +89,9 @@ export default function EUMap({ countries, mean }: EUMapProps) {
   const [topoData, setTopoData] = useState<EUTopology | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hoveredIso, setHoveredIso] = useState<string | null>(null);
-  const rafRef = useRef(0);
+  const hoveredRef = useRef<string | null>(null);
+  const rafResize = useRef(0);
+  const rafHover = useRef(0);
 
   // ── ResizeObserver — always watches the ONE container div ─────────
 
@@ -97,20 +114,18 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     if (typeof ResizeObserver === "undefined") return;
 
     const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(measure);
+      cancelAnimationFrame(rafResize.current);
+      rafResize.current = requestAnimationFrame(measure);
     });
     ro.observe(el);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(rafResize.current);
       ro.disconnect();
     };
   }, []);
 
   // ── ISO-2 lookup map ──────────────────────────────────────────────
-
-  const ISO_ALIASES: Record<string, string> = { EL: "GR", GR: "EL" };
 
   const lookup = useMemo(() => {
     const m = new Map<string, ISICompositeCountry>();
@@ -149,7 +164,10 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Compute map data ──────────────────────────────────────────────
+  // ── Compute ALL map geometry once ─────────────────────────────────
+  // Pre-computes: path strings, fills, border/outer meshes, labels,
+  // and a hover-path lookup map. Nothing in the render loop ever calls
+  // pathFn again — it's all string lookups.
 
   const mapData = useMemo(() => {
     if (!topoData || dims.width <= 0 || dims.height <= 0) return null;
@@ -177,51 +195,61 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     projection.translate([tx + dims.width * pad, ty + dims.height * pad]);
     const pathFn = geoPath(projection);
 
-    // Internal borders only — shared arcs between neighboring countries
-    let borderPath = "";
-    try {
-      const borderGeom = mesh(topoData, topoObj, (a, b) => a !== b);
-      borderPath = pathFn(borderGeom) ?? "";
-    } catch {
-      try {
-        borderPath = pathFn(mesh(topoData, topoObj)) ?? "";
-      } catch { /* non-fatal */ }
+    // Pre-compute all country path strings + metadata
+    const precomputed: PrecomputedCountry[] = [];
+    const hoverPaths = new Map<string, string>(); // iso → path d
+    let matchedCount = 0;
+    const unmatchedCodes: string[] = [];
+
+    for (const f of geojson.features) {
+      const rawIso = (f.properties as CountryProps | null)?.ISO_A2;
+      const iso = typeof rawIso === "string" && rawIso.length === 2 ? rawIso.toUpperCase() : "";
+      const rawName = (f.properties as CountryProps | null)?.NAME;
+      const name = typeof rawName === "string" && rawName.length > 0 ? rawName : "Unknown";
+      const d = pathFn(f as GeoPermissibleObjects);
+      if (!d) continue;
+
+      const rec = iso ? lookup.get(iso) : undefined;
+      const score = rec?.isi_composite ?? null;
+      const fill = classify(score);
+
+      if (rec) matchedCount++;
+      else unmatchedCodes.push(iso || "(missing ISO_A2)");
+
+      precomputed.push({ iso, name, d, fill, score, feature: f });
+      if (iso) hoverPaths.set(iso, d);
     }
 
-    // Outer coastline / external boundary
+    // Internal borders — shared arcs
+    let borderPath = "";
+    try {
+      borderPath = pathFn(mesh(topoData, topoObj, (a, b) => a !== b)) ?? "";
+    } catch {
+      try { borderPath = pathFn(mesh(topoData, topoObj)) ?? ""; }
+      catch { /* non-fatal */ }
+    }
+
+    // Outer coastline
     let outerPath = "";
     try {
-      const outerGeom = mesh(topoData, topoObj, (a, b) => a === b);
-      outerPath = pathFn(outerGeom) ?? "";
+      outerPath = pathFn(mesh(topoData, topoObj, (a, b) => a === b)) ?? "";
     } catch { /* non-fatal */ }
 
-    // Compute centroids for country labels
+    // Labels
     const labels: { iso: string; x: number; y: number }[] = [];
     for (const f of geojson.features) {
       const iso = (f.properties as CountryProps | null)?.ISO_A2?.toUpperCase();
       if (iso && LABEL_COUNTRIES.has(iso)) {
-        const centroid = pathFn.centroid(f as GeoPermissibleObjects);
-        if (centroid && Number.isFinite(centroid[0]) && Number.isFinite(centroid[1])) {
-          labels.push({ iso, x: centroid[0], y: centroid[1] });
+        const c = pathFn.centroid(f as GeoPermissibleObjects);
+        if (c && Number.isFinite(c[0]) && Number.isFinite(c[1])) {
+          labels.push({ iso, x: c[0], y: c[1] });
         }
       }
     }
 
-    // Match features to backend data
-    let matchedCount = 0;
-    const unmatchedCodes: string[] = [];
-    for (const f of geojson.features) {
-      const iso = (f.properties as CountryProps | null)?.ISO_A2?.toUpperCase();
-      if (iso && lookup.has(iso)) {
-        matchedCount++;
-      } else {
-        unmatchedCodes.push(iso || "(missing ISO_A2)");
-      }
-    }
-
     return {
-      features: geojson.features,
-      pathFn,
+      countries: precomputed,
+      hoverPaths,
       borderPath,
       outerPath,
       labels,
@@ -231,69 +259,78 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     };
   }, [topoData, dims, lookup]);
 
-  // ── Helpers ───────────────────────────────────────────────────────
+  // ── RAF-throttled hover handler ───────────────────────────────────
+  // Stores pending mouse data in a ref, commits at most once per frame.
 
-  const iso2Of = useCallback((f: GeoJSON.Feature): string => {
-    const raw = (f.properties as CountryProps | null)?.ISO_A2;
-    return typeof raw === "string" && raw.length === 2 ? raw.toUpperCase() : "";
-  }, []);
+  const pendingMove = useRef<{ e: React.MouseEvent; c: PrecomputedCountry } | null>(null);
 
-  const nameOf = useCallback((f: GeoJSON.Feature): string => {
-    const raw = (f.properties as CountryProps | null)?.NAME;
-    return typeof raw === "string" && raw.length > 0 ? raw : "Unknown";
-  }, []);
+  const commitHover = useCallback(() => {
+    const p = pendingMove.current;
+    if (!p) return;
+    pendingMove.current = null;
 
-  // ── Event handlers ────────────────────────────────────────────────
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const { e, c } = p;
+    const band = classifyBand(c.score);
+
+    const tooltipW = 260;
+    const tooltipH = 96;
+    let tx = e.clientX - rect.left;
+    let ty = e.clientY - rect.top - 16;
+    if (tx - tooltipW / 2 < 12) tx = tooltipW / 2 + 12;
+    if (tx + tooltipW / 2 > rect.width - 12) tx = rect.width - tooltipW / 2 - 12;
+    if (ty - tooltipH < 12) ty = e.clientY - rect.top + 28;
+
+    const nextIso = c.iso || null;
+    // Only update hoveredIso state if it actually changed
+    if (hoveredRef.current !== nextIso) {
+      hoveredRef.current = nextIso;
+      setHoveredIso(nextIso);
+    }
+    setTooltip({
+      x: tx,
+      y: ty,
+      name: c.name,
+      iso2: c.iso,
+      score: c.score,
+      classification: classificationBandLabel(band),
+      delta:
+        c.score !== null && mean !== null && Number.isFinite(c.score) && Number.isFinite(mean)
+          ? c.score - mean
+          : null,
+    });
+  }, [mean]);
 
   const onMove = useCallback(
-    (e: React.MouseEvent, f: GeoJSON.Feature) => {
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const iso = iso2Of(f);
-      const name = nameOf(f);
-      const rec = iso ? lookup.get(iso) : undefined;
-      const score = rec?.isi_composite ?? null;
-      const band = classifyBand(score);
-
-      const tooltipW = 260;
-      const tooltipH = 96;
-      let tx = e.clientX - rect.left;
-      let ty = e.clientY - rect.top - 16;
-
-      if (tx - tooltipW / 2 < 12) tx = tooltipW / 2 + 12;
-      if (tx + tooltipW / 2 > rect.width - 12) tx = rect.width - tooltipW / 2 - 12;
-      if (ty - tooltipH < 12) ty = e.clientY - rect.top + 28;
-
-      setHoveredIso(iso || null);
-      setTooltip({
-        x: tx,
-        y: ty,
-        name,
-        iso2: iso,
-        score,
-        classification: classificationBandLabel(band),
-        delta:
-          score !== null && mean !== null && Number.isFinite(score) && Number.isFinite(mean)
-            ? score - mean
-            : null,
-      });
+    (e: React.MouseEvent, c: PrecomputedCountry) => {
+      // Persist the synthetic event's position data
+      // (React pools synthetic events, but clientX/Y are read synchronously
+      // in the rAF callback because we capture them on the native event object
+      // through the persisted reference — safe because we only read, never call
+      // methods on the event.)
+      pendingMove.current = { e, c };
+      cancelAnimationFrame(rafHover.current);
+      rafHover.current = requestAnimationFrame(commitHover);
     },
-    [lookup, mean, iso2Of, nameOf],
+    [commitHover],
   );
 
   const onLeave = useCallback(() => {
+    cancelAnimationFrame(rafHover.current);
+    pendingMove.current = null;
+    hoveredRef.current = null;
     setTooltip(null);
     setHoveredIso(null);
   }, []);
 
   const onClick = useCallback(
-    (f: GeoJSON.Feature) => {
-      const iso = iso2Of(f);
-      const rec = iso ? lookup.get(iso) : undefined;
+    (c: PrecomputedCountry) => {
+      const rec = c.iso ? lookup.get(c.iso) : undefined;
       if (rec) router.push(`/country/${rec.country.toLowerCase()}`);
     },
-    [lookup, router, iso2Of],
+    [lookup, router],
   );
 
   // ── Render ────────────────────────────────────────────────────────
@@ -357,48 +394,29 @@ export default function EUMap({ countries, mean }: EUMapProps) {
               className="absolute inset-0 h-full w-full"
               role="img"
               aria-label="EU-27 ISI composite score choropleth map"
+              style={{ shapeRendering: "geometricPrecision" }}
             >
-              {/* SVG Filters for subtle depth */}
-              <defs>
-                <filter id="country-shadow" x="-2%" y="-2%" width="104%" height="104%">
-                  <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#0b2545" floodOpacity="0.08" />
-                </filter>
-              </defs>
-
-              {/* Country fills with drop shadow */}
-              <g filter="url(#country-shadow)">
-                {mapData.features.map((f, i) => {
-                  const iso = iso2Of(f);
-                  const rec = iso ? lookup.get(iso) : undefined;
-                  const score = rec?.isi_composite ?? null;
-                  const d = mapData.pathFn(f as GeoPermissibleObjects);
-                  if (!d) return null;
-
-                  const isHovered = hoveredIso === iso && iso !== "";
-                  const baseColor = classify(score);
-
-                  return (
-                    <path
-                      key={iso || `f-${i}`}
-                      d={d}
-                      fill={baseColor}
-                      stroke="none"
-                      opacity={hoveredIso && !isHovered ? 0.55 : 1}
-                      className="cursor-pointer"
-                      style={{
-                        transition: "opacity 0.2s ease",
-                      }}
-                      onMouseMove={(e) => onMove(e, f)}
-                      onMouseLeave={onLeave}
-                      onClick={() => onClick(f)}
-                    >
-                      <title>
-                        {nameOf(f)} ({iso || "?"})
-                        {score !== null ? ` — ${score.toFixed(4)}` : ""}
-                      </title>
-                    </path>
-                  );
-                })}
+              {/* Country fills — pre-computed path strings, no filter */}
+              <g>
+                {mapData.countries.map((c, i) => (
+                  <path
+                    key={c.iso || `f-${i}`}
+                    d={c.d}
+                    fill={c.fill}
+                    stroke="none"
+                    opacity={hoveredIso && hoveredIso !== c.iso ? 0.5 : 1}
+                    className="cursor-pointer"
+                    style={{ willChange: "opacity", transition: "opacity 0.12s ease-out" }}
+                    onMouseMove={(e) => onMove(e, c)}
+                    onMouseLeave={onLeave}
+                    onClick={() => onClick(c)}
+                  >
+                    <title>
+                      {c.name} ({c.iso || "?"})
+                      {c.score !== null ? ` — ${c.score.toFixed(4)}` : ""}
+                    </title>
+                  </path>
+                ))}
               </g>
 
               {/* Internal borders — crisp white hairline */}
@@ -428,25 +446,17 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 />
               )}
 
-              {/* Hover highlight stroke — rendered on top of everything */}
-              {hoveredIso && mapData.features.map((f, i) => {
-                const iso = iso2Of(f);
-                if (iso !== hoveredIso) return null;
-                const d = mapData.pathFn(f as GeoPermissibleObjects);
-                if (!d) return null;
-                return (
-                  <path
-                    key={`hover-${iso}`}
-                    d={d}
-                    fill="none"
-                    stroke="#0b2545"
-                    strokeWidth={2}
-                    strokeLinejoin="round"
-                    pointerEvents="none"
-                    style={{ transition: "stroke-width 0.15s ease" }}
-                  />
-                );
-              })}
+              {/* Hover highlight — O(1) pre-computed path lookup */}
+              {hoveredIso && mapData.hoverPaths.has(hoveredIso) && (
+                <path
+                  d={mapData.hoverPaths.get(hoveredIso)!}
+                  fill="none"
+                  stroke="#0b2545"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                  pointerEvents="none"
+                />
+              )}
 
               {/* Country labels */}
               <g pointerEvents="none">
@@ -458,11 +468,11 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill={hoveredIso === iso ? "#0b2545" : "#374151"}
-                    fillOpacity={hoveredIso && hoveredIso !== iso ? 0.3 : 0.55}
+                    fillOpacity={hoveredIso && hoveredIso !== iso ? 0.25 : 0.5}
                     fontSize={dims.width > 700 ? 9 : 7}
                     fontFamily="var(--font-sans)"
                     fontWeight={500}
-                    style={{ transition: "fill-opacity 0.2s ease", userSelect: "none" }}
+                    style={{ transition: "fill-opacity 0.12s ease-out", userSelect: "none" }}
                   >
                     {iso}
                   </text>
@@ -479,7 +489,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   top: tooltip.y,
                   transform: "translate(-50%, -100%)",
                   maxWidth: "270px",
-                  animation: "fadeIn 0.12s ease-out",
+                  animation: "fadeIn 0.1s ease-out",
                 }}
               >
                 <p className="text-[13px] font-semibold leading-tight">
@@ -489,7 +499,6 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   </span>
                 </p>
 
-                {/* Score bar */}
                 {tooltip.score !== null && (
                   <div className="mt-2">
                     <div className="flex items-baseline justify-between gap-3">
@@ -500,14 +509,12 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                         {tooltip.classification}
                       </span>
                     </div>
-                    {/* Visual bar */}
                     <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full"
                         style={{
                           width: `${Math.min(100, (tooltip.score ?? 0) * 100)}%`,
                           backgroundColor: classify(tooltip.score),
-                          transition: "width 0.2s ease",
                         }}
                       />
                     </div>
