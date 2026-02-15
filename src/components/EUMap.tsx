@@ -1,391 +1,373 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-} from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { geoMercator, geoPath } from "d3-geo";
+import type { GeoPermissibleObjects } from "d3-geo";
 import { feature, mesh } from "topojson-client";
+import type { Topology, GeometryCollection } from "topojson-specification";
+
 import type { ISICompositeCountry } from "@/lib/types";
+import { useResizeObserver } from "@/hooks/useResizeObserver";
 import {
-  formatScore,
-  classificationLabel,
-  classifyScore,
-  deviationFromMean,
-  countryHref,
-} from "@/lib/format";
+  extractFeatureCode,
+  extractFeatureName,
+  resolveFeature,
+  buildLookupIndex,
+  buildDiagnostics,
+} from "@/lib/geoResolver";
+import type { ISILookupIndex, MapDiagnostics } from "@/lib/geoResolver";
+import {
+  classify,
+  classifyBand,
+  classificationBandLabel,
+  formatMapScore,
+  formatDelta,
+  LEGEND_ITEMS,
+} from "@/lib/mapClassification";
 
-/* ─── Color scale ────────────────────────────────────────────────── */
+// ─── SVG Constants ──────────────────────────────────────────────────
 
-function scoreColor(score: number | null | undefined): string {
-  if (score === null || score === undefined) return "#e5e7eb";
-  if (score < 0.15) return "#e2e8f0";
-  if (score < 0.25) return "#94a3b8";
-  if (score < 0.5) return "#475569";
-  return "#0f172a";
-}
+const COUNTRY_STROKE = "#cbd5e1";
+const COUNTRY_STROKE_WIDTH = 0.5;
+const COUNTRY_HOVER_STROKE = "#0f172a";
+const COUNTRY_HOVER_STROKE_WIDTH = 1.5;
+const BORDER_STROKE = "#94a3b8";
+const BORDER_STROKE_WIDTH = 0.75;
+const TOOLTIP_OFFSET_Y = 12;
 
-const LEGEND_ITEMS = [
-  { color: "#e2e8f0", label: "< 0.15" },
-  { color: "#94a3b8", label: "0.15\u20130.24" },
-  { color: "#475569", label: "0.25\u20130.49" },
-  { color: "#0f172a", label: "\u2265 0.50" },
-  { color: "#e5e7eb", label: "No data" },
-];
-
-/* ─── ISO alias map (EU "EL" = ISO "GR", etc.) ──────────────────── */
-
-const ISO2_ALIAS: Record<string, string> = { EL: "GR", UK: "GB" };
-
-function normalize2(code: string): string {
-  const u = code.toUpperCase().trim();
-  return ISO2_ALIAS[u] ?? u;
-}
-
-/* ─── Types ──────────────────────────────────────────────────────── */
+// ─── Types ──────────────────────────────────────────────────────────
 
 interface EUMapProps {
-  countries: ISICompositeCountry[];
-  mean: number | null;
+  readonly countries: readonly ISICompositeCountry[];
+  readonly mean: number | null;
 }
 
 interface TooltipState {
-  x: number;
-  y: number;
-  name: string;
-  score: number | null;
-  deviation: number | null;
+  readonly x: number;
+  readonly y: number;
+  readonly name: string;
+  readonly code: string;
+  readonly score: number | null;
+  readonly classification: string;
+  readonly delta: number | null;
 }
 
-interface DiagInfo {
-  objectKey: string;
-  featureCount: number;
-  matchedCount: number;
-  unmatchedFeatures: string[];
-  isiSample: string[];
+interface ComputedMapData {
+  readonly features: readonly GeoJSON.Feature[];
+  readonly pathGenerator: (object: GeoPermissibleObjects) => string | null;
+  readonly borderPathD: string;
+  readonly diagnostics: MapDiagnostics;
 }
 
-/* ─── Resolve a GeoJSON feature to an ISO-2 code ────────────────── */
+// ─── TopoJSON type for our dataset ──────────────────────────────────
 
-function resolveFeatureCode(f: GeoJSON.Feature): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const p = (f.properties ?? {}) as Record<string, any>;
-
-  // Try standard ISO-2 properties
-  for (const key of ["ISO_A2", "ISO2", "iso2", "iso_a2", "ISO_A2_EH"]) {
-    const v = p[key];
-    if (typeof v === "string" && v.length === 2 && v !== "-1" && v !== "-99") {
-      return normalize2(v);
-    }
-  }
-
-  // Try ADM0_A3 / ISO3 — take first 2 chars is wrong; instead keep full for name lookup
-  for (const key of ["ADM0_A3", "ISO3", "ISO_A3", "iso3"]) {
-    const v = p[key];
-    if (typeof v === "string" && v.length >= 2) {
-      return v.toUpperCase();
-    }
-  }
-
-  // Try feature id
-  if (typeof f.id === "string" && f.id.length >= 2) {
-    return f.id.toUpperCase();
-  }
-
-  return "";
+interface CountryProperties {
+  readonly ISO_A2?: string;
+  readonly NAME?: string;
+  readonly [key: string]: unknown;
 }
 
-function resolveFeatureName(f: GeoJSON.Feature): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const p = (f.properties ?? {}) as Record<string, any>;
-  for (const key of ["NAME", "name", "NAME_EN", "name_en", "ADMIN", "admin"]) {
-    const v = p[key];
-    if (typeof v === "string" && v.length > 0) return v;
-  }
-  return resolveFeatureCode(f);
-}
+type CountryTopology = Topology<{
+  [key: string]: GeometryCollection<CountryProperties>;
+}>;
 
-/* ─── Build a multi-strategy lookup from ISI countries ───────────── */
-
-function buildISILookup(countries: ISICompositeCountry[]) {
-  const byCode = new Map<string, ISICompositeCountry>();
-  const byName = new Map<string, ISICompositeCountry>();
-
-  for (const c of countries) {
-    // The `country` field from the backend is the identifier — could be ISO-2
-    const code = normalize2(c.country);
-    byCode.set(code, c);
-
-    // Also index by ASCII-folded name for fallback
-    const folded = c.country_name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-    byName.set(folded, c);
-  }
-
-  return { byCode, byName };
-}
-
-function lookupCountry(
-  code: string,
-  name: string,
-  byCode: Map<string, ISICompositeCountry>,
-  byName: Map<string, ISICompositeCountry>,
-): ISICompositeCountry | undefined {
-  // Direct code match
-  const norm = normalize2(code);
-  const direct = byCode.get(norm);
-  if (direct) return direct;
-
-  // Name match
-  const folded = name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-  return byName.get(folded);
-}
-
-/* ─── Component ──────────────────────────────────────────────────── */
+// ─── Component ──────────────────────────────────────────────────────
 
 export default function EUMap({ countries, mean }: EUMapProps) {
   const router = useRouter();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerRef, dimensions] = useResizeObserver<HTMLDivElement>();
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [topo, setTopo] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [size, setSize] = useState({ width: 960, height: 540 });
+  const [topoData, setTopoData] = useState<CountryTopology | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  /* Responsive sizing */
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const update = () => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
-      if (w > 0 && h > 0) setSize({ width: w, height: h });
-    };
-    update();
-    const ro = new ResizeObserver(() => update());
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  // ── Build ISI lookup index (memoized on countries) ────────────────
 
-  /* ISI lookup maps */
-  const { byCode, byName } = useMemo(() => buildISILookup(countries), [countries]);
+  const lookupIndex: ISILookupIndex = useMemo(
+    () => buildLookupIndex(countries),
+    [countries],
+  );
 
-  /* Load TopoJSON */
+  // ── Fetch TopoJSON ────────────────────────────────────────────────
+
   useEffect(() => {
     let cancelled = false;
+
     fetch("/eu27.topo.json")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`TopoJSON fetch failed: HTTP ${response.status}`);
+        }
+        return response.json() as Promise<CountryTopology>;
       })
       .then((data) => {
-        if (!cancelled) setTopo(data);
+        if (!cancelled) {
+          setTopoData(data);
+        }
       })
-      .catch(() => {
-        if (!cancelled) setError("Map geometry unavailable");
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : "Map geometry unavailable";
+          setFetchError(message);
+        }
       });
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  /* Convert TopoJSON → GeoJSON, build projection + path + mesh */
-  const computed = useMemo(() => {
-    if (!topo || !topo.objects) return null;
+  // ── Compute GeoJSON, projection, paths, mesh, diagnostics ────────
 
-    const objectKey = Object.keys(topo.objects)[0];
-    if (!objectKey) return null;
+  const computed: ComputedMapData | null = useMemo(() => {
+    if (!topoData || !topoData.objects) return null;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const topoObj = topo.objects[objectKey] as any;
+    // Dynamically detect the first object key
+    const objectKeys = Object.keys(topoData.objects);
+    if (objectKeys.length === 0) return null;
+    const objectKey = objectKeys[0];
 
-    // feature() returns FeatureCollection for GeometryCollection objects
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const geo = feature(topo as any, topoObj) as unknown as GeoJSON.FeatureCollection;
+    const topoObject = topoData.objects[objectKey];
+    if (!topoObject) return null;
 
-    if (!geo || !geo.features || geo.features.length === 0) return null;
+    // Convert TopoJSON → GeoJSON FeatureCollection
+    const geojson = feature(
+      topoData,
+      topoObject,
+    ) as GeoJSON.FeatureCollection<GeoJSON.GeometryObject, CountryProperties>;
 
-    const projection = geoMercator().fitSize([size.width, size.height], geo);
-    const pathGen = geoPath(projection);
+    if (!geojson || !geojson.features || geojson.features.length === 0) {
+      return null;
+    }
 
-    // Internal borders via mesh — filter where a !== b for internal only
-    let borderPath = "";
+    // Build projection fitted to container dimensions
+    const projection = geoMercator().fitSize(
+      [dimensions.width, dimensions.height],
+      geojson,
+    );
+    const pathGenerator = geoPath(projection);
+
+    // Build internal border mesh
+    // mesh(topology, object, filter) where filter(a, b) => a !== b
+    // gives internal borders only (shared between two distinct geometries)
+    let borderPathD = "";
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const borders = mesh(topo as any, topoObj, (a: any, b: any) => a !== b);
-      borderPath = pathGen(borders) || "";
+      const borderMesh = mesh(
+        topoData,
+        topoObject,
+        (a, b) => a !== b,
+      );
+      borderPathD = pathGenerator(borderMesh) ?? "";
     } catch {
-      // mesh might fail on simplified topologies with no shared arcs — that's fine
-      borderPath = "";
+      // mesh() can fail on degenerate topologies with no shared arcs
+      borderPathD = "";
     }
 
     // Build diagnostics
-    let matchedCount = 0;
-    const unmatchedFeatures: string[] = [];
-
-    for (const f of geo.features) {
-      const code = resolveFeatureCode(f);
-      const name = resolveFeatureName(f);
-      const record = lookupCountry(code, name, byCode, byName);
-      if (record) {
-        matchedCount++;
-      } else {
-        unmatchedFeatures.push(`${code}/${name}`);
-      }
-    }
-
-    const diag: DiagInfo = {
+    const diagnostics = buildDiagnostics(
       objectKey,
-      featureCount: geo.features.length,
-      matchedCount,
-      unmatchedFeatures: unmatchedFeatures.slice(0, 10),
-      isiSample: countries.slice(0, 10).map((c) => `${c.country}/${c.country_name}`),
+      geojson.features,
+      lookupIndex,
+      countries,
+    );
+
+    return {
+      features: geojson.features,
+      pathGenerator,
+      borderPathD,
+      diagnostics,
     };
+  }, [topoData, dimensions, lookupIndex, countries]);
 
-    return { pathGen, features: geo.features, borderPath, diag };
-  }, [topo, size, byCode, byName, countries]);
+  // ── Event Handlers ────────────────────────────────────────────────
 
-  /* Event handlers */
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent, code: string, name: string) => {
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const record = lookupCountry(code, name, byCode, byName);
+    (e: React.MouseEvent, featureRef: GeoJSON.Feature) => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const code = extractFeatureCode(featureRef);
+      const name = extractFeatureName(featureRef);
+      const record = resolveFeature(featureRef, lookupIndex);
       const score = record?.isi_composite ?? null;
+      const band = classifyBand(score);
+
+      // Compute raw position relative to container
+      let tooltipX = e.clientX - rect.left;
+      let tooltipY = e.clientY - rect.top - TOOLTIP_OFFSET_Y;
+
+      // Clamp within container bounds (with padding)
+      const padding = 8;
+      tooltipX = Math.max(padding, Math.min(tooltipX, rect.width - padding));
+      tooltipY = Math.max(padding, Math.min(tooltipY, rect.height - padding));
+
       setTooltip({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top - 12,
+        x: tooltipX,
+        y: tooltipY,
         name,
+        code,
         score,
-        deviation: deviationFromMean(score, mean),
+        classification: classificationBandLabel(band),
+        delta:
+          score !== null && mean !== null && Number.isFinite(score) && Number.isFinite(mean)
+            ? score - mean
+            : null,
       });
     },
-    [byCode, byName, mean],
+    [containerRef, lookupIndex, mean],
   );
 
-  const handleMouseLeave = useCallback(() => setTooltip(null), []);
+  const handleMouseLeave = useCallback(() => {
+    setTooltip(null);
+  }, []);
 
   const handleClick = useCallback(
-    (code: string, name: string) => {
-      const record = lookupCountry(code, name, byCode, byName);
-      if (record) router.push(countryHref(record.country));
+    (featureRef: GeoJSON.Feature) => {
+      const record = resolveFeature(featureRef, lookupIndex);
+      if (record) {
+        router.push(`/country/${record.country.toLowerCase()}`);
+      }
     },
-    [byCode, byName, router],
+    [lookupIndex, router],
   );
 
-  /* Render */
+  const handleMouseEnter = useCallback(
+    (e: React.MouseEvent<SVGPathElement>) => {
+      e.currentTarget.setAttribute("stroke", COUNTRY_HOVER_STROKE);
+      e.currentTarget.setAttribute(
+        "stroke-width",
+        String(COUNTRY_HOVER_STROKE_WIDTH),
+      );
+    },
+    [],
+  );
 
-  if (error) {
+  const handleMouseOut = useCallback(
+    (e: React.MouseEvent<SVGPathElement>) => {
+      e.currentTarget.setAttribute("stroke", COUNTRY_STROKE);
+      e.currentTarget.setAttribute(
+        "stroke-width",
+        String(COUNTRY_STROKE_WIDTH),
+      );
+    },
+    [],
+  );
+
+  // ── Render: Error State ───────────────────────────────────────────
+
+  if (fetchError) {
     return (
       <div className="flex aspect-[16/9] w-full items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-400">
-        {error}
+        {fetchError}
       </div>
     );
   }
+
+  // ── Render: Loading State ─────────────────────────────────────────
 
   if (!computed) {
     return (
-      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-400">
-        Loading map&hellip;
+      <div className="space-y-4">
+        <div
+          ref={containerRef}
+          className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-lg border border-gray-200"
+        >
+          <span className="text-sm text-gray-400">Loading map&hellip;</span>
+        </div>
       </div>
     );
   }
 
-  const { pathGen, features, borderPath, diag } = computed;
+  // ── Render: Map ───────────────────────────────────────────────────
+
+  const { features, pathGenerator, borderPathD, diagnostics } = computed;
 
   return (
     <div className="space-y-4">
+      {/* Map Container */}
       <div
         ref={containerRef}
-        className="relative w-full aspect-[16/9] overflow-hidden rounded-lg border border-gray-200"
+        className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-gray-200"
       >
         <svg
-          viewBox={`0 0 ${size.width} ${size.height}`}
+          viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
           preserveAspectRatio="xMidYMid meet"
           className="absolute inset-0 h-full w-full"
+          style={{ background: "transparent" }}
           role="img"
           aria-label="EU-27 ISI composite score choropleth map"
         >
-          {/* Country fills */}
-          {features.map((f, idx) => {
-            const code = resolveFeatureCode(f);
-            const name = resolveFeatureName(f);
-            const record = lookupCountry(code, name, byCode, byName);
-            const score = record?.isi_composite ?? null;
-            const d = pathGen(f);
-            if (!d) return null;
+          {/* Layer 1: Country fills */}
+          <g>
+            {features.map((f, idx) => {
+              const record = resolveFeature(f, lookupIndex);
+              const score = record?.isi_composite ?? null;
+              const pathD = pathGenerator(f as GeoPermissibleObjects);
+              if (!pathD) return null;
 
-            return (
-              <path
-                key={code || idx}
-                d={d}
-                fill={scoreColor(score)}
-                stroke="#cbd5e1"
-                strokeWidth={0.5}
-                className="cursor-pointer"
-                onMouseMove={(e) => handleMouseMove(e, code, name)}
-                onMouseLeave={handleMouseLeave}
-                onClick={() => handleClick(code, name)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.setAttribute("stroke", "#0f172a");
-                  e.currentTarget.setAttribute("stroke-width", "1.5");
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.setAttribute("stroke", "#cbd5e1");
-                  e.currentTarget.setAttribute("stroke-width", "0.5");
-                }}
-              />
-            );
-          })}
+              const code = extractFeatureCode(f);
 
-          {/* Internal borders overlay */}
-          {borderPath && (
+              return (
+                <path
+                  key={`country-${code || idx}`}
+                  d={pathD}
+                  fill={classify(score)}
+                  stroke={COUNTRY_STROKE}
+                  strokeWidth={COUNTRY_STROKE_WIDTH}
+                  className="cursor-pointer transition-opacity duration-100"
+                  onMouseMove={(e) => handleMouseMove(e, f)}
+                  onMouseLeave={handleMouseLeave}
+                  onClick={() => handleClick(f)}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseOut={handleMouseOut}
+                >
+                  <title>
+                    {extractFeatureName(f)}
+                    {score !== null ? ` — ${score.toFixed(4)}` : ""}
+                  </title>
+                </path>
+              );
+            })}
+          </g>
+
+          {/* Layer 2: Internal borders (mesh overlay) */}
+          {borderPathD.length > 0 && (
             <path
-              d={borderPath}
+              d={borderPathD}
               fill="none"
-              stroke="#94a3b8"
-              strokeWidth={0.75}
+              stroke={BORDER_STROKE}
+              strokeWidth={BORDER_STROKE_WIDTH}
               strokeLinejoin="round"
+              strokeLinecap="round"
               pointerEvents="none"
             />
           )}
         </svg>
 
-        {/* Tooltip */}
-        {tooltip && (
+        {/* Tooltip overlay */}
+        {tooltip !== null && (
           <div
-            className="pointer-events-none absolute z-10 rounded bg-gray-900 px-3 py-2 text-xs text-white shadow-lg"
+            className="pointer-events-none absolute z-10 max-w-[220px] rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg"
             style={{
               left: tooltip.x,
               top: tooltip.y,
               transform: "translate(-50%, -100%)",
             }}
           >
-            <p className="font-medium">{tooltip.name}</p>
-            <p className="mt-0.5 tabular-nums">
-              Composite: {formatScore(tooltip.score)}
+            <p className="font-medium leading-tight">{tooltip.name}</p>
+            <p className="mt-1 font-mono tabular-nums">
+              Composite: {formatMapScore(tooltip.score)}
             </p>
             {tooltip.score !== null && (
               <p className="tabular-nums text-gray-300">
-                {classificationLabel(classifyScore(tooltip.score))}
+                {tooltip.classification}
               </p>
             )}
-            {tooltip.deviation !== null && (
+            {tooltip.delta !== null && (
               <p className="tabular-nums text-gray-300">
-                &Delta; {tooltip.deviation > 0 ? "+" : ""}
-                {formatScore(tooltip.deviation)} from mean
+                &Delta; {formatDelta(tooltip.delta)} from mean
               </p>
             )}
           </div>
@@ -396,7 +378,10 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
         <span className="font-medium text-gray-700">ISI Composite</span>
         {LEGEND_ITEMS.map((item) => (
-          <span key={item.label} className="inline-flex items-center gap-1.5">
+          <span
+            key={item.label}
+            className="inline-flex items-center gap-1.5"
+          >
             <span
               className="inline-block h-3 w-3 rounded-sm border border-gray-300"
               style={{ backgroundColor: item.color }}
@@ -406,33 +391,80 @@ export default function EUMap({ countries, mean }: EUMapProps) {
         ))}
       </div>
 
-      {/* Dev-only diagnostics */}
+      {/* ── Dev Diagnostics Panel ──────────────────────────────────── */}
       {process.env.NODE_ENV !== "production" && (
         <details className="mt-4 rounded border border-amber-300 bg-amber-50 p-3 text-xs">
           <summary className="cursor-pointer font-medium text-amber-800">
             Map Diagnostics (dev only)
           </summary>
-          <div className="mt-2 space-y-1 text-amber-900">
-            <p>Topo object key: <code>{diag.objectKey}</code></p>
-            <p>Features rendered: <strong>{diag.featureCount}</strong></p>
-            <p>Features matched to ISI: <strong>{diag.matchedCount}</strong> / {diag.featureCount}</p>
-            {diag.unmatchedFeatures.length > 0 && (
-              <div>
-                <p className="font-medium">Unmatched features (code/name):</p>
+          <div className="mt-2 space-y-1.5 text-amber-900">
+            <p>
+              Topo object key:{" "}
+              <code className="rounded bg-amber-100 px-1">
+                {diagnostics.objectKey}
+              </code>
+            </p>
+            <p>
+              Features rendered:{" "}
+              <strong>{diagnostics.featureCount}</strong>
+            </p>
+            <p>
+              Features matched to ISI:{" "}
+              <strong>{diagnostics.matchedCount}</strong> /{" "}
+              {diagnostics.featureCount}
+            </p>
+            <p>
+              Mean composite:{" "}
+              <strong>
+                {formatMapScore(diagnostics.meanComposite)}
+              </strong>
+            </p>
+            <p>
+              Total countries in dataset:{" "}
+              <strong>{diagnostics.totalDatasetCountries}</strong>
+            </p>
+
+            {diagnostics.unmatchedFeatures.length > 0 && (
+              <div className="mt-2">
+                <p className="font-medium">
+                  Unmatched features (first{" "}
+                  {diagnostics.unmatchedFeatures.length}):
+                </p>
                 <ul className="ml-4 list-disc">
-                  {diag.unmatchedFeatures.map((u) => (
-                    <li key={u}>{u}</li>
+                  {diagnostics.unmatchedFeatures.map((uf, i) => (
+                    <li key={`unmatched-${i}`}>
+                      <code>{uf.code || "(none)"}</code> /{" "}
+                      <span>{uf.name}</span>
+                      <span className="ml-1 text-amber-700">
+                        props:{" "}
+                        {JSON.stringify(
+                          Object.fromEntries(
+                            Object.entries(uf.properties).slice(0, 4),
+                          ),
+                        )}
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
-            <div>
-              <p className="font-medium">ISI records sample (code/name):</p>
+
+            <div className="mt-2">
+              <p className="font-medium">
+                Dataset sample (first {diagnostics.datasetSample.length}):
+              </p>
               <ul className="ml-4 list-disc">
-                {diag.isiSample.map((s) => (
+                {diagnostics.datasetSample.map((s) => (
                   <li key={s}>{s}</li>
                 ))}
               </ul>
+            </div>
+
+            <div className="mt-2">
+              <p className="font-medium">Container dimensions:</p>
+              <p>
+                {dimensions.width} × {dimensions.height}px
+              </p>
             </div>
           </div>
         </details>
