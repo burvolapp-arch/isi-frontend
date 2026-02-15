@@ -13,14 +13,14 @@ export function KPICard({
 }: KPICardProps) {
   return (
     <div
-      className={`rounded-md border border-border-primary bg-surface-tertiary px-5 py-4 ${
+      className={`rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 sm:px-5 sm:py-4 ${
         variant === "highlight" ? "border-l-2 border-l-accent" : ""
       }`}
     >
       <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
         {label}
       </p>
-      <p className="mt-1 font-mono text-[24px] font-medium leading-none tracking-tight text-text-primary">
+      <p className="mt-1 font-mono text-[20px] font-medium leading-none tracking-tight text-text-primary sm:text-[24px]">
         {value}
       </p>
       {subtitle && (

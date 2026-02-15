@@ -56,7 +56,7 @@ export default async function CountryPage({ params }: PageProps) {
   if (error || !country) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-10 lg:px-16">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
@@ -112,9 +112,9 @@ export default async function CountryPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Breadcrumb ────────────────────────────────────── */}
-        <div className="pt-10">
+        <div className="pt-6 sm:pt-10">
           <Link
             href="/"
             className="text-[13px] text-text-tertiary hover:text-text-primary"
@@ -125,11 +125,14 @@ export default async function CountryPage({ params }: PageProps) {
 
         {/* ── Country Header ────────────────────────────────── */}
         <section className="mt-6">
-          <div className="flex items-baseline gap-3">
-            <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+            <h1
+              className="font-serif font-bold leading-[1.15] tracking-tight text-text-primary"
+              style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}
+            >
               {country.country_name}
             </h1>
-            <span className="font-mono text-[15px] text-text-quaternary">
+            <span className="font-mono text-[14px] text-text-quaternary sm:text-[15px]">
               {country.country}
             </span>
           </div>
@@ -144,7 +147,7 @@ export default async function CountryPage({ params }: PageProps) {
           <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Composite Score
           </h2>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
             <KPICard
               label="ISI Composite"
               value={formatScore(country.isi_composite)}
@@ -195,7 +198,7 @@ export default async function CountryPage({ params }: PageProps) {
             <p className="mt-1.5 text-[14px] text-text-tertiary">
               {country.country_name}&apos;s composite score relative to all EU-27 member states.
             </p>
-            <div className="mt-6 rounded-md border border-border-primary p-4 sm:p-6">
+            <div className="mt-6 rounded-md border border-border-primary p-3 sm:p-6">
             <DistributionHistogram
               scores={allScores}
               mean={compositeMean}
@@ -209,9 +212,9 @@ export default async function CountryPage({ params }: PageProps) {
         )}
 
         {/* ── Radar + Deviation Side-by-Side ───────────────── */}
-        <section className="mt-14 grid gap-6 lg:grid-cols-2">
+        <section className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
-          <div className="rounded-md border border-border-primary p-4 sm:p-6">
+          <div className="rounded-md border border-border-primary p-3 sm:p-6">
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Multi-Axis Profile
             </h2>
@@ -223,7 +226,7 @@ export default async function CountryPage({ params }: PageProps) {
           </div>
 
           {/* Deviation Bars */}
-          <div className="rounded-md border border-border-primary p-4 sm:p-6">
+          <div className="rounded-md border border-border-primary p-3 sm:p-6">
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Deviation from EU-27 Mean
             </h2>
@@ -320,13 +323,13 @@ export default async function CountryPage({ params }: PageProps) {
 function AxisSection({ axis }: { axis: CountryAxisDetail }) {
   return (
     <section className="mt-8 rounded-md border border-border-primary">
-      <div className="border-b border-border-subtle px-5 py-4">
-        <div className="flex items-start justify-between">
-          <div>
+      <div className="border-b border-border-subtle px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Axis {axis.axis_id} — {axis.axis_slug}
             </p>
-            <h3 className="mt-1 font-serif text-[17px] font-semibold text-text-primary">
+            <h3 className="mt-1 font-serif text-[16px] font-semibold text-text-primary sm:text-[17px]">
               <Link
                 href={axisHref(axis.axis_slug)}
                 className="hover:text-navy-700"
@@ -335,7 +338,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
               </Link>
             </h3>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <span className="font-mono text-lg font-bold text-text-primary">
               {formatScore(axis.score)}
             </span>
@@ -347,14 +350,14 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         </p>
       </div>
 
-      <div className="px-5 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 sm:px-5">
         {/* Audit breakdown */}
         {axis.audit && (
           <div>
             <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Audit Breakdown
             </h4>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {Object.entries(axis.audit).map(([key, val]) => (
                 <div
                   key={key}
@@ -392,7 +395,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
             <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               Fuel Concentrations
             </h4>
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
               {Object.entries(axis.fuel_concentrations).map(([fuel, hhi]) => (
                 <div
                   key={fuel}

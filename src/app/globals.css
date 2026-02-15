@@ -81,6 +81,11 @@
 }
 
 /* ── Base ───────────────────────────────────────────────── */
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
@@ -90,6 +95,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
   letter-spacing: -0.011em;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* ── Institutional Table ───────────────────────────────── */

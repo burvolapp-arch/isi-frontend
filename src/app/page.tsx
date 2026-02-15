@@ -85,36 +85,39 @@ export default async function ExecutiveOverviewPage() {
           HERO — Full-bleed, institutional authority
          ══════════════════════════════════════════════════════ */}
       <section className="bg-navy-900">
-        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-12 px-6 py-16 lg:flex-row lg:items-center lg:gap-16 lg:px-16 lg:py-20">
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-8 px-4 py-10 sm:gap-10 sm:px-6 sm:py-14 lg:flex-row lg:items-center lg:gap-16 lg:px-16 lg:py-20">
           {/* Left column — text */}
-          <div className="min-w-0 flex-1">
-            <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-white">
+          <div className="min-w-0 flex-1 text-center lg:text-left">
+            <h1
+              className="font-serif font-bold leading-[1.15] tracking-tight text-white"
+              style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}
+            >
               Sovereignty is structure.
               <br />
               We measure it.
             </h1>
-            <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-stone-300" style={{ textWrap: "balance" }}>
+            <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-stone-300 sm:text-[17px] lg:mx-0" style={{ textWrap: "balance" }}>
               The International Sovereignty Index quantifies external dependency
               concentration across EU-27 member states using a{" "}
               Herfindahl-Hirschman framework applied to{" "}
               {axes?.length ?? "all"} strategic axes of sovereign exposure.
             </p>
-            <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400" style={{ textWrap: "balance" }}>
+            <p className="mx-auto mt-3 max-w-2xl text-[13px] leading-relaxed text-stone-400 sm:mt-4 sm:text-[14px] lg:mx-0" style={{ textWrap: "balance" }}>
               This is not a risk score. It is a structural measurement —
               a precise rendering of how concentrated each nation&rsquo;s
               external dependencies are, across energy, finance, defense,
               technology, critical inputs, and logistics.
             </p>
-            <div className="mt-8 flex items-center gap-4">
+            <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:justify-start">
               <a
                 href="#map"
-                className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-colors hover:bg-stone-100"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-colors hover:bg-stone-100"
               >
                 Explore the Map
                 <span aria-hidden="true">↓</span>
               </a>
               {isi && (
-                <span className="text-[13px] font-mono text-stone-500">
+                <span className="text-[12px] font-mono text-stone-500 sm:text-[13px]">
                   {isi.version} · {isi.window} ·{" "}
                   {isi.countries_complete}/{isi.countries_total} countries
                 </span>
@@ -123,7 +126,7 @@ export default async function ExecutiveOverviewPage() {
           </div>
 
           {/* Right column — structural framework diagram */}
-          <div className="w-full max-w-[420px] shrink-0 lg:w-[420px]">
+          <div className="w-full max-w-[280px] shrink-0 sm:max-w-[340px] lg:w-[420px] lg:max-w-[420px]">
             <StructuralFrameworkDiagram />
           </div>
         </div>
@@ -132,11 +135,11 @@ export default async function ExecutiveOverviewPage() {
       {/* ══════════════════════════════════════════════════════
           ANALYTICAL CORE — Constrained width
          ══════════════════════════════════════════════════════ */}
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-16">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
 
         {/* ── Errors ───────────────────────────────────────── */}
         {(isiError || axesError) && (
-          <div className="mt-16 space-y-4">
+          <div className="mt-10 space-y-4 sm:mt-16">
             {isiError && (
               <ErrorPanel
                 title="Backend Unavailable — ISI Composite"
@@ -158,8 +161,8 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 1: EU Choropleth Map ─────────────── */}
         {isi && (
-          <section id="map" className="mt-14 scroll-mt-8">
-            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+          <section id="map" className="mt-10 scroll-mt-8 sm:mt-14">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               EU-27 Structural Exposure
             </h2>
             <p className="mt-1.5 text-[14px] text-text-tertiary">
@@ -191,7 +194,7 @@ export default async function ExecutiveOverviewPage() {
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Executive Summary
             </h2>
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
               <KPICard
                 label="Countries Scored"
                 value={`${isi.countries_complete} / ${isi.countries_total}`}
@@ -232,14 +235,14 @@ export default async function ExecutiveOverviewPage() {
         {/* ── Section 4: Distribution Histogram ────────────── */}
         {isi && distribution && (
           <section className="mt-14">
-            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Composite Score Distribution
             </h2>
-            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-text-tertiary">
+            <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary sm:text-[15px]">
               Distribution of ISI composite scores across EU-27 member states.
               Vertical bands indicate HHI classification thresholds.
             </p>
-            <div className="mt-6 rounded-md border border-border-primary p-6">
+            <div className="mt-6 rounded-md border border-border-primary p-3 sm:p-6">
               <DistributionHistogram
                 scores={compositeScores}
                 mean={isi.statistics.mean}
@@ -248,7 +251,7 @@ export default async function ExecutiveOverviewPage() {
                 height={240}
               />
               {/* Classification counts */}
-              <div className="mt-6 grid gap-4 sm:grid-cols-4">
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {(
                   [
                     {
@@ -326,7 +329,7 @@ export default async function ExecutiveOverviewPage() {
         {/* ── Section 6: Country Rankings (interactive) ─────── */}
         {isi && axes && (
           <section className="mt-14">
-            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Country Rankings
             </h2>
             <p className="mt-1.5 text-[14px] text-text-tertiary">
@@ -345,14 +348,14 @@ export default async function ExecutiveOverviewPage() {
         {/* ── Section 7: Axis Registry ─────────────────────── */}
         {axes && (
           <section className="mt-14">
-            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Axis Registry
             </h2>
-            <p className="mt-1.5 text-[14px] text-text-tertiary">
+            <p className="mt-1.5 text-[13px] text-text-tertiary sm:text-[14px]">
               {axes.length} strategic axes of external dependency, each composed
               of discrete data channels.
             </p>
-            <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {axes.map((axis) => (
                 <Link key={axis.id} href={axisHref(axis.slug)} className="block">
                   <AxisCard axis={axis} />
@@ -363,7 +366,7 @@ export default async function ExecutiveOverviewPage() {
         )}
 
         {/* ── Section 8: Scope & Limitations ──────────────── */}
-        <section className="mt-14 mb-16 border-l-2 border-l-stone-300 py-4 pl-5 pr-6">
+        <section className="mt-10 mb-12 border-l-2 border-l-stone-300 py-4 pl-4 pr-2 sm:mt-14 sm:mb-16 sm:pl-5 sm:pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Scope &amp; Limitations
           </h3>

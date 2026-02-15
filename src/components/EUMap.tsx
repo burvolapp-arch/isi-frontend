@@ -351,8 +351,8 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       {/* ── STABLE CONTAINER — always mounted ─── */}
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden rounded-xl border border-stone-200 shadow-sm"
-        style={{ minHeight: "560px", aspectRatio: "5 / 4" }}
+        className="relative w-full overflow-hidden rounded-lg border border-stone-200 shadow-sm sm:rounded-xl"
+        style={{ minHeight: "min(560px, 80vw)", aspectRatio: "4 / 3" }}
       >
         {/* Subtle water background gradient */}
         <div

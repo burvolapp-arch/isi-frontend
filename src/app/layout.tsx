@@ -120,21 +120,21 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           {/* ── Header ─────────────────────────────────────── */}
           <header className="sticky top-0 z-50 bg-navy-900">
-            <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
-              <Link href="/" className="flex items-baseline gap-3">
-                <span className="font-serif text-xl font-bold tracking-tight text-white">
+            <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-16">
+              <Link href="/" className="flex shrink-0 items-baseline gap-2 sm:gap-3">
+                <span className="font-serif text-lg font-bold tracking-tight text-white sm:text-xl">
                   ISI
                 </span>
                 <span className="hidden text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400 sm:inline">
                   International Sovereignty Index
                 </span>
               </Link>
-              <nav className="flex items-center gap-1">
+              <nav className="-mr-2 flex items-center overflow-x-auto sm:mr-0">
                 {HEADER_NAV.map(({ href, label }) => (
                   <Link
                     key={href}
                     href={href}
-                    className="px-3 py-1.5 text-[13px] text-stone-400 transition-colors hover:text-white"
+                    className="shrink-0 px-2.5 py-2 text-[13px] text-stone-400 transition-colors hover:text-white sm:px-3 sm:py-1.5"
                   >
                     {label}
                   </Link>
@@ -148,14 +148,14 @@ export default function RootLayout({
 
           {/* ── Footer ─────────────────────────────────────── */}
           <footer className="border-t border-border-primary bg-surface-primary">
-            <div className="mx-auto max-w-[1400px] px-6 py-12 lg:px-16">
+            <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12 lg:px-16">
 
               {/* Block A (top): Citation + Downloads */}
               <div>
                 <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Cite the ISI
                 </h3>
-                <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 font-mono text-[12px] leading-relaxed text-text-tertiary">
+                <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-3 py-3 font-mono text-[11px] leading-relaxed text-text-tertiary sm:px-4 sm:text-[12px]">
                   International Sovereignty Index (2025).{" "}
                   <em>
                     External Dependency Concentration in EU-27 Member States.
@@ -172,14 +172,14 @@ export default function RootLayout({
                   <a
                     href="/api/export/csv"
                     download
-                    className="text-text-tertiary underline hover:text-text-primary"
+                    className="min-h-[44px] flex items-center text-text-tertiary underline hover:text-text-primary"
                   >
                     Download CSV
                   </a>
                   <a
                     href="/api/export/json"
                     download
-                    className="text-text-tertiary underline hover:text-text-primary"
+                    className="min-h-[44px] flex items-center text-text-tertiary underline hover:text-text-primary"
                   >
                     Download JSON
                   </a>
@@ -187,11 +187,11 @@ export default function RootLayout({
               </div>
 
               {/* Divider */}
-              <div className="mt-8 border-t border-border-subtle" />
+              <div className="mt-6 border-t border-border-subtle sm:mt-8" />
 
               {/* Block B (bottom): Identity + Nav + Disclaimer */}
-              <div className="mt-8">
-                <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+              <div className="mt-6 sm:mt-8">
+                <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-serif text-[15px] font-semibold text-text-primary">
                       International Sovereignty Index
@@ -201,19 +201,19 @@ export default function RootLayout({
                       member states &middot; HHI framework
                     </p>
                   </div>
-                  <div className="flex gap-6 text-[13px] text-text-tertiary">
+                  <div className="flex flex-col gap-3 text-[13px] text-text-tertiary sm:flex-row sm:gap-6">
                     {FOOTER_NAV.map(({ href, label }) => (
                       <Link
                         key={href}
                         href={href}
-                        className="hover:text-text-primary"
+                        className="min-h-[44px] flex items-center hover:text-text-primary sm:min-h-0"
                       >
                         {label}
                       </Link>
                     ))}
                   </div>
                 </div>
-                <p className="mt-6 max-w-3xl text-[12px] leading-relaxed text-text-quaternary">
+                <p className="mt-6 text-[12px] leading-relaxed text-text-quaternary">
                   This frontend is a pure rendering layer. It performs zero
                   computation and contains zero business logic. All scores,
                   classifications, and descriptions are served verbatim from
