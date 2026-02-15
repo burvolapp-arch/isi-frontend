@@ -310,6 +310,61 @@
 			"label": "Verify TopoJSON",
 			"type": "shell",
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"const t = require('./public/eu27.topo.json'); console.log('bbox:', t.bbox); console.log('arcs:', t.arcs.length); const g = t.objects.countries.geometries; g.forEach(gg => console.log(gg.properties.ISO_A2, gg.type));\""
+		},
+		{
+			"label": "Generate EU27 TopoJSON (10m high-res)",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node scripts/generate-eu27-topo.mjs"
+		},
+		{
+			"label": "Verify TopoJSON quality",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && wc -c public/eu27.topo.json && node -e \"const t=require('./public/eu27.topo.json'); console.log('arcs:', t.arcs.length, 'bbox:', t.bbox); let pts=0; t.arcs.forEach(a=>pts+=a.length); console.log('total points:', pts);\""
+		},
+		{
+			"label": "Test 10m download",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson').then(r => {console.log('status:', r.status, 'type:', r.headers.get('content-type')); return r.text()}).then(t => {console.log('size:', t.length, 'bytes'); try { const j = JSON.parse(t); console.log('features:', j.features.length)} catch(e){console.log('not valid json, first 200 chars:', t.substring(0,200))}}).catch(e => console.error(e))\""
+		},
+		{
+			"label": "Measure simplification levels",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"\nconst { topology } = require('topojson-server');\nconst { presimplify, quantile, simplify } = require('topojson-simplify');\n\nasync function test() {\n  const r = await fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson');\n  const world = await r.json();\n  const eu = world.features.filter(f => {\n    const iso = f.properties.ISO_A2 !== '-99' ? f.properties.ISO_A2 : (f.properties.ISO_A2_EH !== '-99' ? f.properties.ISO_A2_EH : null);\n    return ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'].includes(iso);\n  });\n  console.log('EU features:', eu.length);\n  const geojson = {type:'FeatureCollection',features:eu};\n  let topo = topology({countries:geojson}, 1e5);\n  let pts=0; topo.arcs.forEach(a=>pts+=a.length);\n  console.log('before simplify — arcs:', topo.arcs.length, 'points:', pts);\n  topo = presimplify(topo);\n  const q005 = quantile(topo, 0.005);\n  const q01 = quantile(topo, 0.01);\n  const q02 = quantile(topo, 0.02);\n  console.log('quantiles — 0.5%:', q005, '1%:', q01, '2%:', q02);\n  const s005 = simplify(presimplify(topology({countries:geojson}, 1e5)), q005);\n  let p2=0; s005.arcs.forEach(a=>p2+=a.length);\n  console.log('after 0.5% simplify — points:', p2);\n}\ntest();\n\""
+		},
+		{
+			"label": "Generate EU27 TopoJSON (10m near-lossless)",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node scripts/generate-eu27-topo.mjs"
+		},
+		{
+			"label": "Check point count",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"const t=require('./public/eu27.topo.json'); let pts=0; t.arcs.forEach(a=>pts+=a.length); console.log('arcs:', t.arcs.length, 'points:', pts, 'size:', JSON.stringify(t).length, 'bytes');\""
+		},
+		{
+			"label": "Generate EU27 TopoJSON (10m high-res v2)",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node scripts/generate-eu27-topo.mjs"
+		},
+		{
+			"label": "Generate EU27 TopoJSON (10m, 0.3% simplify)",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node scripts/generate-eu27-topo.mjs"
+		},
+		{
+			"label": "Test quantile levels",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"\nconst {topology} = require('topojson-server');\nconst {presimplify, quantile, simplify} = require('topojson-simplify');\nconst fs = require('fs');\n\nasync function test() {\n  const r = await fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson');\n  const world = await r.json();\n  const ISO_MAP = {France:'FR'};\n  function iso(f) { return f.properties.ISO_A2 !== '-99' ? f.properties.ISO_A2 : f.properties.ISO_A2_EH !== '-99' ? f.properties.ISO_A2_EH : ISO_MAP[f.properties.NAME] ?? null; }\n  const EU = new Set(['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE']);\n  const feats = world.features.filter(f=>EU.has(iso(f))).map(f=>({type:'Feature',geometry:f.geometry,properties:{ISO_A2:iso(f),NAME:f.properties.NAME}}));\n  const gc = {type:'FeatureCollection',features:feats};\n  let topo = topology({countries:gc}, 1e6);\n  topo = presimplify(topo);\n  for (const p of [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]) {\n    const th = quantile(topo, p);\n    const s = simplify(presimplify(topology({countries:gc},1e6)), th);\n    let pts=0; s.arcs.forEach(a=>pts+=a.length);\n    const kb = (JSON.stringify(s).length/1024).toFixed(0);\n    console.log('p=' + p.toFixed(2) + ' threshold=' + th.toFixed(6) + ' points=' + pts + ' size=' + kb + 'KB');\n  }\n}\ntest();\n\""
+		},
+		{
+			"label": "Generate EU27 TopoJSON (10m final)",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node scripts/generate-eu27-topo.mjs"
+		},
+		{
+			"label": "Verify all 27 countries",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && node -e \"const t=require('./public/eu27.topo.json'); console.log('bbox:', t.bbox); const g=t.objects.countries.geometries; g.forEach(gg=>console.log(gg.properties.ISO_A2, gg.properties.NAME, gg.type)); console.log('total:', g.length);\""
 		}
 	]
 }
