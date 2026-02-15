@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { geoMercator, geoIdentity, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects, GeoProjection } from "d3-geo";
@@ -8,7 +8,6 @@ import { feature, mesh } from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
 
 import type { ISICompositeCountry } from "@/lib/types";
-import { useResizeObserver } from "@/hooks/useResizeObserver";
 import {
   classify,
   classifyBand,
@@ -19,28 +18,20 @@ import {
 } from "@/lib/mapClassification";
 
 // ============================================================================
-// EUMap — Fail-safe EU-27 Choropleth
+// EUMap — Fail-safe EU-27 Choropleth (rebuilt from scratch)
 // ============================================================================
 //
-// Architecture guarantees:
-// 1) ALWAYS renders all EU countries (or visibly explains why not)
-// 2) Automatic projection detection (lon/lat vs projected planar)
-// 3) Strict ISO-2 matching — NO heuristics, NO fallbacks
-// 4) Visible internal borders via mesh overlay
-// 5) Self-diagnosing: dev panel shows projection, bounding box, arc sample
-// 6) Cannot fail silently — every failure path logs and displays
+// Architecture:
+// 1) Fetch TopoJSON, dynamically extract object key
+// 2) Convert to GeoJSON via topojson-client feature()
+// 3) Inspect DECODED GeoJSON coordinates to detect projection type
+// 4) Build projection: geoMercator (lon/lat) or geoIdentity (planar)
+// 5) ALWAYS fitSize to container dimensions
+// 6) Strict ISO-2 matching only — no heuristics
+// 7) Dev diagnostics panel with full introspection
+// 8) Cannot fail silently — every failure path renders explanation
 //
 // ============================================================================
-
-// ─── Constants ──────────────────────────────────────────────────────
-
-const STROKE_DEFAULT = "#cbd5e1";
-const STROKE_W_DEFAULT = 0.5;
-const STROKE_HOVER = "#0f172a";
-const STROKE_W_HOVER = 1.5;
-const BORDER_COLOR = "#ffffff";
-const BORDER_W = 0.7;
-const TOOLTIP_PAD = 8;
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -49,155 +40,205 @@ interface EUMapProps {
   readonly mean: number | null;
 }
 
-interface TooltipState {
-  readonly x: number;
-  readonly y: number;
-  readonly name: string;
-  readonly iso2: string;
-  readonly score: number | null;
-  readonly classification: string;
-  readonly delta: number | null;
+interface TooltipData {
+  x: number;
+  y: number;
+  name: string;
+  iso2: string;
+  score: number | null;
+  classification: string;
+  delta: number | null;
 }
 
-type ProjectionKind = "mercator" | "identity";
-
-interface DiagnosticsData {
-  readonly projectionKind: ProjectionKind;
-  readonly objectKey: string;
-  readonly featureCount: number;
-  readonly matchedCount: number;
-  readonly unmatchedISO2s: readonly string[];
-  readonly backendISO2s: readonly string[];
-  readonly bbox: readonly [number, number, number, number]; // [minX, minY, maxX, maxY]
-  readonly firstArcSample: string;
+interface BBox {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
 }
 
-interface ComputedMap {
-  readonly features: GeoJSON.Feature[];
-  readonly pathGen: (obj: GeoPermissibleObjects) => string | null;
-  readonly borderD: string;
-  readonly diag: DiagnosticsData;
-}
+type ProjType = "mercator" | "identity";
 
-// ─── TopoJSON contract ──────────────────────────────────────────────
+interface Diagnostics {
+  projType: ProjType;
+  width: number;
+  height: number;
+  featureCount: number;
+  matchedCount: number;
+  unmatchedCodes: string[];
+  backendCodes: string[];
+  coordRange: BBox;
+}
 
 interface CountryProps {
   readonly ISO_A2: string;
   readonly NAME: string;
 }
 
-type CountryTopo = Topology<{
-  [k: string]: GeometryCollection<CountryProps>;
+type EUTopology = Topology<{
+  [key: string]: GeometryCollection<CountryProps>;
 }>;
 
-// ─── Projection Detection ───────────────────────────────────────────
-//
-// Inspects raw arc coordinate magnitudes from the TopoJSON.
-// If any absolute value > 500, the coordinates are projected (planar).
-// If all within [-180, 180] range → geographic (lon/lat).
-//
-// This is the ONLY place projection choice is made.
+// ============================================================================
+// COORDINATE EXTRACTION — Recursive traversal of GeoJSON geometry
+// ============================================================================
 
-function detectProjectionKind(topo: CountryTopo): ProjectionKind {
-  const arcs = topo.arcs;
-  if (!arcs || arcs.length === 0) return "mercator"; // safe default
+function extractCoords(geometry: GeoJSON.Geometry): number[][] {
+  const out: number[][] = [];
 
-  // Sample up to 10 arcs, up to 5 points each
-  const sampleArcs = arcs.slice(0, 10);
-  let maxMagnitude = 0;
-
-  for (const arc of sampleArcs) {
-    const samplePts = arc.slice(0, 5);
-    for (const pt of samplePts) {
-      const absX = Math.abs(pt[0]);
-      const absY = Math.abs(pt[1]);
-      if (absX > maxMagnitude) maxMagnitude = absX;
-      if (absY > maxMagnitude) maxMagnitude = absY;
+  function walk(coords: unknown): void {
+    if (!Array.isArray(coords)) return;
+    // If the first element is a number, this is a coordinate pair [x, y]
+    if (typeof coords[0] === "number") {
+      out.push(coords as number[]);
+      return;
+    }
+    // Otherwise recurse into nested arrays
+    for (const child of coords) {
+      walk(child);
     }
   }
 
-  // Threshold: geographic coordinates never exceed ~180 for lon, ~90 for lat.
-  // We use 500 as a conservative threshold (well above 180, well below
-  // even small-scale projected extents which are typically in thousands/millions).
-  return maxMagnitude > 500 ? "identity" : "mercator";
+  if ("coordinates" in geometry && geometry.coordinates) {
+    walk(geometry.coordinates);
+  }
+
+  return out;
 }
 
-// ─── Build Projection ───────────────────────────────────────────────
+function computeCoordRange(features: GeoJSON.Feature[]): BBox {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  for (const f of features) {
+    if (!f.geometry) continue;
+    const coords = extractCoords(f.geometry);
+    for (const pt of coords) {
+      const x = pt[0];
+      const y = pt[1];
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+  }
+
+  return { minX, maxX, minY, maxY };
+}
+
+// ============================================================================
+// PROJECTION AUTO-DETECTION
+// ============================================================================
+//
+// After converting TopoJSON → GeoJSON (which decodes any quantization/transform),
+// inspect the decoded coordinate ranges of ALL features.
+//
+// If abs(maxX) <= 180 and abs(maxY) <= 90 → geographic (lon/lat) → geoMercator
+// Otherwise → pre-projected planar → geoIdentity
+//
+// This works correctly regardless of whether the TopoJSON uses:
+// - Raw lon/lat arcs
+// - Quantized delta-encoded arcs with transform
+// - Pre-projected planar coordinates
+
+function detectProjection(bbox: BBox): ProjType {
+  const absMaxX = Math.max(Math.abs(bbox.minX), Math.abs(bbox.maxX));
+  const absMaxY = Math.max(Math.abs(bbox.minY), Math.abs(bbox.maxY));
+
+  if (absMaxX <= 180 && absMaxY <= 90) {
+    return "mercator";
+  }
+  return "identity";
+}
 
 function buildProjection(
-  kind: ProjectionKind,
+  projType: ProjType,
   width: number,
   height: number,
   geojson: GeoJSON.FeatureCollection,
 ): GeoProjection {
-  if (kind === "identity") {
-    // Projected/planar coordinates: use geoIdentity with reflectY
-    // (screen Y is inverted relative to cartographic Y)
-    const proj = geoIdentity().reflectY(true) as unknown as GeoProjection;
+  if (projType === "identity") {
+    const proj = geoIdentity()
+      .reflectY(true) as unknown as GeoProjection;
     proj.fitSize([width, height], geojson);
     return proj;
   }
-  // Geographic coordinates (lon/lat): use Mercator
+
   const proj = geoMercator();
   proj.fitSize([width, height], geojson);
   return proj;
 }
 
-// ─── Bounding Box ───────────────────────────────────────────────────
+// ============================================================================
+// RESIZE OBSERVER (inline, no conditional hooks)
+// ============================================================================
 
-function computeBBox(
-  topo: CountryTopo,
-): [number, number, number, number] {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-
-  for (const arc of topo.arcs) {
-    for (const pt of arc) {
-      if (pt[0] < minX) minX = pt[0];
-      if (pt[1] < minY) minY = pt[1];
-      if (pt[0] > maxX) maxX = pt[0];
-      if (pt[1] > maxY) maxY = pt[1];
-    }
-  }
-
-  return [minX, minY, maxX, maxY];
+interface Dims {
+  width: number;
+  height: number;
 }
 
-// ─── First Arc Sample (for diagnostics) ─────────────────────────────
+function useContainerSize(): [React.RefObject<HTMLDivElement | null>, Dims] {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [dims, setDims] = useState<Dims>({ width: 0, height: 0 });
+  const raf = useRef(0);
 
-function firstArcSample(topo: CountryTopo): string {
-  const arcs = topo.arcs;
-  if (!arcs || arcs.length === 0) return "(no arcs)";
-  const first = arcs[0];
-  if (!first || first.length === 0) return "(empty arc)";
-  const pts = first.slice(0, 3).map((p) => `[${p[0]}, ${p[1]}]`);
-  return pts.join(" → ") + (first.length > 3 ? " …" : "");
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof ResizeObserver === "undefined") return;
+
+    const measure = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w > 0 && h > 0) {
+        setDims((prev) =>
+          prev.width === w && prev.height === h ? prev : { width: w, height: h },
+        );
+      }
+    };
+
+    measure();
+
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf.current);
+      raf.current = requestAnimationFrame(measure);
+    });
+
+    ro.observe(el);
+    return () => {
+      cancelAnimationFrame(raf.current);
+      ro.disconnect();
+    };
+  }, []);
+
+  return [ref, dims];
 }
 
-// ─── Component ──────────────────────────────────────────────────────
+// ============================================================================
+// COMPONENT
+// ============================================================================
 
 export default function EUMap({ countries, mean }: EUMapProps) {
   const router = useRouter();
-  const [containerRef, dims] = useResizeObserver<HTMLDivElement>();
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const [topoData, setTopoData] = useState<CountryTopo | null>(null);
+  const [containerRef, dims] = useContainerSize();
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const [topoData, setTopoData] = useState<EUTopology | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const hoverRef = useRef<SVGPathElement | null>(null);
 
-  // ── ISO-2 Record Map (strict, no fallbacks) ───────────────────────
+  // ── ISO-2 lookup map (strict) ─────────────────────────────────────
 
-  const isoMap: ReadonlyMap<string, ISICompositeCountry> = useMemo(() => {
+  const lookup = useMemo(() => {
     const m = new Map<string, ISICompositeCountry>();
-    for (const rec of countries) {
-      const code = rec.country?.toUpperCase();
+    for (const c of countries) {
+      const code = c.country?.toUpperCase();
       if (typeof code === "string" && code.length === 2) {
-        m.set(code, rec);
-      } else {
-        console.warn(
-          `[EUMap] Skipping backend record with invalid ISO-2: "${rec.country}"`,
-        );
+        m.set(code, c);
+      } else if (process.env.NODE_ENV !== "production") {
+        console.warn(`[EUMap] Invalid backend ISO-2: "${c.country}"`);
       }
     }
     return m;
@@ -207,241 +248,194 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   useEffect(() => {
     let cancelled = false;
-
     fetch("/eu27.topo.json")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<CountryTopo>;
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<EUTopology>;
       })
       .then((data) => {
-        if (!cancelled) {
-          // Validate structure before committing to state
-          if (!data || typeof data !== "object" || !data.objects) {
-            throw new Error("TopoJSON missing 'objects' key");
-          }
-          if (!data.arcs || !Array.isArray(data.arcs)) {
-            throw new Error("TopoJSON missing 'arcs' array");
-          }
-          setTopoData(data);
-        }
+        if (cancelled) return;
+        if (!data?.objects) throw new Error("Missing objects in TopoJSON");
+        if (!Array.isArray(data.arcs)) throw new Error("Missing arcs in TopoJSON");
+        setTopoData(data);
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
-          const msg =
-            err instanceof Error
-              ? `Map load failed: ${err.message}`
-              : "Map geometry unavailable";
-          console.error(`[EUMap] ${msg}`);
-          setLoadError(msg);
-        }
+        if (cancelled) return;
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        console.error(`[EUMap] Load failed: ${msg}`);
+        setLoadError(msg);
       });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  // ── Compute everything: GeoJSON, projection, paths, diagnostics ──
+  // ── Compute map data ──────────────────────────────────────────────
+  // Only compute when we have topology AND real container dimensions
 
-  const computed: ComputedMap | null = useMemo(() => {
-    if (!topoData) return null;
+  const mapData = useMemo(() => {
+    if (!topoData || dims.width <= 0 || dims.height <= 0) return null;
 
-    // 1) Dynamically extract object key
-    const keys = Object.keys(topoData.objects);
-    if (keys.length === 0) {
-      console.error("[EUMap] TopoJSON has no object keys in .objects");
+    // 1) Dynamic object key extraction
+    const objectKey = Object.keys(topoData.objects)[0];
+    if (!objectKey) {
+      console.error("[EUMap] No object keys in topology");
       return null;
     }
-    const objectKey = keys[0];
-    const topoObject = topoData.objects[objectKey];
-    if (!topoObject) {
-      console.error(`[EUMap] TopoJSON object "${objectKey}" is undefined`);
+    const topoObj = topoData.objects[objectKey];
+    if (!topoObj) {
+      console.error(`[EUMap] Object "${objectKey}" is null`);
       return null;
     }
 
-    // 2) Convert TopoJSON → GeoJSON FeatureCollection
+    // 2) Convert to GeoJSON (this decodes any transform/quantization)
     let geojson: GeoJSON.FeatureCollection;
     try {
-      geojson = feature(
-        topoData,
-        topoObject,
-      ) as GeoJSON.FeatureCollection;
+      geojson = feature(topoData, topoObj) as GeoJSON.FeatureCollection;
     } catch (e) {
-      console.error("[EUMap] topojson-client feature() failed:", e);
+      console.error("[EUMap] feature() conversion failed:", e);
+      return null;
+    }
+    if (!geojson.features?.length) {
+      console.error("[EUMap] Zero features after conversion");
       return null;
     }
 
-    if (!geojson.features || geojson.features.length === 0) {
-      console.error("[EUMap] GeoJSON has zero features after conversion");
-      return null;
-    }
+    // 3) Compute coordinate range from DECODED GeoJSON coordinates
+    const coordRange = computeCoordRange(geojson.features);
 
-    // 3) Detect projection type from arc magnitudes
-    const projKind = detectProjectionKind(topoData);
+    // 4) Auto-detect projection from coordinate range
+    const projType = detectProjection(coordRange);
 
-    // 4) Build projection fitted to container
-    const projection = buildProjection(
-      projKind,
-      dims.width,
-      dims.height,
-      geojson,
-    );
-    const pathGen = geoPath(projection);
+    // 5) Build projection fitted to container
+    const projection = buildProjection(projType, dims.width, dims.height, geojson);
+    const pathFn = geoPath(projection);
 
-    // 5) Internal borders via mesh
-    let borderD = "";
+    // 6) Internal borders
+    let borderPath = "";
     try {
-      const borderMesh = mesh(topoData, topoObject, (a, b) => a !== b);
-      borderD = pathGen(borderMesh) ?? "";
+      const borderGeom = mesh(topoData, topoObj, (a, b) => a !== b);
+      borderPath = pathFn(borderGeom) ?? "";
     } catch (e) {
-      console.warn("[EUMap] mesh() failed for internal borders:", e);
+      console.warn("[EUMap] mesh() failed:", e);
     }
 
-    // 6) Match features to backend records
+    // 7) Match features to backend data
     let matchedCount = 0;
-    const unmatchedISO2s: string[] = [];
+    const unmatchedCodes: string[] = [];
 
     for (const f of geojson.features) {
-      const props = f.properties as CountryProps | null;
-      const raw = props?.ISO_A2;
-      const iso2 =
-        typeof raw === "string" && raw.length === 2
-          ? raw.toUpperCase()
-          : "";
-
-      if (iso2 && isoMap.has(iso2)) {
+      const iso = (f.properties as CountryProps | null)?.ISO_A2?.toUpperCase();
+      if (iso && iso.length === 2 && lookup.has(iso)) {
         matchedCount++;
       } else {
-        const label = iso2 || `(missing ISO_A2, NAME="${props?.NAME ?? "?"}")`;
-        unmatchedISO2s.push(label);
-      }
-    }
-
-    // 7) Build diagnostics
-    const bbox = computeBBox(topoData);
-    const arcSample = firstArcSample(topoData);
-    const backendISO2s = Array.from(isoMap.keys()).sort();
-
-    const diag: DiagnosticsData = {
-      projectionKind: projKind,
-      objectKey,
-      featureCount: geojson.features.length,
-      matchedCount,
-      unmatchedISO2s,
-      backendISO2s,
-      bbox,
-      firstArcSample: arcSample,
-    };
-
-    // 8) Log diagnostics to console in development
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[EUMap] Diagnostics:", {
-        projection: projKind,
-        objectKey,
-        features: geojson.features.length,
-        matched: matchedCount,
-        unmatched: unmatchedISO2s,
-        bbox: `[${bbox.join(", ")}]`,
-        firstArc: arcSample,
-        containerSize: `${dims.width}×${dims.height}`,
-      });
-
-      if (matchedCount < geojson.features.length) {
-        console.warn(
-          `[EUMap] ⚠ CONTRACT MISMATCH: ${geojson.features.length - matchedCount} features unmatched`,
+        unmatchedCodes.push(
+          iso || `(no ISO_A2, NAME="${(f.properties as CountryProps | null)?.NAME ?? "?"}")`,
         );
       }
     }
 
-    return {
-      features: geojson.features,
-      pathGen,
-      borderD,
-      diag,
+    const diag: Diagnostics = {
+      projType,
+      width: dims.width,
+      height: dims.height,
+      featureCount: geojson.features.length,
+      matchedCount,
+      unmatchedCodes,
+      backendCodes: Array.from(lookup.keys()).sort(),
+      coordRange,
     };
-  }, [topoData, dims, isoMap]);
 
-  // ── ISO-2 extraction (inline, strict) ─────────────────────────────
+    // 8) Console logging in dev
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[EUMap] Diagnostics:", {
+        projection: projType,
+        objectKey,
+        features: geojson.features.length,
+        matched: matchedCount,
+        unmatched: unmatchedCodes,
+        coordRange: `X[${coordRange.minX.toFixed(1)}, ${coordRange.maxX.toFixed(1)}] Y[${coordRange.minY.toFixed(1)}, ${coordRange.maxY.toFixed(1)}]`,
+        container: `${dims.width}×${dims.height}`,
+      });
+      if (matchedCount < geojson.features.length) {
+        console.warn(
+          `[EUMap] ⚠ ${geojson.features.length - matchedCount} features unmatched`,
+        );
+      }
+    }
 
-  const getISO2 = useCallback((f: GeoJSON.Feature): string => {
+    return { features: geojson.features, pathFn, borderPath, diag };
+  }, [topoData, dims, lookup]);
+
+  // ── Helpers ───────────────────────────────────────────────────────
+
+  const iso2Of = useCallback((f: GeoJSON.Feature): string => {
     const raw = (f.properties as CountryProps | null)?.ISO_A2;
-    if (typeof raw !== "string" || raw.length !== 2) return "";
-    return raw.toUpperCase();
+    return typeof raw === "string" && raw.length === 2 ? raw.toUpperCase() : "";
   }, []);
 
-  const getName = useCallback((f: GeoJSON.Feature): string => {
+  const nameOf = useCallback((f: GeoJSON.Feature): string => {
     const raw = (f.properties as CountryProps | null)?.NAME;
-    if (typeof raw !== "string" || raw.length === 0) return "Unknown";
-    return raw;
+    return typeof raw === "string" && raw.length > 0 ? raw : "Unknown";
   }, []);
 
-  // ── Event Handlers ────────────────────────────────────────────────
+  // ── Event handlers ────────────────────────────────────────────────
 
-  const handleMouseMove = useCallback(
+  const onMove = useCallback(
     (e: React.MouseEvent, f: GeoJSON.Feature) => {
       const el = containerRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
-      const iso2 = getISO2(f);
-      const name = getName(f);
-      const rec = iso2 ? isoMap.get(iso2) : undefined;
+      const iso = iso2Of(f);
+      const name = nameOf(f);
+      const rec = iso ? lookup.get(iso) : undefined;
       const score = rec?.isi_composite ?? null;
       const band = classifyBand(score);
 
+      const pad = 8;
       let tx = e.clientX - rect.left;
       let ty = e.clientY - rect.top - 14;
-      tx = Math.max(TOOLTIP_PAD, Math.min(tx, rect.width - TOOLTIP_PAD));
-      ty = Math.max(TOOLTIP_PAD, Math.min(ty, rect.height - TOOLTIP_PAD));
+      tx = Math.max(pad, Math.min(tx, rect.width - pad));
+      ty = Math.max(pad, Math.min(ty, rect.height - pad));
 
       setTooltip({
         x: tx,
         y: ty,
         name,
-        iso2,
+        iso2: iso,
         score,
         classification: classificationBandLabel(band),
         delta:
-          score !== null &&
-          mean !== null &&
-          Number.isFinite(score) &&
-          Number.isFinite(mean)
+          score !== null && mean !== null && Number.isFinite(score) && Number.isFinite(mean)
             ? score - mean
             : null,
       });
     },
-    [containerRef, isoMap, mean, getISO2, getName],
+    [containerRef, lookup, mean, iso2Of, nameOf],
   );
 
-  const handleMouseLeave = useCallback(() => {
+  const onLeave = useCallback(() => {
     setTooltip(null);
     if (hoverRef.current) {
-      hoverRef.current.setAttribute("stroke", STROKE_DEFAULT);
-      hoverRef.current.setAttribute("stroke-width", String(STROKE_W_DEFAULT));
+      hoverRef.current.style.filter = "";
       hoverRef.current = null;
     }
   }, []);
 
-  const handleClick = useCallback(
+  const onClick = useCallback(
     (f: GeoJSON.Feature) => {
-      const iso2 = getISO2(f);
-      const rec = iso2 ? isoMap.get(iso2) : undefined;
+      const iso = iso2Of(f);
+      const rec = iso ? lookup.get(iso) : undefined;
       if (rec) router.push(`/country/${rec.country.toLowerCase()}`);
     },
-    [isoMap, router, getISO2],
+    [lookup, router, iso2Of],
   );
 
-  const handlePathEnter = useCallback(
-    (e: React.MouseEvent<SVGPathElement>) => {
-      if (hoverRef.current && hoverRef.current !== e.currentTarget) {
-        hoverRef.current.setAttribute("stroke", STROKE_DEFAULT);
-        hoverRef.current.setAttribute("stroke-width", String(STROKE_W_DEFAULT));
-      }
-      e.currentTarget.setAttribute("stroke", STROKE_HOVER);
-      e.currentTarget.setAttribute("stroke-width", String(STROKE_W_HOVER));
-      hoverRef.current = e.currentTarget;
-    },
-    [],
-  );
+  const onEnter = useCallback((e: React.MouseEvent<SVGPathElement>) => {
+    if (hoverRef.current && hoverRef.current !== e.currentTarget) {
+      hoverRef.current.style.filter = "";
+    }
+    e.currentTarget.style.filter = "brightness(1.15)";
+    hoverRef.current = e.currentTarget;
+  }, []);
 
   // ── Render: Error ─────────────────────────────────────────────────
 
@@ -456,16 +450,16 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     );
   }
 
-  // ── Render: Loading ───────────────────────────────────────────────
+  // ── Render: Loading / awaiting dimensions ─────────────────────────
 
-  if (!computed) {
+  if (!mapData) {
     return (
       <div className="space-y-4">
         <div
           ref={containerRef}
           className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-lg border border-gray-200"
         >
-          <span className="text-sm text-gray-400">Loading map&hellip;</span>
+          <span className="text-sm text-gray-400">Loading map…</span>
         </div>
       </div>
     );
@@ -473,20 +467,20 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   // ── Render: Map ───────────────────────────────────────────────────
 
-  const { features, pathGen, borderD, diag } = computed;
+  const { features, pathFn, borderPath, diag } = mapData;
 
   return (
     <div className="space-y-4">
-      {/* Warning banner if not all features matched */}
+      {/* Mismatch warning (always visible, not just dev) */}
       {diag.matchedCount < diag.featureCount && (
         <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-800">
           <strong>⚠ Map data mismatch:</strong> {diag.matchedCount}/
           {diag.featureCount} countries matched. Unmatched:{" "}
-          {diag.unmatchedISO2s.join(", ")}
+          {diag.unmatchedCodes.join(", ")}
         </div>
       )}
 
-      {/* Map Container */}
+      {/* Map container */}
       <div
         ref={containerRef}
         className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-gray-200"
@@ -499,30 +493,30 @@ export default function EUMap({ countries, mean }: EUMapProps) {
           role="img"
           aria-label="EU-27 ISI composite score choropleth map"
         >
-          {/* Layer 1: Country fills */}
+          {/* Country fills */}
           <g>
             {features.map((f, i) => {
-              const iso2 = getISO2(f);
-              const rec = iso2 ? isoMap.get(iso2) : undefined;
+              const iso = iso2Of(f);
+              const rec = iso ? lookup.get(iso) : undefined;
               const score = rec?.isi_composite ?? null;
-              const d = pathGen(f as GeoPermissibleObjects);
+              const d = pathFn(f as GeoPermissibleObjects);
               if (!d) return null;
 
               return (
                 <path
-                  key={iso2 || `f-${i}`}
+                  key={iso || `f-${i}`}
                   d={d}
                   fill={classify(score)}
-                  stroke={STROKE_DEFAULT}
-                  strokeWidth={STROKE_W_DEFAULT}
-                  className="cursor-pointer transition-opacity duration-100"
-                  onMouseMove={(e) => handleMouseMove(e, f)}
-                  onMouseLeave={handleMouseLeave}
-                  onClick={() => handleClick(f)}
-                  onMouseEnter={handlePathEnter}
+                  stroke="#ffffff"
+                  strokeWidth={0.5}
+                  className="cursor-pointer"
+                  onMouseMove={(e) => onMove(e, f)}
+                  onMouseLeave={onLeave}
+                  onClick={() => onClick(f)}
+                  onMouseEnter={onEnter}
                 >
                   <title>
-                    {getName(f)} ({iso2 || "?"})
+                    {nameOf(f)} ({iso || "?"})
                     {score !== null ? ` — ${score.toFixed(4)}` : ""}
                   </title>
                 </path>
@@ -530,13 +524,13 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             })}
           </g>
 
-          {/* Layer 2: Internal borders (mesh overlay) */}
-          {borderD.length > 0 && (
+          {/* Internal borders overlay */}
+          {borderPath.length > 0 && (
             <path
-              d={borderD}
+              d={borderPath}
               fill="none"
-              stroke={BORDER_COLOR}
-              strokeWidth={BORDER_W}
+              stroke="#ffffff"
+              strokeWidth={0.7}
               strokeLinejoin="round"
               strokeLinecap="round"
               pointerEvents="none"
@@ -568,7 +562,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             )}
             {tooltip.delta !== null && (
               <p className="tabular-nums text-gray-300">
-                &Delta; {formatDelta(tooltip.delta)} from mean
+                Δ {formatDelta(tooltip.delta)} from mean
               </p>
             )}
           </div>
@@ -589,82 +583,79 @@ export default function EUMap({ countries, mean }: EUMapProps) {
         ))}
       </div>
 
-      {/* ── Dev Diagnostics Panel ──────────────────────────────────── */}
+      {/* ── DEV DIAGNOSTICS PANEL ──────────────────────────────────── */}
       {process.env.NODE_ENV !== "production" && (
-        <details className="mt-4 rounded border border-amber-300 bg-amber-50 p-3 text-xs">
-          <summary className="cursor-pointer font-medium text-amber-800">
-            Map Diagnostics (dev only)
-          </summary>
-          <div className="mt-2 space-y-1.5 font-mono text-amber-900">
-            <p>
-              Projection:{" "}
-              <code className="rounded bg-amber-100 px-1">
-                {diag.projectionKind === "mercator"
-                  ? "geoMercator (lon/lat detected)"
-                  : "geoIdentity (planar detected)"}
-              </code>
-            </p>
-            <p>
-              Topo object key:{" "}
-              <code className="rounded bg-amber-100 px-1">
-                {diag.objectKey}
-              </code>
-            </p>
-            <p>
-              Features: <strong>{diag.featureCount}</strong>
-            </p>
-            <p>
-              Matched: <strong>{diag.matchedCount}</strong> /{" "}
-              {diag.featureCount}
-              {diag.matchedCount < diag.featureCount && (
-                <span className="ml-2 font-bold text-red-700">
-                  ⚠ CONTRACT MISMATCH —{" "}
-                  {diag.featureCount - diag.matchedCount} unmatched
-                </span>
-              )}
-            </p>
+        <div className="mt-4 rounded border-2 border-red-400 bg-red-50 p-4 text-xs font-mono text-red-900">
+          <p className="mb-2 text-sm font-bold text-red-700">
+            🔍 Map Diagnostics (dev only)
+          </p>
 
-            {diag.unmatchedISO2s.length > 0 && (
-              <div className="mt-1">
-                <p className="font-semibold text-red-800">
-                  Unmatched ISO_A2 codes:
-                </p>
-                <ul className="ml-4 list-disc">
-                  {diag.unmatchedISO2s.map((c) => (
-                    <li key={c}>
-                      <code className="rounded bg-red-100 px-1">{c}</code>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <table className="w-full text-left">
+            <tbody>
+              <tr>
+                <td className="pr-3 font-semibold">Projection:</td>
+                <td>
+                  {diag.projType === "mercator"
+                    ? "geoMercator (lon/lat detected)"
+                    : "geoIdentity (planar/projected detected)"}
+                </td>
+              </tr>
+              <tr>
+                <td className="pr-3 font-semibold">Container:</td>
+                <td>
+                  {diag.width} × {diag.height} px
+                </td>
+              </tr>
+              <tr>
+                <td className="pr-3 font-semibold">Features:</td>
+                <td>{diag.featureCount}</td>
+              </tr>
+              <tr>
+                <td className="pr-3 font-semibold">Matched:</td>
+                <td>
+                  {diag.matchedCount} / {diag.featureCount}
+                  {diag.matchedCount < diag.featureCount && (
+                    <span className="ml-2 font-bold text-red-700">
+                      ⚠ {diag.featureCount - diag.matchedCount} UNMATCHED
+                    </span>
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className="pr-3 font-semibold">Coord range X:</td>
+                <td>
+                  [{diag.coordRange.minX.toFixed(2)}, {diag.coordRange.maxX.toFixed(2)}]
+                </td>
+              </tr>
+              <tr>
+                <td className="pr-3 font-semibold">Coord range Y:</td>
+                <td>
+                  [{diag.coordRange.minY.toFixed(2)}, {diag.coordRange.maxY.toFixed(2)}]
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-            <div className="mt-1">
-              <p className="font-semibold">
-                Backend ISO-2 ({diag.backendISO2s.length}):
+          {diag.unmatchedCodes.length > 0 && (
+            <div className="mt-2">
+              <p className="font-semibold text-red-800">Unmatched ISO codes:</p>
+              <p className="ml-2">
+                {diag.unmatchedCodes.map((c) => (
+                  <code key={c} className="mr-1 rounded bg-red-100 px-1">
+                    {c}
+                  </code>
+                ))}
               </p>
-              <p className="ml-4">{diag.backendISO2s.join(", ")}</p>
             </div>
+          )}
 
-            <p>
-              Bounding box:{" "}
-              <code className="rounded bg-amber-100 px-1">
-                [{diag.bbox.map((v) => v.toFixed(2)).join(", ")}]
-              </code>
+          <div className="mt-2">
+            <p className="font-semibold">
+              Backend ISO-2 ({diag.backendCodes.length}):
             </p>
-
-            <p>
-              First arc sample:{" "}
-              <code className="rounded bg-amber-100 px-1">
-                {diag.firstArcSample}
-              </code>
-            </p>
-
-            <p>
-              Container: {dims.width} × {dims.height}px
-            </p>
+            <p className="ml-2">{diag.backendCodes.join(", ")}</p>
           </div>
-        </details>
+        </div>
       )}
     </div>
   );
