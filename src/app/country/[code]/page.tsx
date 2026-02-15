@@ -13,6 +13,7 @@ import {
   deviationFromMean,
   axisHref,
 } from "@/lib/format";
+import { generateStructuralSummary } from "@/lib/summary";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -171,6 +172,18 @@ export default async function CountryPage({ params }: PageProps) {
               }
             />
           </div>
+          {/* EU Mean Reference */}
+          {compositeMean !== null && country.isi_composite !== null && (
+            <p className="mt-3 text-[13px] tabular-nums text-text-tertiary">
+              EU-27 Mean: {formatScore(compositeMean)} · Δ{" "}
+              {(deviationFromMean(country.isi_composite, compositeMean) ?? 0) > 0
+                ? "+"
+                : ""}
+              {formatScore(
+                deviationFromMean(country.isi_composite, compositeMean)
+              )}
+            </p>
+          )}
         </section>
 
         {/* ── Distribution Context (where does this country sit?) ── */}
@@ -224,6 +237,26 @@ export default async function CountryPage({ params }: PageProps) {
             />
           </div>
         </section>
+
+        {/* ── Structural Exposure Summary ───────────────────── */}
+        {(() => {
+          const summary = generateStructuralSummary(
+            country,
+            compositeMean,
+            allScores
+          );
+          if (!summary) return null;
+          return (
+            <section className="mt-10 rounded-md border border-border-primary bg-surface-tertiary p-5">
+              <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                Structural Exposure Summary
+              </h3>
+              <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
+                {summary}
+              </p>
+            </section>
+          );
+        })()}
 
         {/* ── Strengths & Vulnerabilities ───────────────────── */}
         {scoredAxes.length >= 2 && (

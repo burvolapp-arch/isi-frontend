@@ -177,6 +177,39 @@ export default function RootLayout({
                 backend materialization pipeline.
               </p>
             </div>
+            {/* ── Citation Block ────────────────────────────── */}
+            <div className="mt-8 border-t border-border-subtle pt-8">
+              <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                Cite the ISI
+              </h3>
+              <p className="mt-3 rounded-md bg-surface-tertiary border border-border-primary px-4 py-3 font-mono text-[12px] leading-relaxed text-text-tertiary">
+                International Sovereignty Index (2025).{" "}
+                <em>
+                  External Dependency Concentration in EU-27 Member States.
+                </em>{" "}
+                internationalsovereignty.org. Retrieved{" "}
+                {new Date().toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+                .
+              </p>
+              <div className="mt-3 flex gap-4 text-[12px]">
+                <a
+                  href={`${process.env.NEXT_PUBLIC_API_URL ?? ""}/api/export/csv`}
+                  className="text-text-tertiary underline hover:text-text-primary"
+                >
+                  Download CSV
+                </a>
+                <a
+                  href={`${process.env.NEXT_PUBLIC_API_URL ?? ""}/api/export/json`}
+                  className="text-text-tertiary underline hover:text-text-primary"
+                >
+                  Download JSON
+                </a>
+              </div>
+            </div>
           </div>
         </footer>
       </body>

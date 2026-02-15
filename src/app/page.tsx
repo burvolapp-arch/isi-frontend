@@ -5,6 +5,8 @@ import { CountryRankingsTable } from "@/components/CountryRankingsTable";
 import { AxisCard } from "@/components/AxisCard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
+import OutliersPanel from "@/components/OutliersPanel";
+import EUMap from "@/components/EUMap";
 import {
   formatScore,
   classificationLabel,
@@ -84,40 +86,37 @@ export default async function ExecutiveOverviewPage() {
       <section className="bg-navy-900">
         <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-16 lg:py-20">
           <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-white">
-            International Sovereignty Index
+            Sovereignty is structure.
+            <br />
+            We measure it.
           </h1>
-          <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-stone-400">
-            Measuring external dependency concentration across EU-27 member
-            states. A Herfindahl-Hirschman framework applied to{" "}
+          <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-stone-300">
+            The International Sovereignty Index quantifies external dependency
+            concentration across EU-27 member states using a{" "}
+            Herfindahl-Hirschman framework applied to{" "}
             {axes?.length ?? "all"} strategic axes of sovereign exposure.
           </p>
-          {isi && (
-            <div className="mt-6 flex items-baseline gap-6">
-              <div>
-                <p className="font-mono text-[28px] font-medium leading-none text-white">
-                  {formatScore(isi.statistics.mean)}
-                </p>
-                <p className="mt-2 text-[13px] text-stone-400">
-                  EU-27 Composite Mean
-                </p>
-              </div>
-              <div className="h-10 w-px bg-navy-700" />
-              <div>
-                <p className="font-mono text-[28px] font-medium leading-none text-white">
-                  {isi.countries_complete}
-                </p>
-                <p className="mt-1.5 text-[12px] text-stone-400">
-                  Countries Scored
-                </p>
-              </div>
-              <div className="h-10 w-px bg-navy-700" />
-              <div>
-                <p className="text-[13px] font-mono text-stone-500">
-                  {isi.version} · {isi.window}
-                </p>
-              </div>
-            </div>
-          )}
+          <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400">
+            This is not a risk score. It is a structural measurement — a precise
+            rendering of how concentrated each nation&rsquo;s external
+            dependencies are, across energy, finance, defense, technology,
+            critical inputs, and logistics.
+          </p>
+          <div className="mt-8 flex items-center gap-4">
+            <a
+              href="#map"
+              className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-colors hover:bg-stone-100"
+            >
+              Explore the Map
+              <span aria-hidden="true">↓</span>
+            </a>
+            {isi && (
+              <span className="text-[13px] font-mono text-stone-500">
+                {isi.version} · {isi.window} ·{" "}
+                {isi.countries_complete}/{isi.countries_total} countries
+              </span>
+            )}
+          </div>
         </div>
       </section>
 
@@ -148,7 +147,36 @@ export default async function ExecutiveOverviewPage() {
           </div>
         )}
 
-        {/* ── Section 1: Composite Statistics KPIs ─────────── */}
+        {/* ── Section 1: EU Choropleth Map ─────────────── */}
+        {isi && (
+          <section id="map" className="mt-14 scroll-mt-8">
+            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+              EU-27 Structural Exposure
+            </h2>
+            <p className="mt-1.5 text-[14px] text-text-tertiary">
+              Composite ISI scores mapped across {isi.countries_complete} member
+              states. Click any country for full axis-level detail.
+            </p>
+            <div className="mt-6">
+              <EUMap
+                countries={isi.countries}
+                mean={isi.statistics.mean}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* ── Section 2: Structural Outliers ───────────────── */}
+        {isi && (
+          <section className="mt-14">
+            <OutliersPanel
+              countries={isi.countries}
+              mean={isi.statistics.mean}
+            />
+          </section>
+        )}
+
+        {/* ── Section 3: Composite Statistics KPIs ─────────── */}
         {isi && (
           <section className="mt-14">
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
@@ -192,7 +220,7 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 2: Distribution Histogram ────────────── */}
+        {/* ── Section 4: Distribution Histogram ────────────── */}
         {isi && distribution && (
           <section className="mt-14">
             <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
@@ -253,7 +281,7 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 3: Interpretation Guide ──────────────── */}
+        {/* ── Section 5: Interpretation Guide ──────────────── */}
         <section className="mt-12">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Reading the Index
@@ -286,7 +314,7 @@ export default async function ExecutiveOverviewPage() {
           </div>
         </section>
 
-        {/* ── Section 4: Country Rankings (interactive) ─────── */}
+        {/* ── Section 6: Country Rankings (interactive) ─────── */}
         {isi && axes && (
           <section className="mt-14">
             <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
@@ -305,7 +333,7 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 5: Axis Registry ─────────────────────── */}
+        {/* ── Section 7: Axis Registry ─────────────────────── */}
         {axes && (
           <section className="mt-14">
             <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
@@ -325,7 +353,7 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 6: Scope & Limitations ──────────────── */}
+        {/* ── Section 8: Scope & Limitations ──────────────── */}
         <section className="mt-14 mb-16 border-l-2 border-l-stone-300 py-4 pl-5 pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Scope &amp; Limitations

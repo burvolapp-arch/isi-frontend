@@ -201,3 +201,21 @@ export function axisHref(slug: string): string {
 export function countryHref(code: string): string {
   return `/country/${countrySlug(code)}`;
 }
+
+// ─── Axis Variance ──────────────────────────────────────────────────
+
+/**
+ * Compute variance of a country's axis scores.
+ * Returns null if fewer than minAxes non-null scores.
+ */
+export function computeAxisVariance(
+  c: ISICompositeCountry,
+  minAxes: number = 3
+): number | null {
+  const scores = getAxisScores(c)
+    .map((a) => a.value)
+    .filter((v): v is number => v !== null);
+  if (scores.length < minAxes) return null;
+  const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+  return scores.reduce((sum, s) => sum + (s - mean) ** 2, 0) / scores.length;
+}
