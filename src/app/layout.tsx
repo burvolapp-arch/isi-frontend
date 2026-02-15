@@ -79,12 +79,16 @@ export const metadata: Metadata = {
   },
 };
 
-const NAV_ITEMS = [
-  { href: "/", label: "Overview" },
+const FOOTER_NAV = [
   { href: "/methodology", label: "Methodology" },
   { href: "/transparency", label: "Transparency" },
-  { href: "/compare", label: "Compare" },
+  { href: "/compare", label: "Comparative" },
   { href: "/faq", label: "FAQ" },
+] as const;
+
+const HEADER_NAV = [
+  { href: "/", label: "Overview" },
+  ...FOOTER_NAV,
 ] as const;
 
 export default function RootLayout({
@@ -95,7 +99,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} min-h-screen flex flex-col antialiased`}
+        className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} min-h-screen antialiased`}
       >
         <ClarityAnalytics />
         <script
@@ -113,112 +117,114 @@ export default function RootLayout({
           }}
         />
 
-        {/* ── Institutional Header ───────────────────────── */}
-        <header className="sticky top-0 z-50 bg-navy-900">
-          <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
-            <Link href="/" className="flex items-baseline gap-3">
-              <span className="font-serif text-xl font-bold tracking-tight text-white">
-                ISI
-              </span>
-              <span className="hidden text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400 sm:inline">
-                International Sovereignty Index
-              </span>
-            </Link>
-            <nav className="flex items-center gap-1">
-              {NAV_ITEMS.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="px-3 py-1.5 text-[13px] text-stone-400 transition-colors hover:text-white"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </header>
-
-        {/* ── Page Content ───────────────────────────────── */}
-        <main className="flex-1">
-          {children}
-        </main>
-
-        {/* ── Institutional Footer ───────────────────────── */}
-        <footer className="border-t border-border-primary bg-surface-primary">
-          <div className="mx-auto max-w-[1400px] px-6 py-12 lg:px-16">
-            {/* Section 1: Title + Nav */}
-            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-              <div>
-                <p className="font-serif text-[15px] font-semibold text-text-primary">
+        <div className="flex min-h-screen flex-col">
+          {/* ── Header ─────────────────────────────────────── */}
+          <header className="sticky top-0 z-50 bg-navy-900">
+            <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
+              <Link href="/" className="flex items-baseline gap-3">
+                <span className="font-serif text-xl font-bold tracking-tight text-white">
+                  ISI
+                </span>
+                <span className="hidden text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400 sm:inline">
                   International Sovereignty Index
-                </p>
-                <p className="mt-1 text-[13px] text-text-quaternary">
-                  Measuring external dependency concentration across EU-27
-                  member states &middot; HHI framework
-                </p>
-              </div>
-              <div className="flex gap-6 text-[13px] text-text-tertiary">
-                <Link href="/methodology" className="hover:text-text-primary">
-                  Methodology
-                </Link>
-                <Link href="/transparency" className="hover:text-text-primary">
-                  Transparency
-                </Link>
-                <Link href="/compare" className="hover:text-text-primary">
-                  Comparative
-                </Link>
-                <Link href="/faq" className="hover:text-text-primary">
-                  FAQ
-                </Link>
-              </div>
+                </span>
+              </Link>
+              <nav className="flex items-center gap-1">
+                {HEADER_NAV.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="px-3 py-1.5 text-[13px] text-stone-400 transition-colors hover:text-white"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
             </div>
+          </header>
 
-            {/* Section 2: Rendering Layer Disclaimer */}
-            <div className="mt-8 border-t border-border-subtle pt-8">
-              <p className="max-w-3xl text-[12px] leading-relaxed text-text-quaternary">
-                This frontend is a pure rendering layer. It performs zero
-                computation and contains zero business logic. All scores,
-                classifications, and descriptions are served verbatim from the
-                backend API. If a number appears incorrect, the issue is in the
-                backend materialization pipeline.
-              </p>
-            </div>
+          {/* ── Main Content ───────────────────────────────── */}
+          <main className="flex-1">{children}</main>
 
-            {/* Section 3: Citation Block + Downloads */}
-            <div className="mt-8 border-t border-border-subtle pt-8">
-              <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-                Cite the ISI
-              </h3>
-              <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 font-mono text-[12px] leading-relaxed text-text-tertiary">
-                International Sovereignty Index (2025).{" "}
-                <em>
-                  External Dependency Concentration in EU-27 Member States.
-                </em>{" "}
-                internationalsovereignty.org. Retrieved{" "}
-                {new Date().toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-                .
-              </p>
-              <div className="mt-3 flex gap-4 text-[12px]">
-                <a
-                  href="/api/export/csv"
-                  className="text-text-tertiary underline hover:text-text-primary"
-                >
-                  Download CSV
-                </a>
-                <a
-                  href="/api/export/json"
-                  className="text-text-tertiary underline hover:text-text-primary"
-                >
-                  Download JSON
-                </a>
+          {/* ── Footer ─────────────────────────────────────── */}
+          <footer className="border-t border-border-primary bg-surface-primary">
+            <div className="mx-auto max-w-[1400px] px-6 py-12 lg:px-16">
+
+              {/* Block A (top): Citation + Downloads */}
+              <div>
+                <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                  Cite the ISI
+                </h3>
+                <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 font-mono text-[12px] leading-relaxed text-text-tertiary">
+                  International Sovereignty Index (2025).{" "}
+                  <em>
+                    External Dependency Concentration in EU-27 Member States.
+                  </em>{" "}
+                  internationalsovereignty.org. Retrieved{" "}
+                  {new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                  .
+                </p>
+                <div className="mt-3 flex gap-4 text-[12px]">
+                  <a
+                    href="/api/export/csv"
+                    download
+                    className="text-text-tertiary underline hover:text-text-primary"
+                  >
+                    Download CSV
+                  </a>
+                  <a
+                    href="/api/export/json"
+                    download
+                    className="text-text-tertiary underline hover:text-text-primary"
+                  >
+                    Download JSON
+                  </a>
+                </div>
               </div>
+
+              {/* Divider */}
+              <div className="mt-8 border-t border-border-subtle" />
+
+              {/* Block B (bottom): Identity + Nav + Disclaimer */}
+              <div className="mt-8">
+                <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+                  <div>
+                    <p className="font-serif text-[15px] font-semibold text-text-primary">
+                      International Sovereignty Index
+                    </p>
+                    <p className="mt-1 text-[13px] text-text-quaternary">
+                      Measuring external dependency concentration across EU-27
+                      member states &middot; HHI framework
+                    </p>
+                  </div>
+                  <div className="flex gap-6 text-[13px] text-text-tertiary">
+                    {FOOTER_NAV.map(({ href, label }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        className="hover:text-text-primary"
+                      >
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-6 max-w-3xl text-[12px] leading-relaxed text-text-quaternary">
+                  This frontend is a pure rendering layer. It performs zero
+                  computation and contains zero business logic. All scores,
+                  classifications, and descriptions are served verbatim from
+                  the backend API. If a number appears incorrect, the issue is
+                  in the backend materialization pipeline.
+                </p>
+              </div>
+
             </div>
-          </div>
-        </footer>
+          </footer>
+        </div>
       </body>
     </html>
   );

@@ -110,6 +110,11 @@ table {
   color: white;
 }
 
+/* ── Text Balance ──────────────────────────────────────── */
+.text-balance {
+  text-wrap: balance;
+}
+
 /* ── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;

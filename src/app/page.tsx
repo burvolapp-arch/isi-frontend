@@ -90,13 +90,13 @@ export default async function ExecutiveOverviewPage() {
             <br />
             We measure it.
           </h1>
-          <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-stone-300">
+          <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-stone-300" style={{ textWrap: "balance" }}>
             The International Sovereignty Index quantifies external dependency
             concentration across EU-27 member states using a{" "}
             Herfindahl-Hirschman framework applied to{" "}
             {axes?.length ?? "all"} strategic axes of sovereign exposure.
           </p>
-          <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400">
+          <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400" style={{ textWrap: "balance" }}>
             This is not a risk score. It is a structural measurement —
             a precise rendering of how concentrated each nation&rsquo;s
             external dependencies are, across energy, finance, defense,
@@ -123,7 +123,7 @@ export default async function ExecutiveOverviewPage() {
       {/* ══════════════════════════════════════════════════════
           ANALYTICAL CORE — Constrained width
          ══════════════════════════════════════════════════════ */}
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+      <div className="mx-auto max-w-[1400px] px-6 lg:px-16">
 
         {/* ── Errors ───────────────────────────────────────── */}
         {(isiError || axesError) && (
@@ -395,7 +395,7 @@ export default async function ExecutiveOverviewPage() {
             for full details.
           </p>
         </section>
-      </main>
+      </div>
     </div>
   );
 }
