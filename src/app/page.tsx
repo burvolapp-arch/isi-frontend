@@ -7,6 +7,7 @@ import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
 import OutliersPanel from "@/components/OutliersPanel";
 import EUMap from "@/components/EUMap";
+import StructuralFrameworkDiagram from "@/components/StructuralFrameworkDiagram";
 import {
   formatScore,
   classificationLabel,
@@ -84,38 +85,46 @@ export default async function ExecutiveOverviewPage() {
           HERO — Full-bleed, institutional authority
          ══════════════════════════════════════════════════════ */}
       <section className="bg-navy-900">
-        <div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-16 lg:py-20">
-          <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-white">
-            Sovereignty is structure.
-            <br />
-            We measure it.
-          </h1>
-          <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-stone-300" style={{ textWrap: "balance" }}>
-            The International Sovereignty Index quantifies external dependency
-            concentration across EU-27 member states using a{" "}
-            Herfindahl-Hirschman framework applied to{" "}
-            {axes?.length ?? "all"} strategic axes of sovereign exposure.
-          </p>
-          <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400" style={{ textWrap: "balance" }}>
-            This is not a risk score. It is a structural measurement —
-            a precise rendering of how concentrated each nation&rsquo;s
-            external dependencies are, across energy, finance, defense,
-            technology, critical inputs, and logistics.
-          </p>
-          <div className="mt-8 flex items-center gap-4">
-            <a
-              href="#map"
-              className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-colors hover:bg-stone-100"
-            >
-              Explore the Map
-              <span aria-hidden="true">↓</span>
-            </a>
-            {isi && (
-              <span className="text-[13px] font-mono text-stone-500">
-                {isi.version} · {isi.window} ·{" "}
-                {isi.countries_complete}/{isi.countries_total} countries
-              </span>
-            )}
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-12 px-6 py-16 lg:flex-row lg:items-center lg:gap-16 lg:px-16 lg:py-20">
+          {/* Left column — text */}
+          <div className="min-w-0 flex-1">
+            <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-white">
+              Sovereignty is structure.
+              <br />
+              We measure it.
+            </h1>
+            <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-stone-300" style={{ textWrap: "balance" }}>
+              The International Sovereignty Index quantifies external dependency
+              concentration across EU-27 member states using a{" "}
+              Herfindahl-Hirschman framework applied to{" "}
+              {axes?.length ?? "all"} strategic axes of sovereign exposure.
+            </p>
+            <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400" style={{ textWrap: "balance" }}>
+              This is not a risk score. It is a structural measurement —
+              a precise rendering of how concentrated each nation&rsquo;s
+              external dependencies are, across energy, finance, defense,
+              technology, critical inputs, and logistics.
+            </p>
+            <div className="mt-8 flex items-center gap-4">
+              <a
+                href="#map"
+                className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-colors hover:bg-stone-100"
+              >
+                Explore the Map
+                <span aria-hidden="true">↓</span>
+              </a>
+              {isi && (
+                <span className="text-[13px] font-mono text-stone-500">
+                  {isi.version} · {isi.window} ·{" "}
+                  {isi.countries_complete}/{isi.countries_total} countries
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right column — structural framework diagram */}
+          <div className="w-full max-w-[340px] shrink-0 lg:w-[340px]">
+            <StructuralFrameworkDiagram />
           </div>
         </div>
       </section>
