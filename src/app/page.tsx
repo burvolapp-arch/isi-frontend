@@ -79,7 +79,7 @@ export default async function ExecutiveOverviewPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       {/* ══════════════════════════════════════════════════════
           HERO — Full-bleed, institutional authority
          ══════════════════════════════════════════════════════ */}
@@ -97,10 +97,10 @@ export default async function ExecutiveOverviewPage() {
             {axes?.length ?? "all"} strategic axes of sovereign exposure.
           </p>
           <p className="mt-4 max-w-2xl text-[14px] leading-relaxed text-stone-400">
-            This is not a risk score. It is a structural measurement — a precise
-            rendering of how concentrated each nation&rsquo;s external
-            dependencies are, across energy, finance, defense, technology,
-            critical inputs, and logistics.
+            This is not a risk score. It is a structural measurement —
+            a precise rendering of how concentrated each nation&rsquo;s
+            external dependencies are, across energy, finance, defense,
+            technology, critical inputs, and logistics.
           </p>
           <div className="mt-8 flex items-center gap-4">
             <a

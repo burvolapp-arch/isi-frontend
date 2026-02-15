@@ -112,6 +112,7 @@ export default function RootLayout({
             }),
           }}
         />
+        <div className="flex min-h-screen flex-col">
         {/* ── Institutional Header ───────────────────────── */}
         <header className="sticky top-0 z-50 bg-navy-900">
           <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-16">
@@ -138,7 +139,9 @@ export default function RootLayout({
         </header>
 
         {/* ── Page Content ───────────────────────────────── */}
-        {children}
+        <div className="flex-1">
+          {children}
+        </div>
 
         {/* ── Institutional Footer ───────────────────────── */}
         <footer className="border-t border-border-primary bg-surface-primary">
@@ -197,13 +200,13 @@ export default function RootLayout({
               </p>
               <div className="mt-3 flex gap-4 text-[12px]">
                 <a
-                  href={`${process.env.NEXT_PUBLIC_API_URL ?? ""}/api/export/csv`}
+                  href="/api/export/csv"
                   className="text-text-tertiary underline hover:text-text-primary"
                 >
                   Download CSV
                 </a>
                 <a
-                  href={`${process.env.NEXT_PUBLIC_API_URL ?? ""}/api/export/json`}
+                  href="/api/export/json"
                   className="text-text-tertiary underline hover:text-text-primary"
                 >
                   Download JSON
@@ -212,6 +215,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        </div>
       </body>
     </html>
   );
