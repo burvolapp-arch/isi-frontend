@@ -304,9 +304,9 @@ export function CountryRankingsTable({
       {/* Interpretation note */}
       <p className="mt-4 text-[12px] leading-relaxed text-text-quaternary">
         Scores are Herfindahl-Hirschman Index (HHI) values on [0, 1]. Higher
-        = more concentrated dependency.{" "}
+        = more concentrated external supplier structure.{" "}
         <span className="text-deviation-negative">Below-mean</span>{" "}
-        values indicate less dependency;{" "}
+        values indicate less concentration;{" "}
         <span className="text-deviation-positive">above-mean</span> values
         indicate more. Δ Mean shows deviation from the EU-27 composite average.
       </p>

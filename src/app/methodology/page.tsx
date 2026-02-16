@@ -34,10 +34,10 @@ export default function MethodologyPage() {
             1. Objective
           </h2>
           <p className="text-[14px] leading-relaxed text-text-tertiary">
-            The ISI measures the <strong className="text-text-secondary">concentration of external dependencies</strong>{" "}
+            The ISI measures the <strong className="text-text-secondary">concentration of external suppliers</strong>{" "}
             for each EU-27 member state across a set of strategic axes. It does{" "}
             <em>not</em> assess quality, risk, or desirability of those
-            dependencies — only their structural concentration.
+            relationships — only their structural concentration.
           </p>
         </section>
 

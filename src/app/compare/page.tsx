@@ -9,6 +9,7 @@ import {
   formatScore,
   deviationFromMean,
   countryHref,
+  normalizeAxisName,
 } from "@/lib/format";
 import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
@@ -96,7 +97,8 @@ export default function ComparePage() {
     for (const key of Object.keys(record)) {
       if (key.startsWith(prefix + "_")) {
         const suffix = key.slice(prefix.length + 1);
-        return suffix.charAt(0).toUpperCase() + suffix.slice(1).replace(/_/g, " ");
+        const raw = suffix.charAt(0).toUpperCase() + suffix.slice(1).replace(/_/g, " ");
+        return normalizeAxisName(raw);
       }
     }
     return prefix.replace(/_/g, " ").toUpperCase();

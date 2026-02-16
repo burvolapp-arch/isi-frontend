@@ -35,12 +35,12 @@ export default function TransparencyPage() {
           </h2>
           <ul className="list-inside list-disc space-y-1 text-[14px] text-text-tertiary">
             <li>
-              <strong className="text-text-secondary">Concentration of external dependencies</strong> — how much
-              a country relies on a small number of external sources for
+              <strong className="text-text-secondary">Concentration of external suppliers</strong> — how much
+              a country sources from a small number of external suppliers for
               strategic inputs.
             </li>
             <li>
-              <strong className="text-text-secondary">Structural patterns</strong> — whether dependency is
+              <strong className="text-text-secondary">Structural patterns</strong> — whether supplier concentration is
               broad or narrow across trade partners.
             </li>
             <li>
@@ -75,12 +75,12 @@ export default function TransparencyPage() {
               or substitutability of those flows.
             </li>
             <li>
-              <strong className="text-text-secondary">Non-EU dependencies.</strong> Only EU-27 member states are
+              <strong className="text-text-secondary">Non-EU supplier relationships.</strong> Only EU-27 member states are
               assessed. Non-EU countries, candidate states, and micro-states
               are outside scope.
             </li>
             <li>
-              <strong className="text-text-secondary">Intra-EU dependencies.</strong> Trade flows between EU
+              <strong className="text-text-secondary">Intra-EU supplier flows.</strong> Trade flows between EU
               member states may or may not be captured depending on the axis
               definition. Refer to each axis&apos;s inclusion/exclusion
               documentation.
@@ -101,8 +101,8 @@ export default function TransparencyPage() {
           <ul className="list-inside list-disc space-y-2 text-[14px] text-text-tertiary">
             <li>
               <strong className="text-text-secondary">Unweighted aggregation.</strong> The composite treats all
-              axes equally. This is a simplification — energy dependency may be
-              more strategically critical than logistics dependency for some
+              axes equally. This is a simplification — energy supplier concentration may be
+              more strategically critical than logistics supplier concentration for some
               states.
             </li>
             <li>

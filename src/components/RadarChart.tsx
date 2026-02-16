@@ -11,11 +11,11 @@ import { memo, useMemo } from "react";
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.22; // multiplicative distance of labels from chart edge
-const LABEL_FONT_SIZE = 9;
-const LABEL_LINE_HEIGHT = 11;
-const LABEL_MAX_CHARS = 18; // break label lines beyond this width
-const MARGIN = 52; // viewBox margin around the radar for labels
+const LABEL_OFFSET = 1.32; // multiplicative distance of labels from chart edge — generous for long names
+const LABEL_FONT_SIZE = 8;
+const LABEL_LINE_HEIGHT = 10;
+const LABEL_MAX_CHARS = 20; // break label lines beyond this width
+const MARGIN = 80; // viewBox margin around the radar for labels — wide to prevent clipping
 const LEGEND_HEIGHT = 36; // space below chart for legend
 const DATA_POINT_RADIUS = 2.5;
 const OUTER_RING_STROKE = 0.75;
@@ -79,7 +79,7 @@ export const RadarChart = memo(function RadarChart({
   if (axes.length === 0) return null;
 
   const n = axes.length;
-  const radius = (CHART_SIZE - MARGIN * 2) / 2 + 20; // effective drawing radius
+  const radius = (CHART_SIZE - 80) / 2; // effective drawing radius — compact polygon, generous label space
   const center = CHART_SIZE / 2;
   const vbMargin = MARGIN;
   const vbSize = CHART_SIZE + vbMargin * 2;

@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s — ISI",
   },
   description:
-    "Measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+    "Measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
   alternates: {
     canonical: "/",
   },
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "International Sovereignty Index (ISI)",
     description:
-      "Measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+      "Measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
     url: "https://isi.internationalsovereignty.org",
     siteName: "International Sovereignty Index",
     images: [
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "International Sovereignty Index (ISI)",
     description:
-      "Measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+      "Measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
     images: ["/android-chrome-512x512.png"],
   },
   robots: {
@@ -112,7 +112,7 @@ export default function RootLayout({
               url: "https://isi.internationalsovereignty.org",
               logo: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
               description:
-                "Independent research initiative measuring external dependency concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+                "Independent research initiative measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
             }),
           }}
         />
@@ -158,7 +158,7 @@ export default function RootLayout({
                 <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-3 py-3 font-mono text-[11px] leading-relaxed text-text-tertiary sm:px-4 sm:text-[12px]">
                   International Sovereignty Index (2025).{" "}
                   <em>
-                    External Dependency Concentration in EU-27 Member States.
+                    External Supplier Concentration in EU-27 Member States.
                   </em>{" "}
                   internationalsovereignty.org. Retrieved{" "}
                   {new Date().toLocaleDateString("en-US", {
@@ -197,7 +197,7 @@ export default function RootLayout({
                       International Sovereignty Index
                     </p>
                     <p className="mt-1 text-[13px] text-text-quaternary">
-                      Measuring external dependency concentration across EU-27
+                      Measuring external supplier concentration across EU-27
                       member states &middot; HHI framework
                     </p>
                   </div>

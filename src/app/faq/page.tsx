@@ -15,11 +15,11 @@ interface FAQItem {
 const FAQ_ITEMS: FAQItem[] = [
   {
     q: "What does the ISI measure?",
-    a: "The ISI measures the concentration of external dependencies for EU-27 member states across strategic axes (financial, energy, technology, defense, critical inputs, logistics). It uses a Herfindahl-Hirschman Index (HHI) framework where 0 = perfectly diversified and 1 = total concentration on a single source.",
+    a: "The ISI measures the concentration of external suppliers for EU-27 member states across strategic axes (financial, energy, technology, defense, critical inputs, logistics). It uses a Herfindahl-Hirschman Index (HHI) framework where 0 = perfectly diversified and 1 = total concentration on a single source.",
   },
   {
     q: 'Is a high ISI score "bad"?',
-    a: 'Not necessarily. A high score indicates high concentration — meaning the country depends heavily on a small number of external sources. Whether that is problematic depends on context: concentration on a stable allied partner is structurally different from concentration on an adversarial source. The ISI does not make that distinction.',
+    a: 'Not necessarily. A high score indicates high concentration — meaning the country sources heavily from a small number of external suppliers. Whether that is problematic depends on context: concentration on a stable allied supplier is structurally different from concentration on an adversarial source. The ISI does not make that distinction.',
   },
   {
     q: "How is the composite calculated?",

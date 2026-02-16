@@ -1,4 +1,5 @@
 import type { AxisRegistryEntry } from "@/lib/types";
+import { normalizeAxisName } from "@/lib/format";
 
 interface AxisCardProps {
   axis: AxisRegistryEntry;
@@ -13,7 +14,7 @@ export function AxisCard({ axis }: AxisCardProps) {
             Axis {axis.id}
           </p>
           <h3 className="mt-1 font-serif text-[17px] font-semibold text-text-primary">
-            {axis.name}
+            {normalizeAxisName(axis.name)}
           </h3>
         </div>
         <span

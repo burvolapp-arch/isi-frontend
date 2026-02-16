@@ -97,15 +97,15 @@ export default async function ExecutiveOverviewPage() {
               We measure it.
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-stone-300 sm:text-[17px] lg:mx-0" style={{ textWrap: "balance" }}>
-              The International Sovereignty Index quantifies external dependency
+              The International Sovereignty Index quantifies external supplier
               concentration across EU-27 member states using a{" "}
               Herfindahl-Hirschman framework applied to{" "}
-              {axes?.length ?? "all"} strategic axes of sovereign exposure.
+              {axes?.length ?? "all"} strategic axes of external exposure.
             </p>
             <p className="mx-auto mt-3 max-w-2xl text-[13px] leading-relaxed text-stone-400 sm:mt-4 sm:text-[14px] lg:mx-0" style={{ textWrap: "balance" }}>
               This is not a risk score. It is a structural measurement —
               a precise rendering of how concentrated each nation&rsquo;s
-              external dependencies are, across energy, finance, defense,
+              external suppliers are, across energy, finance, defense,
               technology, critical inputs, and logistics.
             </p>
             <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:justify-start">
@@ -302,7 +302,7 @@ export default async function ExecutiveOverviewPage() {
           </h3>
           <div className="mt-4 text-[14px] leading-relaxed text-text-secondary">
             <p>
-              The ISI measures <strong>external dependency concentration</strong>{" "}
+              The ISI measures <strong>external supplier concentration</strong>{" "}
               across {axes?.length ?? "all"} strategic axes using a{" "}
               <strong>Herfindahl-Hirschman Index (HHI)</strong>{" "}
               framework. Scores range from 0 (perfectly diversified) to 1
@@ -310,7 +310,7 @@ export default async function ExecutiveOverviewPage() {
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {[
-                { threshold: "≥ 0.50", label: "Highly Concentrated", desc: "Critical dependency on one or very few external sources.", border: "border-l-band-highly" },
+                { threshold: "≥ 0.50", label: "Highly Concentrated", desc: "Critical concentration on one or very few external suppliers.", border: "border-l-band-highly" },
                 { threshold: "0.25–0.49", label: "Moderately Concentrated", desc: "Significant concentration across a small number of sources.", border: "border-l-band-moderately" },
                 { threshold: "0.15–0.24", label: "Mildly Concentrated", desc: "Moderate spread, but notable concentration remains.", border: "border-l-band-mildly" },
                 { threshold: "< 0.15", label: "Unconcentrated", desc: "Broadly distributed across many external sources.", border: "border-l-band-unconcentrated" },
@@ -354,7 +354,7 @@ export default async function ExecutiveOverviewPage() {
               Axis Registry
             </h2>
             <p className="mt-1.5 text-[13px] text-text-tertiary sm:text-[14px]">
-              {axes.length} strategic axes of external dependency, each composed
+              {axes.length} strategic axes of external supplier concentration, each composed
               of discrete data channels.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -375,8 +375,8 @@ export default async function ExecutiveOverviewPage() {
           <ul className="mt-3 space-y-2 text-[14px] text-text-secondary">
             <li>
               <strong>Not a risk score.</strong> The ISI quantifies concentration
-              of external dependencies, not the risk or quality of those
-              dependencies.
+              of external suppliers, not the risk or quality of those
+              relationships.
             </li>
             <li>
               <strong>Not a policy recommendation.</strong> High concentration

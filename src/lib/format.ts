@@ -203,19 +203,34 @@ export function countryHref(code: string): string {
 }
 
 // ─── Axis Name Standardization ──────────────────────────────────────
-// All axes measure concentration of external dependencies.
-// Normalize backend names to a uniform "[Domain] External Concentration" form.
+// All axes measure HHI concentration of external suppliers.
+// Normalize backend names to the mandatory "[Domain] External Supplier Concentration" form.
 
 const AXIS_NAME_MAP: Record<string, string> = {
-  "Financial Sovereignty": "Financial External Concentration",
-  "Energy Dependency": "Energy External Concentration",
-  "Technology Dependency": "Technology External Concentration",
-  "Defense Industrial Dependency": "Defense External Concentration",
-  "Critical Inputs Dependency": "Critical Inputs External Concentration",
-  "Logistics Dependency": "Logistics External Concentration",
+  // Backend names → canonical display names
+  "Financial Sovereignty": "Financial External Supplier Concentration",
+  "Energy Dependency": "Energy External Supplier Concentration",
+  "Technology Dependency": "Technology / Semiconductor External Supplier Concentration",
+  "Defense Industrial Dependency": "Defense External Supplier Concentration",
+  "Critical Inputs Dependency": "Critical Inputs / Raw Materials External Supplier Concentration",
+  "Logistics Dependency": "Logistics / Freight External Supplier Concentration",
+  // Previous intermediate normalization values (in case already partially normalized)
+  "Financial External Concentration": "Financial External Supplier Concentration",
+  "Energy External Concentration": "Energy External Supplier Concentration",
+  "Technology External Concentration": "Technology / Semiconductor External Supplier Concentration",
+  "Defense External Concentration": "Defense External Supplier Concentration",
+  "Critical Inputs External Concentration": "Critical Inputs / Raw Materials External Supplier Concentration",
+  "Logistics External Concentration": "Logistics / Freight External Supplier Concentration",
+  // Short labels from getAxisScores field-key derivation (e.g. axis_1_financial → "Financial")
+  "Financial": "Financial External Supplier Concentration",
+  "Energy": "Energy External Supplier Concentration",
+  "Technology": "Technology / Semiconductor External Supplier Concentration",
+  "Defense": "Defense External Supplier Concentration",
+  "Critical Inputs": "Critical Inputs / Raw Materials External Supplier Concentration",
+  "Logistics": "Logistics / Freight External Supplier Concentration",
 };
 
-/** Normalize an axis name to the standard "[Domain] External Concentration" form. */
+/** Normalize an axis name to the mandatory "[Domain] External Supplier Concentration" form. */
 export function normalizeAxisName(raw: string): string {
   // Strip optional "Axis N: " prefix
   const stripped = raw.replace(/^Axis \d+:\s*/, "");

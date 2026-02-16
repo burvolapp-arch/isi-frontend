@@ -50,7 +50,7 @@ function computeOutliers(
     const top = withLogistics[0];
     cards.push({
       title: "Highest Logistics Concentration",
-      description: "Most concentrated logistics dependency in the EU-27",
+      description: "Most concentrated logistics supplier structure in the EU-27",
       country: top.c.country,
       countryName: top.c.country_name,
       value: formatScore(top.score),
