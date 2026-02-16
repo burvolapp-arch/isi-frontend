@@ -232,6 +232,7 @@ export default async function CountryPage({ params }: PageProps) {
                 axes={radarAxes}
                 euMean={euMeanPerAxis}
                 label={country.country_name}
+                countryCode={country.country}
               />
             </div>
           </div>

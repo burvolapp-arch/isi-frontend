@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   getCanonicalAxisName,
   assertCanonicalLabel,
@@ -15,6 +16,8 @@ import {
  * This component resolves ALL display labels internally via
  * getCanonicalAxisName(). It NEVER accepts display labels as props.
  * It NEVER reads backend label fields.
+ *
+ * Interactive: hover for axis tooltip, click to navigate to axis detail.
  */
 
 // ─── Constants ──────────────────────────────────────────────────────
@@ -31,7 +34,8 @@ const MARGIN_Y = 150; // vertical containment margin for labels
 const LEGEND_HEIGHT = 60; // space below chart for legend
 const DATA_POINT_RADIUS = 4;
 const GRID_STROKE = 1; // uniform grid stroke
-const GRID_OPACITY = 0.12; // subtle grid presence
+const GRID_OPACITY = 0.10; // slightly lighter grid
+const RADIUS_SCALE = 0.76; // ~20% reduction — radar sits secondary to deviation table
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -39,6 +43,14 @@ const GRID_OPACITY = 0.12; // subtle grid presence
 interface RadarAxisInput {
   slug: string;
   value: number | null;
+}
+
+/** Optional per-axis metadata for tooltip display. Order must match axes. */
+export interface RadarAxisMeta {
+  euMeanScore?: number | null;
+  deviation?: number | null;
+  rank?: number | null;
+  totalRanked?: number | null;
 }
 
 interface RadarChartProps {
@@ -51,6 +63,10 @@ interface RadarChartProps {
   compareLabel?: string;
   /** Country label */
   label?: string;
+  /** Country code for axis navigation (e.g. "SE") */
+  countryCode?: string;
+  /** Per-axis metadata for tooltip display. Must match axes order. */
+  axisMeta?: RadarAxisMeta[];
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -81,6 +97,108 @@ function wrapLabel(text: string): string[] {
   return lines;
 }
 
+// ─── Tooltip ────────────────────────────────────────────────────────
+
+function fmtScore(v: number | null | undefined): string {
+  if (v == null) return "—";
+  return v.toFixed(2);
+}
+
+interface TooltipData {
+  label: string;
+  score: number | null;
+  euMean: number | null;
+  deviation: number | null;
+  rank: number | null;
+  totalRanked: number | null;
+}
+
+function RadarTooltip({
+  data,
+  mouseX,
+  mouseY,
+}: {
+  data: TooltipData;
+  mouseX: number;
+  mouseY: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Viewport-clamped positioning
+  const style = useMemo(() => {
+    const pad = 16;
+    const approxW = 260;
+    const approxH = 140;
+    let left = mouseX + pad;
+    let top = mouseY + pad;
+    if (typeof window !== "undefined") {
+      if (left + approxW > window.innerWidth - pad) left = mouseX - approxW - pad;
+      if (top + approxH > window.innerHeight - pad) top = mouseY - approxH - pad;
+    }
+    return { position: "fixed" as const, left, top, zIndex: 50 };
+  }, [mouseX, mouseY]);
+
+  return (
+    <div
+      ref={ref}
+      role="tooltip"
+      style={style}
+      className="pointer-events-none rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-lg dark:border-stone-700 dark:bg-stone-900"
+    >
+      <p className="mb-2 text-sm font-semibold text-stone-800 dark:text-stone-100">
+        {data.label}
+      </p>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+        <span className="text-stone-500">Score</span>
+        <span className="font-mono text-stone-800 dark:text-stone-200">
+          {fmtScore(data.score)}
+        </span>
+        <span className="text-stone-500">EU-27 Mean</span>
+        <span className="font-mono text-stone-800 dark:text-stone-200">
+          {fmtScore(data.euMean)}
+        </span>
+        <span className="text-stone-500">Deviation</span>
+        <span className="font-mono text-stone-800 dark:text-stone-200">
+          {data.deviation != null
+            ? `${data.deviation >= 0 ? "+" : ""}${data.deviation.toFixed(2)}`
+            : "—"}
+        </span>
+        {data.rank != null && data.totalRanked != null && (
+          <>
+            <span className="text-stone-500">Rank</span>
+            <span className="font-mono text-stone-800 dark:text-stone-200">
+              {data.rank} / {data.totalRanked}
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Wedge geometry ─────────────────────────────────────────────────
+
+/** Builds an SVG path for a pie-slice wedge around axis `index`. */
+function buildWedge(
+  index: number,
+  n: number,
+  cx: number,
+  cy: number,
+  reach: number,
+): string {
+  const step = (2 * Math.PI) / n;
+  const centerAngle = step * index - Math.PI / 2;
+  const halfStep = step / 2;
+  const a1 = centerAngle - halfStep;
+  const a2 = centerAngle + halfStep;
+  const x1 = cx + reach * Math.cos(a1);
+  const y1 = cy + reach * Math.sin(a1);
+  const x2 = cx + reach * Math.cos(a2);
+  const y2 = cy + reach * Math.sin(a2);
+  // Arc: large-arc=0 since halfStep < π, sweep=1 for clockwise
+  return `M ${cx} ${cy} L ${x1} ${y1} A ${reach} ${reach} 0 0 1 ${x2} ${y2} Z`;
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export const RadarChart = memo(function RadarChart({
@@ -89,7 +207,15 @@ export const RadarChart = memo(function RadarChart({
   compareAxes,
   compareLabel,
   label,
+  countryCode,
+  axisMeta,
 }: RadarChartProps) {
+  const router = useRouter();
+
+  // ── Interaction state ──
+  const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
   if (axes.length === 0) return null;
 
   // Resolve canonical labels from slugs — the ONLY label resolution path
@@ -97,21 +223,20 @@ export const RadarChart = memo(function RadarChart({
     () =>
       axes.map((a) => {
         const canonicalLabel = getCanonicalAxisName(a.slug);
-        // Regression guard — assert label validity in development
         assertCanonicalLabel(canonicalLabel, "RadarChart");
-        return { label: canonicalLabel, value: a.value };
+        return { slug: a.slug, label: canonicalLabel, value: a.value };
       }),
     [axes],
   );
 
   const n = resolvedAxes.length;
 
-  // Safe radius: computed from viewBox and margins, then scaled inward
+  // Safe radius: computed from viewBox and margins, then scaled down
   const safeRadius = Math.min(
     VB_WIDTH / 2 - MARGIN_X,
     VB_HEIGHT / 2 - MARGIN_Y,
   );
-  const radius = safeRadius * 0.94; // ~282 — polygon contained with label clearance
+  const radius = safeRadius * RADIUS_SCALE; // ~228 — radar sits secondary to deviation table
 
   const vbCenterX = VB_WIDTH / 2;
   const vbCenterY = VB_HEIGHT / 2;
@@ -146,7 +271,67 @@ export const RadarChart = memo(function RadarChart({
     [compareAxes],
   );
 
-  return (
+  // ── Interaction handlers ──
+  const wedgeReach = radius * 1.15; // wedge extends slightly beyond axis tips
+
+  const handleAxisHover = useCallback((index: number) => {
+    setHoveredAxis(index);
+  }, []);
+
+  const handleAxisMove = useCallback((e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleAxisLeave = useCallback(() => {
+    setHoveredAxis(null);
+  }, []);
+
+  const handleAxisClick = useCallback(
+    (index: number) => {
+      if (!countryCode) return;
+      const slug = resolvedAxes[index]?.slug;
+      if (slug) {
+        router.push(`/country/${countryCode}#axis-${slug}`);
+      }
+    },
+    [countryCode, resolvedAxes, router],
+  );
+
+  const handleAxisKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleAxisClick(index);
+      }
+    },
+    [handleAxisClick],
+  );
+
+  // ── Tooltip data computation ──
+  const tooltipData: TooltipData | null = useMemo(() => {
+    if (hoveredAxis === null) return null;
+    const axis = resolvedAxes[hoveredAxis];
+    if (!axis) return null;
+
+    const meta = axisMeta?.[hoveredAxis];
+    const euMeanVal = meta?.euMeanScore ?? euMean?.[hoveredAxis] ?? null;
+    const deviation =
+      meta?.deviation ??
+      (axis.value != null && euMeanVal != null
+        ? axis.value - euMeanVal
+        : null);
+
+    return {
+      label: axis.label,
+      score: axis.value,
+      euMean: euMeanVal,
+      deviation,
+      rank: meta?.rank ?? null,
+      totalRanked: meta?.totalRanked ?? null,
+    };
+  }, [hoveredAxis, resolvedAxes, axisMeta, euMean]);
+
+  const svg = (
     <svg
       viewBox={`0 0 ${VB_WIDTH} ${totalHeight}`}
       preserveAspectRatio="xMidYMid meet"
@@ -171,7 +356,7 @@ export const RadarChart = memo(function RadarChart({
           fill="none"
           stroke="var(--color-stone-300)"
           strokeWidth={GRID_STROKE}
-          strokeOpacity={r === 1.0 ? 0.25 : GRID_OPACITY}
+          strokeOpacity={r === 1.0 ? 0.22 : GRID_OPACITY}
         />
       ))}
 
@@ -192,7 +377,7 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
-      {/* Ring scale labels — precisely centered on grid rings */}
+      {/* Ring scale labels */}
       {GRID_RINGS.map((r) => (
         <text
           key={r}
@@ -241,38 +426,55 @@ export const RadarChart = memo(function RadarChart({
       <path
         d={primaryPath}
         fill="var(--color-navy-700)"
-        fillOpacity={0.1}
+        fillOpacity={hoveredAxis !== null ? 0.06 : 0.1}
         stroke="var(--color-navy-700)"
-        strokeWidth={2}
+        strokeWidth={2.3}
         strokeLinejoin="round"
         strokeLinecap="round"
+        style={{ transition: "fill-opacity 150ms ease" }}
       />
 
-      {/* Data points */}
+      {/* Hovered axis edge highlight */}
+      {hoveredAxis !== null && resolvedAxes[hoveredAxis]?.value != null && (
+        <line
+          x1={vbCenterX}
+          y1={vbCenterY}
+          x2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).x}
+          y2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).y}
+          stroke="var(--color-navy-700)"
+          strokeWidth={3.5}
+          strokeOpacity={0.5}
+          strokeLinecap="round"
+          style={{ transition: "opacity 150ms ease" }}
+        />
+      )}
+
+      {/* Data points — enlarge on hover */}
       {resolvedAxes.map((axis, i) => {
         if (axis.value === null) return null;
         const p = polarToXY(axis.value, i);
+        const isHovered = hoveredAxis === i;
         return (
           <circle
             key={i}
             cx={p.x}
             cy={p.y}
-            r={DATA_POINT_RADIUS}
+            r={isHovered ? DATA_POINT_RADIUS + 1.5 : DATA_POINT_RADIUS}
             fill="var(--color-navy-700)"
             stroke="var(--color-surface-primary)"
-            strokeWidth={1.5}
+            strokeWidth={isHovered ? 2 : 1.5}
+            style={{ transition: "r 150ms ease, stroke-width 150ms ease" }}
           />
         );
       })}
 
-      {/* Axis labels — pure polar placement, no artificial offsets */}
+      {/* Axis labels — dim non-hovered on interaction */}
       {resolvedAxes.map((axis, i) => {
         const labelPoint = polarToXY(LABEL_OFFSET, i);
         const lines = wrapLabel(axis.label);
         const lineCount = lines.length;
         const startDy = -((lineCount - 1) * LABEL_LINE_HEIGHT) / 2;
 
-        // Clean dynamic anchor — pure cosine threshold, no hemisphere hacks
         const angle = angleStep * i - Math.PI / 2;
         const cos = Math.cos(angle);
         let textAnchor: "start" | "middle" | "end" = "middle";
@@ -281,6 +483,8 @@ export const RadarChart = memo(function RadarChart({
         } else if (cos < -0.1) {
           textAnchor = "end";
         }
+
+        const dimmed = hoveredAxis !== null && hoveredAxis !== i;
 
         return (
           <text
@@ -293,6 +497,8 @@ export const RadarChart = memo(function RadarChart({
             fontSize={LABEL_FONT_SIZE}
             fontFamily="var(--font-sans)"
             fontWeight="500"
+            opacity={dimmed ? 0.4 : 1}
+            style={{ transition: "opacity 150ms ease" }}
           >
             {lines.map((line, li) => (
               <tspan
@@ -306,6 +512,24 @@ export const RadarChart = memo(function RadarChart({
           </text>
         );
       })}
+
+      {/* Interactive wedge overlay — transparent pie-slice hit areas per axis */}
+      {resolvedAxes.map((axis, i) => (
+        <path
+          key={`wedge-${i}`}
+          d={buildWedge(i, n, vbCenterX, vbCenterY, wedgeReach)}
+          fill="transparent"
+          cursor={countryCode ? "pointer" : "default"}
+          role="button"
+          tabIndex={0}
+          aria-label={`${axis.label}: ${fmtScore(axis.value)}`}
+          onMouseEnter={() => handleAxisHover(i)}
+          onMouseMove={handleAxisMove}
+          onMouseLeave={handleAxisLeave}
+          onClick={() => handleAxisClick(i)}
+          onKeyDown={(e) => handleAxisKeyDown(e, i)}
+        />
+      ))}
 
       {/* Legend — positioned below chart */}
       {hasLegend && (
@@ -331,6 +555,19 @@ export const RadarChart = memo(function RadarChart({
         </g>
       )}
     </svg>
+  );
+
+  return (
+    <>
+      {svg}
+      {tooltipData && (
+        <RadarTooltip
+          data={tooltipData}
+          mouseX={mousePos.x}
+          mouseY={mousePos.y}
+        />
+      )}
+    </>
   );
 });
 
