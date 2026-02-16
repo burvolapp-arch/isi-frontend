@@ -209,3 +209,32 @@ export interface AxisDetail {
   warnings: Warning[];
   countries: AxisCountryEntry[];
 }
+
+// --- POST /scenario ---
+
+/** Request body for scenario simulation endpoint */
+export interface ScenarioRequest {
+  country: string;
+  adjustments: Record<string, number>;
+}
+
+/** Simulated axis score returned by scenario endpoint */
+export interface ScenarioAxisResult {
+  axis_slug: string;
+  baseline: number | null;
+  simulated: number | null;
+  delta: number | null;
+}
+
+/** Response from scenario simulation endpoint */
+export interface ScenarioResponse {
+  country: string;
+  simulated_axes: ScenarioAxisResult[];
+  simulated_composite: number | null;
+  simulated_rank: number | null;
+  simulated_classification: ScoreClassification | null;
+  baseline_composite: number | null;
+  baseline_rank: number | null;
+  baseline_classification: ScoreClassification | null;
+  delta_from_baseline: number | null;
+}

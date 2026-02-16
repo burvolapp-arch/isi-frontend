@@ -196,6 +196,15 @@ export default async function CountryPage({ params }: PageProps) {
               )}
             </p>
           )}
+          <div className="mt-4">
+            <Link
+              href={`/country/${code.toLowerCase()}/scenario`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border-primary bg-white px-4 py-2 text-[13px] font-medium text-text-secondary transition-colors hover:bg-stone-50"
+            >
+              Open Scenario Laboratory
+              <span aria-hidden="true" className="text-text-quaternary">→</span>
+            </Link>
+          </div>
         </section>
 
         {/* ── Distribution Context (where does this country sit?) ── */}

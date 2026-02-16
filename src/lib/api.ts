@@ -15,6 +15,8 @@ import type {
   CountryDetail,
   AxisRegistryEntry,
   AxisDetail,
+  ScenarioRequest,
+  ScenarioResponse,
 } from "./types";
 
 function getBaseUrl(): string {
@@ -78,6 +80,39 @@ export function fetchAxes(): Promise<AxisRegistryEntry[]> {
 /** GET /axis/{axis_id} — Full axis detail across all countries */
 export function fetchAxis(axisId: number): Promise<AxisDetail> {
   return fetchJson<AxisDetail>(`/axis/${axisId}`);
+}
+
+/**
+ * POST helper — no ISR caching, no-store.
+ * Used for scenario simulation (ephemeral, user-specific).
+ */
+async function postJson<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
+  const base = getBaseUrl();
+  const url = `${base}${path}`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    cache: "no-store",
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new ApiError(res.status, path, text);
+  }
+
+  return res.json() as Promise<TRes>;
+}
+
+/** POST /scenario — Run scenario simulation */
+export function fetchScenario(
+  req: ScenarioRequest
+): Promise<ScenarioResponse> {
+  return postJson<ScenarioRequest, ScenarioResponse>("/scenario", req);
 }
 
 export { ApiError };
