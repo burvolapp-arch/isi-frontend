@@ -214,11 +214,7 @@ export default function RootLayout({
                   </div>
                 </div>
                 <p className="mt-6 text-[12px] leading-relaxed text-text-quaternary">
-                  This frontend is a pure rendering layer. It performs zero
-                  computation and contains zero business logic. All scores,
-                  classifications, and descriptions are served verbatim from
-                  the backend API. If a number appears incorrect, the issue is
-                  in the backend materialization pipeline.
+                  All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation.
                 </p>
               </div>
 

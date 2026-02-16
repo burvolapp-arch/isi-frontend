@@ -235,7 +235,7 @@ export function CountryRankingsTable({
                 className={`${thBase} text-right`}
                 onClick={() => handleSort("percentile")}
               >
-                Pctl
+                Rank
                 {sortIndicator("percentile")}
               </th>
               <th
@@ -269,10 +269,6 @@ export function CountryRankingsTable({
             {rows.map((c, i) => {
               const isExpanded = expandedRow === c.country;
               const dev = deviationFromMean(c.isi_composite, mean);
-              const pctl =
-                c.isi_composite !== null
-                  ? computePercentile(c.isi_composite, allScores)
-                  : null;
 
               return (
                 <TableRow
@@ -280,8 +276,8 @@ export function CountryRankingsTable({
                   country={c}
                   isExpanded={isExpanded}
                   deviation={dev}
-                  percentile={pctl}
                   rank={rankMap.get(c.country) ?? null}
+                  totalCountries={allScores.length}
                   axisColumns={axisColumns}
                   mean={mean}
                   rowIndex={i}
@@ -324,8 +320,8 @@ interface TableRowProps {
   country: ISICompositeCountry;
   isExpanded: boolean;
   deviation: number | null;
-  percentile: number | null;
   rank: number | null;
+  totalCountries: number;
   axisColumns: { fieldKey: string; axisId: number; label: string; slug: string; tooltip: string }[];
   mean: number | null;
   rowIndex: number;
@@ -336,8 +332,8 @@ function TableRow({
   country: c,
   isExpanded,
   deviation,
-  percentile,
   rank,
+  totalCountries,
   axisColumns,
   mean,
   rowIndex,
@@ -409,9 +405,9 @@ function TableRow({
           {formatScore(c.isi_composite)}
         </td>
 
-        {/* Percentile */}
+        {/* Rank */}
         <td className="whitespace-nowrap px-3 py-2.5 text-right font-mono text-[13px] text-text-tertiary">
-          {percentile !== null ? `P${percentile}` : "—"}
+          {rank !== null ? `${rank}/${totalCountries}` : "—"}
         </td>
 
         {/* Deviation from mean */}

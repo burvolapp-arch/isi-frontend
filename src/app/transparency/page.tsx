@@ -129,12 +129,7 @@ export default function TransparencyPage() {
             Frontend Architecture Note
           </h2>
           <p className="mt-2 text-[14px] text-text-tertiary">
-            This frontend is a <strong className="text-text-secondary">pure rendering layer</strong>. It
-            performs zero computation, zero data transformation, and zero
-            business logic. Every number, classification, warning, and
-            description displayed on this site is served verbatim from the
-            backend API. If a number appears incorrect, the issue is in the
-            backend materialization pipeline, not in the frontend.
+            All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation.
           </p>
         </section>
         </div>

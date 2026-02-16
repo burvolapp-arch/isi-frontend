@@ -147,8 +147,7 @@ export default function MethodologyPage() {
             <code className="bg-surface-tertiary px-1 text-xs text-text-secondary">
               isi_api_v01.py
             </code>
-            ). The frontend performs <strong className="text-text-secondary">zero computation</strong> — it is a
-            pure rendering layer.
+            ). All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation.
           </p>
         </section>
 

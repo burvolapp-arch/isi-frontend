@@ -202,6 +202,75 @@ export function countryHref(code: string): string {
   return `/country/${countrySlug(code)}`;
 }
 
+// ─── Axis Name Standardization ──────────────────────────────────────
+// All axes measure concentration of external dependencies.
+// Normalize backend names to a uniform "[Domain] External Concentration" form.
+
+const AXIS_NAME_MAP: Record<string, string> = {
+  "Financial Sovereignty": "Financial External Concentration",
+  "Energy Dependency": "Energy External Concentration",
+  "Technology Dependency": "Technology External Concentration",
+  "Defense Industrial Dependency": "Defense External Concentration",
+  "Critical Inputs Dependency": "Critical Inputs External Concentration",
+  "Logistics Dependency": "Logistics External Concentration",
+};
+
+/** Normalize an axis name to the standard "[Domain] External Concentration" form. */
+export function normalizeAxisName(raw: string): string {
+  // Strip optional "Axis N: " prefix
+  const stripped = raw.replace(/^Axis \d+:\s*/, "");
+  return AXIS_NAME_MAP[stripped] ?? stripped;
+}
+
+// ─── Partner Filtering ──────────────────────────────────────────────
+
+const AGGREGATE_LABELS = new Set([
+  "TOTAL",
+  "Total",
+  "total",
+  "WORLD",
+  "World",
+  "world",
+  "ALL",
+  "AGGREGATE",
+  "SUBTOTAL",
+]);
+
+/** Returns true if a partner entry is an aggregate row (e.g. TOTAL) rather than a bilateral partner. */
+export function isAggregatePartner(partner: string): boolean {
+  const trimmed = partner.trim();
+  return AGGREGATE_LABELS.has(trimmed) || /^total$/i.test(trimmed);
+}
+
+// ─── Compact Volume Formatting ──────────────────────────────────────
+
+/** Format a large volume number in compact notation (e.g. 15.41B, 2.31M). */
+export function formatCompactVolume(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
+  if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+  if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+  if (abs >= 1e3) return `${(value / 1e3).toFixed(2)}K`;
+  return value.toFixed(2);
+}
+
+// ─── Rank Computation ───────────────────────────────────────────────
+
+/**
+ * Compute 1-based rank of a score within a set of scores.
+ * Rank 1 = highest concentration (most concentrated).
+ * Returns null if score not in set.
+ */
+export function computeRank(
+  score: number,
+  allScores: number[]
+): number | null {
+  if (allScores.length === 0) return null;
+  const sorted = [...allScores].sort((a, b) => b - a);
+  const idx = sorted.findIndex((s) => s === score);
+  return idx >= 0 ? idx + 1 : null;
+}
+
 // ─── Axis Variance ──────────────────────────────────────────────────
 
 /**

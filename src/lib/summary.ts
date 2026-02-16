@@ -9,7 +9,8 @@ import type { CountryDetail } from "./types";
 import {
   formatScore,
   classificationLabel,
-  computePercentile,
+  computeRank,
+  normalizeAxisName,
 } from "./format";
 
 /**
@@ -42,29 +43,29 @@ export function generateStructuralSummary(
   const lowest = sorted[sorted.length - 1];
   const spread = top1.score - lowest.score;
 
-  // Percentile
+  // Rank
   const composite = country.isi_composite;
   const classification = classificationLabel(country.isi_classification);
-  const pct =
+  const rank =
     composite !== null && allScores.length > 0
-      ? computePercentile(composite, allScores)
+      ? computeRank(composite, allScores)
       : null;
 
   // Opening clause — composite context
   let summary = `${country.country_name} records a composite ISI of ${formatScore(composite)}`;
   summary += `, classified as ${classification}`;
-  if (pct !== null) {
-    summary += ` (P${pct} — ${pct >= 50 ? "above" : "below"} the EU-27 median)`;
+  if (rank !== null) {
+    summary += ` (rank ${rank} of ${allScores.length})`;
   }
   summary += ". ";
 
   // Concentration drivers
-  summary += `Structural exposure is led by ${top1.name} (${formatScore(top1.score)})`;
-  summary += ` and ${top2.name} (${formatScore(top2.score)})`;
+  summary += `Structural exposure is led by ${normalizeAxisName(top1.name)} (${formatScore(top1.score)})`;
+  summary += ` and ${normalizeAxisName(top2.name)} (${formatScore(top2.score)})`;
   summary += ", which together represent the primary concentration vectors. ";
 
   // Structural strength
-  summary += `The lowest axis score is ${lowest.name} at ${formatScore(lowest.score)}`;
+  summary += `The lowest axis score is ${normalizeAxisName(lowest.name)} at ${formatScore(lowest.score)}`;
   summary += `, indicating relative diversification in this domain`;
 
   // EU mean comparison for lowest axis

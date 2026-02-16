@@ -12,6 +12,10 @@ import {
   extractCompositeScores,
   deviationFromMean,
   axisHref,
+  normalizeAxisName,
+  isAggregatePartner,
+  formatCompactVolume,
+  computeRank,
 } from "@/lib/format";
 import { generateStructuralSummary } from "@/lib/summary";
 import type {
@@ -76,12 +80,17 @@ export default async function CountryPage({ params }: PageProps) {
     );
   }
 
-  // Compute percentile from ISI composite data
+  // Compute percentile and rank from ISI composite data
   const allScores = isi ? extractCompositeScores(isi.countries) : [];
   const percentile =
     country.isi_composite !== null && allScores.length > 0
       ? computePercentile(country.isi_composite, allScores)
       : null;
+  const rank =
+    country.isi_composite !== null && allScores.length > 0
+      ? computeRank(country.isi_composite, allScores)
+      : null;
+  const totalRanked = allScores.length;
 
   // Identify strengths (lowest HHI) and vulnerabilities (highest HHI)
   const scoredAxes = country.axes
@@ -94,7 +103,7 @@ export default async function CountryPage({ params }: PageProps) {
 
   // Build radar data from country axes (dynamic, no hardcoded count)
   const radarAxes = country.axes.map((a) => ({
-    label: a.axis_name.replace(/^(Axis \d+:\s*)?/, ""),
+    label: normalizeAxisName(a.axis_name),
     value: a.score,
   }));
 
@@ -105,7 +114,7 @@ export default async function CountryPage({ params }: PageProps) {
 
   // Build deviation bar items
   const deviationItems = country.axes.map((a) => ({
-    label: a.axis_name.replace(/^(Axis \d+:\s*)?/, ""),
+    label: normalizeAxisName(a.axis_name),
     score: a.score,
     href: axisHref(a.axis_slug),
   }));
@@ -157,11 +166,11 @@ export default async function CountryPage({ params }: PageProps) {
               <StatusBadge classification={country.isi_classification} />
             </div>
             <KPICard
-              label="EU-27 Percentile"
-              value={percentile !== null ? `P${percentile}` : "—"}
+              label="EU-27 Rank"
+              value={rank !== null ? `${rank} / ${totalRanked}` : "—"}
               subtitle={
                 percentile !== null
-                  ? `More concentrated than ${percentile}% of EU-27`
+                  ? `Less concentrated than ${100 - percentile}% of EU-27`
                   : "ISI composite data unavailable"
               }
             />
@@ -257,6 +266,9 @@ export default async function CountryPage({ params }: PageProps) {
               <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
                 {summary}
               </p>
+              <p className="mt-3 text-[12px] leading-relaxed text-text-quaternary">
+                HHI captures concentration structure only. It does not measure substitutability, domestic production capacity, or geopolitical resilience.
+              </p>
             </section>
           );
         })()}
@@ -275,7 +287,7 @@ export default async function CountryPage({ params }: PageProps) {
                       href={axisHref(a.axis_slug)}
                       className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
                     >
-                      {a.axis_name}
+                      {normalizeAxisName(a.axis_name)}
                     </Link>
                     <span className="font-mono text-[14px] text-deviation-negative">
                       {formatScore(a.score)}
@@ -295,7 +307,7 @@ export default async function CountryPage({ params }: PageProps) {
                       href={axisHref(a.axis_slug)}
                       className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
                     >
-                      {a.axis_name}
+                      {normalizeAxisName(a.axis_name)}
                     </Link>
                     <span className="font-mono text-[14px] text-deviation-positive">
                       {formatScore(a.score)}
@@ -334,7 +346,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                 href={axisHref(axis.axis_slug)}
                 className="hover:text-navy-700"
               >
-                {axis.axis_name}
+                {normalizeAxisName(axis.axis_name)}
               </Link>
             </h3>
           </div>
@@ -352,28 +364,34 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
 
       <div className="px-4 py-4 space-y-4 sm:px-5">
         {/* Audit breakdown */}
-        {axis.audit && (
-          <div>
-            <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-              Audit Breakdown
-            </h4>
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {Object.entries(axis.audit).map(([key, val]) => (
-                <div
-                  key={key}
-                  className="rounded-md border border-border-primary bg-surface-tertiary p-3"
-                >
-                  <p className="text-[11px] text-text-quaternary">
-                    {key.replace(/_/g, " ")}
-                  </p>
-                  <p className="font-mono text-sm font-medium text-text-secondary">
-                    {typeof val === "number" ? val.toFixed(4) : val}
-                  </p>
-                </div>
-              ))}
+        {axis.audit && (() => {
+          const entries = Object.entries(axis.audit).filter(
+            ([, val]) => val !== null && val !== undefined && val !== ""
+          );
+          if (entries.length === 0) return null;
+          return (
+            <div>
+              <h4 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                Audit Breakdown
+              </h4>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {entries.map(([key, val]) => (
+                  <div
+                    key={key}
+                    className="rounded-md border border-border-primary bg-surface-tertiary p-3"
+                  >
+                    <p className="text-[11px] text-text-quaternary">
+                      {key.replace(/_/g, " ")}
+                    </p>
+                    <p className="font-mono text-sm font-medium text-text-secondary">
+                      {typeof val === "number" ? val.toFixed(4) : String(val)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Channels with partners */}
         {axis.channels && axis.channels.length > 0 && (
@@ -465,34 +483,40 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
       <p className="text-[11px] text-text-quaternary">{channel.source}</p>
 
       {/* Top partners */}
-      {channel.top_partners && channel.top_partners.length > 0 && (
-        <div className="mt-2">
-          <p className="text-[11px] font-medium text-text-quaternary">Top Partners</p>
-          <div className="mt-1 space-y-1">
-            {channel.top_partners.map((p, i) => (
-              <div
-                key={`${p.partner}-${i}`}
-                className="flex items-center justify-between"
-              >
-                <span className="text-xs text-text-tertiary">
-                  {p.partner}
-                </span>
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-24 overflow-hidden bg-stone-200">
-                    <div
-                      className="h-full bg-navy-700"
-                      style={{ width: `${(p.share * 100).toFixed(1)}%` }}
-                    />
-                  </div>
-                  <span className="w-14 text-right font-mono text-[11px] text-text-quaternary">
-                    {(p.share * 100).toFixed(1)}%
+      {(() => {
+        const validPartners = (channel.top_partners ?? []).filter(
+          (p) => !isAggregatePartner(p.partner)
+        );
+        if (validPartners.length === 0) return null;
+        return (
+          <div className="mt-2">
+            <p className="text-[11px] font-medium text-text-quaternary">Top Partners</p>
+            <div className="mt-1 space-y-1">
+              {validPartners.map((p, i) => (
+                <div
+                  key={`${p.partner}-${i}`}
+                  className="flex items-center justify-between"
+                >
+                  <span className="text-xs text-text-tertiary">
+                    {p.partner}
                   </span>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-24 overflow-hidden bg-stone-200">
+                      <div
+                        className="h-full bg-navy-700"
+                        style={{ width: `${(p.share * 100).toFixed(1)}%` }}
+                      />
+                    </div>
+                    <span className="w-14 text-right font-mono text-[11px] text-text-quaternary">
+                      {(p.share * 100).toFixed(1)}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Subcategories */}
       {channel.subcategories && channel.subcategories.length > 0 && (
@@ -519,7 +543,7 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                     </td>
                     <td className="py-0.5 text-right font-mono">
                       {s.volume !== undefined
-                        ? s.volume.toLocaleString()
+                        ? formatCompactVolume(s.volume)
                         : "—"}
                     </td>
                   </tr>

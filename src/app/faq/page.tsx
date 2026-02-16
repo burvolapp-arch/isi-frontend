@@ -35,7 +35,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     q: "Does the frontend perform any calculation?",
-    a: "No. The frontend is a pure rendering layer. Every score, classification, warning, and description is served by the backend API. The frontend performs zero computation and contains zero business logic. Percentile rankings and deviation-from-mean indicators shown in the UI are the only client-side derivations, computed from the backend-provided scores.",
+    a: "All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation. Rank and deviation indicators shown in the UI are derived from the backend-provided score set.",
   },
   {
     q: "What time period does the data cover?",
