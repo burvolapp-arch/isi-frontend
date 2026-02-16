@@ -1,7 +1,8 @@
 // ============================================================================
 // ISI API Client — Pure fetch wrapper over the ISI backend
 // ============================================================================
-// Uses NEXT_PUBLIC_API_URL environment variable.
+// Uses NEXT_PUBLIC_API_URL environment variable for GET endpoints.
+// Scenario simulation uses the same-origin /api/scenario proxy.
 // Throws on non-200 responses. Returns typed data. No `any`.
 //
 // Caching strategy:
@@ -82,52 +83,94 @@ export function fetchAxis(axisId: number): Promise<AxisDetail> {
   return fetchJson<AxisDetail>(`/axis/${axisId}`);
 }
 
-/**
- * POST helper — no ISR caching, no-store.
- * Used for scenario simulation (ephemeral, user-specific).
- *
- * Scenario calls route through the Next.js API proxy (/api/scenario)
- * to eliminate browser-level CORS preflight failures. The proxy
- * forwards server-side to the backend. Other POST endpoints, if any,
- * can still use the direct backend URL.
- */
-async function postJsonProxy<TReq, TRes>(
-  proxyPath: string,
-  body: TReq,
-  signal?: AbortSignal,
-): Promise<TRes> {
-  const res = await fetch(proxyPath, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    cache: "no-store",
-    body: JSON.stringify(body),
-    signal,
-  });
+// ─── Transport error classification ─────────────────────────────────
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new ApiError(res.status, proxyPath, text);
+export type FailureKind =
+  | "ROUTE_MISSING"
+  | "SERVICE_ERROR"
+  | "TRANSPORT_LAYER_BLOCKED";
+
+export function classifyFetchError(err: unknown): FailureKind {
+  // Status 404 from our own proxy — route not deployed
+  if (err instanceof ApiError && err.status === 404) {
+    return "ROUTE_MISSING";
   }
-
-  return res.json() as Promise<TRes>;
+  // TypeError: Failed to fetch — network unreachable / blocked
+  if (err instanceof TypeError && /failed to fetch/i.test(err.message)) {
+    return "TRANSPORT_LAYER_BLOCKED";
+  }
+  // Status 0 — CORS preflight rejection
+  if (err instanceof ApiError && err.status === 0) {
+    return "TRANSPORT_LAYER_BLOCKED";
+  }
+  // 500/502 from proxy — upstream service error
+  return "SERVICE_ERROR";
 }
+
+// ─── Deduplicated console logging ───────────────────────────────────
+
+const _loggedScenarioErrors = new Set<string>();
+
+function logOnce(key: string, ...args: unknown[]) {
+  if (_loggedScenarioErrors.has(key)) return;
+  _loggedScenarioErrors.add(key);
+  console.error("[ISI Scenario]", ...args);
+}
+
+// ─── Scenario simulation (via same-origin proxy) ────────────────────
 
 /**
  * POST /api/scenario — Run scenario simulation via same-origin proxy.
- * Accepts an optional AbortSignal for cancellation.
+ * Accepts optional AbortSignal for cancellation.
+ *
+ * Error classification:
+ * - ROUTE_MISSING (404): proxy route not deployed — never retry
+ * - TRANSPORT_LAYER_BLOCKED: network/CORS — never retry
+ * - SERVICE_ERROR (500/502/other): upstream down — retryable
  */
-export function fetchScenario(
+export async function fetchScenario(
   req: ScenarioRequest,
   signal?: AbortSignal,
 ): Promise<ScenarioResponse> {
-  return postJsonProxy<ScenarioRequest, ScenarioResponse>(
-    "/api/scenario",
-    req,
-    signal,
-  );
+  try {
+    const res = await fetch("/api/scenario", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      cache: "no-store",
+      body: JSON.stringify(req),
+      signal,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      const err = new ApiError(res.status, "/api/scenario", text);
+      const kind = classifyFetchError(err);
+
+      logOnce(
+        `${kind}-${res.status}`,
+        `${kind}: status=${res.status}`,
+      );
+
+      throw err;
+    }
+
+    return (await res.json()) as ScenarioResponse;
+  } catch (err) {
+    // Re-throw ApiError as-is (already classified above)
+    if (err instanceof ApiError) throw err;
+
+    // AbortError — pass through silently
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+
+    // Network-level failure
+    const kind = classifyFetchError(err);
+    logOnce(`${kind}-network`, `${kind}: ${String(err)}`);
+
+    throw err;
+  }
 }
 
 export { ApiError };
