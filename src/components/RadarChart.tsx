@@ -23,19 +23,17 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.12; // labels sit near axis endpoints — pure polar, no drift
-const LABEL_FONT_SIZE = 18;
-const LABEL_LINE_HEIGHT = 22;
+const LABEL_OFFSET = 1.14; // labels sit near axis endpoints — pure polar, no drift
+const LABEL_FONT_SIZE = 11;
+const LABEL_LINE_HEIGHT = 13;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const VB_WIDTH = 900; // fixed viewBox width
-const VB_HEIGHT = 900; // fixed viewBox height
-const MARGIN_X = 150; // horizontal containment margin for labels
-const MARGIN_Y = 150; // vertical containment margin for labels
-const LEGEND_HEIGHT = 60; // space below chart for legend
-const DATA_POINT_RADIUS = 4;
-const GRID_STROKE = 1; // uniform grid stroke
-const GRID_OPACITY = 0.10; // slightly lighter grid
-const RADIUS_SCALE = 0.76; // ~20% reduction — radar sits secondary to deviation table
+const VB_SIZE = 560; // square viewBox — authoritative
+const MARGIN = 90; // symmetric containment margin for labels
+const LEGEND_HEIGHT = 32; // space below chart for legend
+const DATA_POINT_RADIUS = 2.5;
+const GRID_STROKE = 0.6; // thin, precise grid lines
+const GRID_OPACITY = 0.12; // subtle grid
+const PATH_TRANSITION = "120ms ease-out"; // smooth polygon morph
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -231,15 +229,11 @@ export const RadarChart = memo(function RadarChart({
 
   const n = resolvedAxes.length;
 
-  // Safe radius: computed from viewBox and margins, then scaled down
-  const safeRadius = Math.min(
-    VB_WIDTH / 2 - MARGIN_X,
-    VB_HEIGHT / 2 - MARGIN_Y,
-  );
-  const radius = safeRadius * RADIUS_SCALE; // ~228 — radar sits secondary to deviation table
+  // Safe radius: computed from viewBox and margin — no scale reduction
+  const radius = VB_SIZE / 2 - MARGIN; // 190 — authoritative, +12% vs prior effective
 
-  const vbCenterX = VB_WIDTH / 2;
-  const vbCenterY = VB_HEIGHT / 2;
+  const vbCenterX = VB_SIZE / 2;
+  const vbCenterY = VB_SIZE / 2;
   const angleStep = (2 * Math.PI) / n;
 
   const polarToXY = (value: number, index: number) => {
@@ -258,8 +252,8 @@ export const RadarChart = memo(function RadarChart({
   };
 
   const hasLegend = !!(euMean || compareAxes);
-  const totalHeight = VB_HEIGHT + (hasLegend ? LEGEND_HEIGHT : 0);
-  const legendY = VB_HEIGHT + 4;
+  const totalHeight = VB_SIZE + (hasLegend ? LEGEND_HEIGHT : 0);
+  const legendY = VB_SIZE + 2;
 
   const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [resolvedAxes]);
   const euMeanPath = useMemo(
@@ -333,11 +327,12 @@ export const RadarChart = memo(function RadarChart({
 
   const svg = (
     <svg
-      viewBox={`0 0 ${VB_WIDTH} ${totalHeight}`}
+      viewBox={`0 0 ${VB_SIZE} ${totalHeight}`}
       preserveAspectRatio="xMidYMid meet"
       className="mx-auto w-full"
       shapeRendering="geometricPrecision"
       textRendering="optimizeLegibility"
+      strokeLinejoin="round"
       role="img"
       aria-label={
         label
@@ -356,7 +351,8 @@ export const RadarChart = memo(function RadarChart({
           fill="none"
           stroke="var(--color-stone-300)"
           strokeWidth={GRID_STROKE}
-          strokeOpacity={r === 1.0 ? 0.22 : GRID_OPACITY}
+          strokeOpacity={r === 1.0 ? 0.20 : GRID_OPACITY}
+          vectorEffect="non-scaling-stroke"
         />
       ))}
 
@@ -373,6 +369,7 @@ export const RadarChart = memo(function RadarChart({
             stroke="var(--color-stone-300)"
             strokeWidth={GRID_STROKE}
             strokeOpacity={GRID_OPACITY}
+            vectorEffect="non-scaling-stroke"
           />
         );
       })}
@@ -383,13 +380,13 @@ export const RadarChart = memo(function RadarChart({
           key={r}
           x={vbCenterX}
           y={vbCenterY - radius * r}
-          dx={8}
+          dx={5}
           textAnchor="start"
           dominantBaseline="middle"
           fill="var(--color-text-quaternary)"
-          fontSize="14"
+          fontSize="8"
           fontFamily="var(--font-mono)"
-          opacity={0.6}
+          opacity={0.5}
         >
           {r.toFixed(2)}
         </text>
@@ -400,38 +397,43 @@ export const RadarChart = memo(function RadarChart({
         <path
           d={euMeanPath}
           fill="var(--color-stone-300)"
-          fillOpacity={0.12}
+          fillOpacity={0.08}
           stroke="var(--color-stone-400)"
-          strokeWidth={1.6}
-          strokeDasharray="4 4"
+          strokeWidth={1}
+          strokeDasharray="3 3"
           strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          style={{ transition: `d ${PATH_TRANSITION}` }}
         />
       )}
 
-      {/* Comparison polygon */}
+      {/* Comparison polygon — dashed subtle gray (baseline reference) */}
       {comparePath && (
         <path
           d={comparePath}
-          fill="var(--color-stone-500)"
-          fillOpacity={0.06}
-          stroke="var(--color-stone-500)"
-          strokeWidth={2}
-          strokeDasharray="5 3"
+          fill="var(--color-stone-400)"
+          fillOpacity={0.04}
+          stroke="var(--color-stone-400)"
+          strokeWidth={1.2}
+          strokeDasharray="4 3"
           strokeLinejoin="round"
           strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          style={{ transition: `d ${PATH_TRANSITION}, fill-opacity ${PATH_TRANSITION}` }}
         />
       )}
 
-      {/* Primary polygon — navy, institutional */}
+      {/* Primary polygon — solid navy, institutional authority */}
       <path
         d={primaryPath}
         fill="var(--color-navy-700)"
-        fillOpacity={hoveredAxis !== null ? 0.06 : 0.1}
+        fillOpacity={hoveredAxis !== null ? 0.12 : 0.25}
         stroke="var(--color-navy-700)"
-        strokeWidth={2.3}
+        strokeWidth={1.8}
         strokeLinejoin="round"
         strokeLinecap="round"
-        style={{ transition: "fill-opacity 150ms ease" }}
+        vectorEffect="non-scaling-stroke"
+        style={{ transition: `d ${PATH_TRANSITION}, fill-opacity ${PATH_TRANSITION}` }}
       />
 
       {/* Hovered axis edge highlight */}
@@ -442,10 +444,11 @@ export const RadarChart = memo(function RadarChart({
           x2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).x}
           y2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).y}
           stroke="var(--color-navy-700)"
-          strokeWidth={3.5}
-          strokeOpacity={0.5}
+          strokeWidth={2.5}
+          strokeOpacity={0.45}
           strokeLinecap="round"
-          style={{ transition: "opacity 150ms ease" }}
+          vectorEffect="non-scaling-stroke"
+          style={{ transition: `opacity ${PATH_TRANSITION}` }}
         />
       )}
 
@@ -459,11 +462,12 @@ export const RadarChart = memo(function RadarChart({
             key={i}
             cx={p.x}
             cy={p.y}
-            r={isHovered ? DATA_POINT_RADIUS + 1.5 : DATA_POINT_RADIUS}
+            r={isHovered ? DATA_POINT_RADIUS + 1 : DATA_POINT_RADIUS}
             fill="var(--color-navy-700)"
             stroke="var(--color-surface-primary)"
-            strokeWidth={isHovered ? 2 : 1.5}
-            style={{ transition: "r 150ms ease, stroke-width 150ms ease" }}
+            strokeWidth={isHovered ? 1.5 : 1}
+            vectorEffect="non-scaling-stroke"
+            style={{ transition: `r ${PATH_TRANSITION}, stroke-width ${PATH_TRANSITION}` }}
           />
         );
       })}
@@ -498,7 +502,7 @@ export const RadarChart = memo(function RadarChart({
             fontFamily="var(--font-sans)"
             fontWeight="500"
             opacity={dimmed ? 0.4 : 1}
-            style={{ transition: "opacity 150ms ease" }}
+            style={{ transition: `opacity ${PATH_TRANSITION}` }}
           >
             {lines.map((line, li) => (
               <tspan
@@ -536,20 +540,20 @@ export const RadarChart = memo(function RadarChart({
         <g>
           {label && (
             <g>
-              <line x1={MARGIN_X} y1={legendY} x2={MARGIN_X + 24} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={2} strokeLinecap="round" />
-              <text x={MARGIN_X + 32} y={legendY + 6} fill="var(--color-text-secondary)" fontSize="16" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
+              <line x1={MARGIN} y1={legendY} x2={MARGIN + 16} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 22} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="9" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
             </g>
           )}
           {euMean && (
             <g>
-              <line x1={MARGIN_X} y1={legendY + 26} x2={MARGIN_X + 24} y2={legendY + 26} stroke="var(--color-stone-400)" strokeWidth={1.6} strokeDasharray="4 4" strokeLinecap="round" />
-              <text x={MARGIN_X + 32} y={legendY + 32} fill="var(--color-text-tertiary)" fontSize="16" fontFamily="var(--font-sans)">EU-27 Mean</text>
+              <line x1={MARGIN} y1={legendY + 16} x2={MARGIN + 16} y2={legendY + 16} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 22} y={legendY + 19} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">EU-27 Mean</text>
             </g>
           )}
           {compareLabel && (
             <g>
-              <line x1={MARGIN_X + 200} y1={legendY} x2={MARGIN_X + 224} y2={legendY} stroke="var(--color-stone-500)" strokeWidth={2} strokeDasharray="5 3" strokeLinecap="round" />
-              <text x={MARGIN_X + 232} y={legendY + 6} fill="var(--color-text-tertiary)" fontSize="16" fontFamily="var(--font-sans)">{compareLabel}</text>
+              <line x1={MARGIN + 140} y1={legendY} x2={MARGIN + 156} y2={legendY} stroke="var(--color-stone-400)" strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 162} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">{compareLabel}</text>
             </g>
           )}
         </g>

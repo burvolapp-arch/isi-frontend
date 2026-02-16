@@ -650,7 +650,7 @@ export default function ScenarioPage() {
   const modeBanner = useMemo<{ text: string; visible: boolean }>(() => {
     if (serviceState === "SERVICE_DOWN" || serviceState === "ERROR") {
       return {
-        text: "Scenario Mode Paused — baseline data displayed.",
+        text: "Simulation temporarily unavailable. Published baseline remains authoritative.",
         visible: true,
       };
     }
@@ -661,7 +661,7 @@ export default function ScenarioPage() {
         serviceState === "RETRYING")
     ) {
       return {
-        text: "Scenario Mode Active — results reflect simulated structural adjustments.",
+        text: "Scenario Mode Active — results reflect simulated structural adjustments computed server-side.",
         visible: true,
       };
     }
@@ -782,7 +782,8 @@ export default function ScenarioPage() {
     );
   }
 
-  const showSimulated = hasAdjustments && scenario !== null;
+  const showSimulated =
+    hasAdjustments && scenario !== null && serviceState === "SUCCESS";
 
   return (
     <div className="min-h-screen bg-white">
@@ -1135,26 +1136,19 @@ export default function ScenarioPage() {
               </p>
             )}
             <div className="mt-4 flex w-full items-center justify-center">
-              <div
-                className="transition-transform duration-150 ease-out"
-                style={{ transform: "scale(0.90)" }}
-              >
-                {simulatedRadarAxes &&
-                serviceState !== "SERVICE_DOWN" &&
-                serviceState !== "ERROR" ? (
-                  <RadarChart
-                    axes={simulatedRadarAxes}
-                    compareAxes={baselineRadarAxes}
-                    compareLabel="Baseline"
-                    label="Simulated"
-                  />
-                ) : (
-                  <RadarChart
-                    axes={baselineRadarAxes}
-                    label={country.country_name}
-                  />
-                )}
-              </div>
+              {showSimulated && simulatedRadarAxes ? (
+                <RadarChart
+                  axes={simulatedRadarAxes}
+                  compareAxes={baselineRadarAxes}
+                  compareLabel="Baseline"
+                  label="Simulated"
+                />
+              ) : (
+                <RadarChart
+                  axes={baselineRadarAxes}
+                  label={country.country_name}
+                />
+              )}
             </div>
           </div>
 
