@@ -20,13 +20,12 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.32; // tight — labels sit near axis endpoints, not in orbit
+const LABEL_OFFSET = 1.18; // tight — labels sit close to axis endpoints via pure polar placement
 const LABEL_FONT_SIZE = 18;
 const LABEL_LINE_HEIGHT = 22;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const MARGIN_X = 330; // horizontal viewBox margin — guarantees zero clipping at font 18
+const MARGIN_X = 275; // horizontal viewBox margin — zero clipping at font 18 with offset 1.18
 const MARGIN_Y = 270; // vertical viewBox margin — generous for top/bottom 3-line labels at 18px
-const RIGHT_HEMISPHERE_PAD = 18; // reduced — tight label proximity
 const LEGEND_HEIGHT = 60; // space below chart for legend
 const DATA_POINT_RADIUS = 4.8;
 const OUTER_RING_STROKE = 1.5;
@@ -250,34 +249,27 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
-      {/* Axis labels — multi-line wrapping, full canonical names, hemisphere-aware padding */}
+      {/* Axis labels — pure polar placement, no artificial offsets */}
       {resolvedAxes.map((axis, i) => {
         const labelPoint = polarToXY(LABEL_OFFSET, i);
         const lines = wrapLabel(axis.label);
         const lineCount = lines.length;
         const startDy = -((lineCount - 1) * LABEL_LINE_HEIGHT) / 2;
 
-        // Determine text-anchor and hemisphere padding based on angular position
+        // Clean dynamic anchor — pure cosine threshold, no hemisphere hacks
         const angle = angleStep * i - Math.PI / 2;
         const cos = Math.cos(angle);
         let textAnchor: "start" | "middle" | "end" = "middle";
-        let padX = 0;
-        if (cos > 0.3) {
+        if (cos > 0.1) {
           textAnchor = "start";
-          // Right hemisphere: push labels further right to prevent clipping
-          padX = RIGHT_HEMISPHERE_PAD;
-        } else if (cos < -0.3) {
+        } else if (cos < -0.1) {
           textAnchor = "end";
-          // Left hemisphere: push labels further left for symmetry
-          padX = -RIGHT_HEMISPHERE_PAD;
         }
-
-        const lx = labelPoint.x + padX;
 
         return (
           <text
             key={i}
-            x={lx}
+            x={labelPoint.x}
             y={labelPoint.y}
             textAnchor={textAnchor}
             dominantBaseline="middle"
@@ -289,7 +281,7 @@ export const RadarChart = memo(function RadarChart({
             {lines.map((line, li) => (
               <tspan
                 key={li}
-                x={lx}
+                x={labelPoint.x}
                 dy={li === 0 ? startDy : LABEL_LINE_HEIGHT}
               >
                 {line}
