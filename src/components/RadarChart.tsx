@@ -20,17 +20,16 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.18; // tight — labels sit close to axis endpoints via pure polar placement
+const LABEL_OFFSET = 1.10; // labels hug the outer ring — pure polar, no drift
 const LABEL_FONT_SIZE = 18;
 const LABEL_LINE_HEIGHT = 22;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const MARGIN_X = 275; // horizontal viewBox margin — zero clipping at font 18 with offset 1.18
+const MARGIN_X = 270; // horizontal viewBox margin — zero clipping at font 18 with offset 1.10
 const MARGIN_Y = 270; // vertical viewBox margin — generous for top/bottom 3-line labels at 18px
 const LEGEND_HEIGHT = 60; // space below chart for legend
-const DATA_POINT_RADIUS = 4.8;
-const OUTER_RING_STROKE = 1.5;
-const INNER_RING_STROKE = 0.9;
-const SPOKE_STROKE = 0.9;
+const DATA_POINT_RADIUS = 4;
+const GRID_STROKE = 1; // uniform grid stroke
+const GRID_OPACITY = 0.12; // subtle grid presence
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -106,7 +105,7 @@ export const RadarChart = memo(function RadarChart({
   );
 
   const n = resolvedAxes.length;
-  const radius = 290; // fixed polygon radius — dominant scale for 1020×900 viewBox
+  const radius = 302; // +4% from 290 — polygon occupies ~75% vertical card space
   const vbWidth = CHART_SIZE + MARGIN_X * 2;
   const vbHeight = CHART_SIZE + MARGIN_Y * 2;
   const vbCenterX = vbWidth / 2;
@@ -148,6 +147,8 @@ export const RadarChart = memo(function RadarChart({
       preserveAspectRatio="xMidYMid meet"
       className="mx-auto w-full"
       style={{ overflow: "visible" }}
+      shapeRendering="geometricPrecision"
+      textRendering="optimizeLegibility"
       role="img"
       aria-label={
         label
@@ -155,7 +156,7 @@ export const RadarChart = memo(function RadarChart({
           : "Radar chart showing multi-axis profile"
       }
     >
-      {/* Grid rings — hairline, subtle */}
+      {/* Grid rings — uniform stroke, opacity-based hierarchy */}
       {GRID_RINGS.map((r) => (
         <polygon
           key={r}
@@ -164,8 +165,9 @@ export const RadarChart = memo(function RadarChart({
             return `${p.x},${p.y}`;
           }).join(" ")}
           fill="none"
-          stroke="var(--color-stone-200)"
-          strokeWidth={r === 1.0 ? OUTER_RING_STROKE : INNER_RING_STROKE}
+          stroke="var(--color-stone-300)"
+          strokeWidth={GRID_STROKE}
+          strokeOpacity={r === 1.0 ? 0.25 : GRID_OPACITY}
         />
       ))}
 
@@ -179,21 +181,25 @@ export const RadarChart = memo(function RadarChart({
             y1={vbCenterY}
             x2={p.x}
             y2={p.y}
-            stroke="var(--color-stone-200)"
-            strokeWidth={SPOKE_STROKE}
+            stroke="var(--color-stone-300)"
+            strokeWidth={GRID_STROKE}
+            strokeOpacity={GRID_OPACITY}
           />
         );
       })}
 
-      {/* Ring scale labels */}
+      {/* Ring scale labels — polar-aligned, optically centered on grid rings */}
       {GRID_RINGS.map((r) => (
         <text
           key={r}
-          x={vbCenterX + 7}
-          y={vbCenterY - radius * r + 6}
+          x={vbCenterX + 8}
+          y={vbCenterY - radius * r}
+          textAnchor="start"
+          dominantBaseline="middle"
           fill="var(--color-text-quaternary)"
-          fontSize="16"
+          fontSize="14"
           fontFamily="var(--font-mono)"
+          opacity={0.6}
         >
           {r.toFixed(2)}
         </text>
@@ -204,10 +210,11 @@ export const RadarChart = memo(function RadarChart({
         <path
           d={euMeanPath}
           fill="var(--color-stone-300)"
-          fillOpacity={0.15}
+          fillOpacity={0.12}
           stroke="var(--color-stone-400)"
-          strokeWidth={1.9}
-          strokeDasharray="6,6"
+          strokeWidth={1.6}
+          strokeDasharray="4 4"
+          strokeLinejoin="round"
         />
       )}
 
@@ -216,20 +223,24 @@ export const RadarChart = memo(function RadarChart({
         <path
           d={comparePath}
           fill="var(--color-stone-500)"
-          fillOpacity={0.08}
+          fillOpacity={0.06}
           stroke="var(--color-stone-500)"
-          strokeWidth={3}
-          strokeDasharray="7,4"
+          strokeWidth={2.2}
+          strokeDasharray="5 3"
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
       )}
 
-      {/* Primary polygon — navy, restrained */}
+      {/* Primary polygon — navy, institutional */}
       <path
         d={primaryPath}
         fill="var(--color-navy-700)"
         fillOpacity={0.1}
         stroke="var(--color-navy-700)"
-        strokeWidth={3}
+        strokeWidth={2.2}
+        strokeLinejoin="round"
+        strokeLinecap="round"
       />
 
       {/* Data points */}
@@ -244,7 +255,7 @@ export const RadarChart = memo(function RadarChart({
             r={DATA_POINT_RADIUS}
             fill="var(--color-navy-700)"
             stroke="var(--color-surface-primary)"
-            strokeWidth={3}
+            strokeWidth={1.5}
           />
         );
       })}
@@ -296,19 +307,19 @@ export const RadarChart = memo(function RadarChart({
         <g>
           {label && (
             <g>
-              <line x1={MARGIN_X} y1={legendY} x2={MARGIN_X + 24} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={3} />
+              <line x1={MARGIN_X} y1={legendY} x2={MARGIN_X + 24} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={2.2} strokeLinecap="round" />
               <text x={MARGIN_X + 32} y={legendY + 6} fill="var(--color-text-secondary)" fontSize="16" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
             </g>
           )}
           {euMean && (
             <g>
-              <line x1={MARGIN_X} y1={legendY + 26} x2={MARGIN_X + 24} y2={legendY + 26} stroke="var(--color-stone-400)" strokeWidth={1.9} strokeDasharray="6,6" />
+              <line x1={MARGIN_X} y1={legendY + 26} x2={MARGIN_X + 24} y2={legendY + 26} stroke="var(--color-stone-400)" strokeWidth={1.6} strokeDasharray="4 4" strokeLinecap="round" />
               <text x={MARGIN_X + 32} y={legendY + 32} fill="var(--color-text-tertiary)" fontSize="16" fontFamily="var(--font-sans)">EU-27 Mean</text>
             </g>
           )}
           {compareLabel && (
             <g>
-              <line x1={MARGIN_X + 200} y1={legendY} x2={MARGIN_X + 224} y2={legendY} stroke="var(--color-stone-500)" strokeWidth={3} strokeDasharray="7,4" />
+              <line x1={MARGIN_X + 200} y1={legendY} x2={MARGIN_X + 224} y2={legendY} stroke="var(--color-stone-500)" strokeWidth={2.2} strokeDasharray="5 3" strokeLinecap="round" />
               <text x={MARGIN_X + 232} y={legendY + 6} fill="var(--color-text-tertiary)" fontSize="16" fontFamily="var(--font-sans)">{compareLabel}</text>
             </g>
           )}
