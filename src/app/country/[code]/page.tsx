@@ -223,7 +223,7 @@ export default async function CountryPage({ params }: PageProps) {
         {/* ── Radar + Deviation Side-by-Side ───────────────── */}
         <section className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 lg:grid-cols-[3fr_2fr]">
           {/* Radar Chart */}
-          <div className="flex flex-col rounded-md border border-border-primary px-2 pt-3 pb-1 sm:px-3 sm:pt-4 sm:pb-2">
+          <div className="relative flex flex-col overflow-hidden rounded-md border border-border-primary px-2 pt-3 pb-1 sm:px-3 sm:pt-4 sm:pb-2">
             <h2 className="text-[12.5px] font-semibold uppercase tracking-[0.14em] text-text-quaternary">
               Multi-Axis Profile
             </h2>
