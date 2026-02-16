@@ -4,7 +4,6 @@ import { memo, useMemo } from "react";
 import {
   getCanonicalAxisName,
   assertCanonicalLabel,
-  type AxisSlug,
 } from "@/lib/axisRegistry";
 
 /**
@@ -21,11 +20,13 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.35; // multiplicative distance of labels from chart edge
-const LABEL_FONT_SIZE = 7.5;
-const LABEL_LINE_HEIGHT = 9.5;
+const LABEL_OFFSET = 1.45; // multiplicative distance of labels from chart edge — generous clearance
+const LABEL_FONT_SIZE = 8.5;
+const LABEL_LINE_HEIGHT = 10.5;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const MARGIN = 90; // viewBox margin around the radar for labels
+const MARGIN_X = 130; // horizontal viewBox margin — wide for multi-line right/left labels
+const MARGIN_Y = 90; // vertical viewBox margin — standard
+const RIGHT_HEMISPHERE_PAD = 18; // additional x-offset for labels in right hemisphere
 const LEGEND_HEIGHT = 36; // space below chart for legend
 const DATA_POINT_RADIUS = 2.5;
 const OUTER_RING_STROKE = 0.75;
@@ -54,25 +55,29 @@ interface RadarChartProps {
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
-/** Split a label into multiple lines at " / " or whitespace near LABEL_MAX_CHARS. */
+/** Split a label into multiple lines. First splits at " / ", then word-wraps any long segments. */
 function wrapLabel(text: string): string[] {
-  // First try splitting at " / " delimiter
-  if (text.includes(" / ")) return text.split(" / ");
-  if (text.length <= LABEL_MAX_CHARS) return [text];
-
-  // Word-wrap at nearest space
-  const words = text.split(" ");
+  const segments = text.includes(" / ") ? text.split(" / ") : [text];
   const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    if (current && (current + " " + word).length > LABEL_MAX_CHARS) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = current ? current + " " + word : word;
+
+  for (const segment of segments) {
+    if (segment.length <= LABEL_MAX_CHARS) {
+      lines.push(segment);
+      continue;
     }
+    // Word-wrap this segment
+    const words = segment.split(" ");
+    let current = "";
+    for (const word of words) {
+      if (current && (current + " " + word).length > LABEL_MAX_CHARS) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = current ? current + " " + word : word;
+      }
+    }
+    if (current) lines.push(current);
   }
-  if (current) lines.push(current);
   return lines;
 }
 
@@ -102,19 +107,19 @@ export const RadarChart = memo(function RadarChart({
   );
 
   const n = resolvedAxes.length;
-  const radius = (CHART_SIZE - 80) / 2;
-  const center = CHART_SIZE / 2;
-  const vbMargin = MARGIN;
-  const vbSize = CHART_SIZE + vbMargin * 2;
-  const vbCenter = vbSize / 2;
-  const legendY = CHART_SIZE + vbMargin + 4;
+  const radius = Math.round((CHART_SIZE - 80) / 2 * 0.92); // –8% inward pull for label clearance
+  const vbWidth = CHART_SIZE + MARGIN_X * 2;
+  const vbHeight = CHART_SIZE + MARGIN_Y * 2;
+  const vbCenterX = vbWidth / 2;
+  const vbCenterY = vbHeight / 2;
+  const legendY = CHART_SIZE + MARGIN_Y + 4;
   const angleStep = (2 * Math.PI) / n;
 
   const polarToXY = (value: number, index: number) => {
     const angle = angleStep * index - Math.PI / 2;
     return {
-      x: vbCenter + radius * value * Math.cos(angle),
-      y: vbCenter + radius * value * Math.sin(angle),
+      x: vbCenterX + radius * value * Math.cos(angle),
+      y: vbCenterY + radius * value * Math.sin(angle),
     };
   };
 
@@ -126,7 +131,7 @@ export const RadarChart = memo(function RadarChart({
   };
 
   const hasLegend = !!(euMean || compareAxes);
-  const totalHeight = vbSize + (hasLegend ? LEGEND_HEIGHT : 0);
+  const totalHeight = vbHeight + (hasLegend ? LEGEND_HEIGHT : 0);
 
   const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [resolvedAxes]);
   const euMeanPath = useMemo(
@@ -140,8 +145,10 @@ export const RadarChart = memo(function RadarChart({
 
   return (
     <svg
-      viewBox={`0 0 ${vbSize} ${totalHeight}`}
-      className="mx-auto w-full max-w-sm"
+      viewBox={`0 0 ${vbWidth} ${totalHeight}`}
+      preserveAspectRatio="xMidYMid meet"
+      className="mx-auto w-full max-w-md"
+      style={{ overflow: "visible" }}
       role="img"
       aria-label={
         label
@@ -169,8 +176,8 @@ export const RadarChart = memo(function RadarChart({
         return (
           <line
             key={i}
-            x1={vbCenter}
-            y1={vbCenter}
+            x1={vbCenterX}
+            y1={vbCenterY}
             x2={p.x}
             y2={p.y}
             stroke="var(--color-stone-200)"
@@ -183,8 +190,8 @@ export const RadarChart = memo(function RadarChart({
       {GRID_RINGS.map((r) => (
         <text
           key={r}
-          x={vbCenter + 4}
-          y={vbCenter - radius * r + 3}
+          x={vbCenterX + 4}
+          y={vbCenterY - radius * r + 3}
           fill="var(--color-text-quaternary)"
           fontSize="8"
           fontFamily="var(--font-mono)"
@@ -243,24 +250,34 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
-      {/* Axis labels — multi-line wrapping, full canonical names */}
+      {/* Axis labels — multi-line wrapping, full canonical names, hemisphere-aware padding */}
       {resolvedAxes.map((axis, i) => {
         const labelPoint = polarToXY(LABEL_OFFSET, i);
         const lines = wrapLabel(axis.label);
         const lineCount = lines.length;
         const startDy = -((lineCount - 1) * LABEL_LINE_HEIGHT) / 2;
 
-        // Determine text-anchor based on horizontal position
+        // Determine text-anchor and hemisphere padding based on angular position
         const angle = angleStep * i - Math.PI / 2;
         const cos = Math.cos(angle);
         let textAnchor: "start" | "middle" | "end" = "middle";
-        if (cos > 0.3) textAnchor = "start";
-        else if (cos < -0.3) textAnchor = "end";
+        let padX = 0;
+        if (cos > 0.3) {
+          textAnchor = "start";
+          // Right hemisphere: push labels further right to prevent clipping
+          padX = RIGHT_HEMISPHERE_PAD;
+        } else if (cos < -0.3) {
+          textAnchor = "end";
+          // Left hemisphere: push labels further left for symmetry
+          padX = -RIGHT_HEMISPHERE_PAD;
+        }
+
+        const lx = labelPoint.x + padX;
 
         return (
           <text
             key={i}
-            x={labelPoint.x}
+            x={lx}
             y={labelPoint.y}
             textAnchor={textAnchor}
             dominantBaseline="middle"
@@ -272,7 +289,7 @@ export const RadarChart = memo(function RadarChart({
             {lines.map((line, li) => (
               <tspan
                 key={li}
-                x={labelPoint.x}
+                x={lx}
                 dy={li === 0 ? startDy : LABEL_LINE_HEIGHT}
               >
                 {line}
@@ -287,20 +304,20 @@ export const RadarChart = memo(function RadarChart({
         <g>
           {label && (
             <g>
-              <line x1={vbMargin} y1={legendY} x2={vbMargin + 12} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.5} />
-              <text x={vbMargin + 16} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="9" fontFamily="var(--font-sans)">{label}</text>
+              <line x1={MARGIN_X} y1={legendY} x2={MARGIN_X + 12} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.5} />
+              <text x={MARGIN_X + 16} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="9" fontFamily="var(--font-sans)">{label}</text>
             </g>
           )}
           {euMean && (
             <g>
-              <line x1={vbMargin} y1={legendY + 14} x2={vbMargin + 12} y2={legendY + 14} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3,3" />
-              <text x={vbMargin + 16} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">EU-27 Mean</text>
+              <line x1={MARGIN_X} y1={legendY + 14} x2={MARGIN_X + 12} y2={legendY + 14} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3,3" />
+              <text x={MARGIN_X + 16} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">EU-27 Mean</text>
             </g>
           )}
           {compareLabel && (
             <g>
-              <line x1={vbMargin + 120} y1={legendY} x2={vbMargin + 132} y2={legendY} stroke="var(--color-stone-500)" strokeWidth={1.5} strokeDasharray="4,2" />
-              <text x={vbMargin + 136} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">{compareLabel}</text>
+              <line x1={MARGIN_X + 120} y1={legendY} x2={MARGIN_X + 132} y2={legendY} stroke="var(--color-stone-500)" strokeWidth={1.5} strokeDasharray="4,2" />
+              <text x={MARGIN_X + 136} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">{compareLabel}</text>
             </g>
           )}
         </g>
