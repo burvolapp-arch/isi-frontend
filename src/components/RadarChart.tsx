@@ -20,15 +20,15 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.45; // multiplicative distance of labels from chart edge — generous clearance
-const LABEL_FONT_SIZE = 8.5;
-const LABEL_LINE_HEIGHT = 10.5;
+const LABEL_OFFSET = 1.50; // multiplicative distance of labels from chart edge — generous clearance
+const LABEL_FONT_SIZE = 10;
+const LABEL_LINE_HEIGHT = 12.5;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const MARGIN_X = 130; // horizontal viewBox margin — wide for multi-line right/left labels
-const MARGIN_Y = 90; // vertical viewBox margin — standard
-const RIGHT_HEMISPHERE_PAD = 18; // additional x-offset for labels in right hemisphere
-const LEGEND_HEIGHT = 36; // space below chart for legend
-const DATA_POINT_RADIUS = 2.5;
+const MARGIN_X = 160; // horizontal viewBox margin — wide for multi-line right/left labels
+const MARGIN_Y = 120; // vertical viewBox margin — proportional to chart scale
+const RIGHT_HEMISPHERE_PAD = 22; // additional x-offset for labels in right hemisphere
+const LEGEND_HEIGHT = 40; // space below chart for legend
+const DATA_POINT_RADIUS = 3;
 const OUTER_RING_STROKE = 0.75;
 const INNER_RING_STROKE = 0.5;
 const SPOKE_STROKE = 0.5;
@@ -83,7 +83,7 @@ function wrapLabel(text: string): string[] {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-const CHART_SIZE = 300;
+const CHART_SIZE = 360;
 
 export const RadarChart = memo(function RadarChart({
   axes,
@@ -107,7 +107,7 @@ export const RadarChart = memo(function RadarChart({
   );
 
   const n = resolvedAxes.length;
-  const radius = Math.round((CHART_SIZE - 80) / 2 * 0.92); // –8% inward pull for label clearance
+  const radius = 135; // fixed polygon radius — proportionally scaled for 680×600 viewBox
   const vbWidth = CHART_SIZE + MARGIN_X * 2;
   const vbHeight = CHART_SIZE + MARGIN_Y * 2;
   const vbCenterX = vbWidth / 2;
