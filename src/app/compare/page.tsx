@@ -340,7 +340,7 @@ export default function ComparePage() {
               <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
                 Multi-Axis Profile Overlay
               </h2>
-              <div className="mt-6 flex items-center justify-center">
+              <div className="mt-6 flex w-full items-center justify-center">
                 <RadarChart
                   axes={radarAxesA}
                   compareAxes={radarAxesB}
