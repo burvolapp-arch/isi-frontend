@@ -12,11 +12,11 @@ import {
   extractCompositeScores,
   deviationFromMean,
   axisHref,
-  normalizeAxisName,
   isAggregatePartner,
   formatCompactVolume,
   computeRank,
 } from "@/lib/format";
+import { getCanonicalAxisName } from "@/lib/axisRegistry";
 import { generateStructuralSummary } from "@/lib/summary";
 import type {
   CountryDetail,
@@ -103,7 +103,7 @@ export default async function CountryPage({ params }: PageProps) {
 
   // Build radar data from country axes (dynamic, no hardcoded count)
   const radarAxes = country.axes.map((a) => ({
-    label: normalizeAxisName(a.axis_name),
+    slug: a.axis_slug,
     value: a.score,
   }));
 
@@ -114,7 +114,7 @@ export default async function CountryPage({ params }: PageProps) {
 
   // Build deviation bar items
   const deviationItems = country.axes.map((a) => ({
-    label: normalizeAxisName(a.axis_name),
+    label: getCanonicalAxisName(a.axis_slug),
     score: a.score,
     href: axisHref(a.axis_slug),
   }));
@@ -287,7 +287,7 @@ export default async function CountryPage({ params }: PageProps) {
                       href={axisHref(a.axis_slug)}
                       className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
                     >
-                      {normalizeAxisName(a.axis_name)}
+                      {getCanonicalAxisName(a.axis_slug)}
                     </Link>
                     <span className="font-mono text-[14px] text-deviation-negative">
                       {formatScore(a.score)}
@@ -307,7 +307,7 @@ export default async function CountryPage({ params }: PageProps) {
                       href={axisHref(a.axis_slug)}
                       className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
                     >
-                      {normalizeAxisName(a.axis_name)}
+                      {getCanonicalAxisName(a.axis_slug)}
                     </Link>
                     <span className="font-mono text-[14px] text-deviation-positive">
                       {formatScore(a.score)}
@@ -346,7 +346,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                 href={axisHref(axis.axis_slug)}
                 className="hover:text-navy-700"
               >
-                {normalizeAxisName(axis.axis_name)}
+                {getCanonicalAxisName(axis.axis_slug)}
               </Link>
             </h3>
           </div>

@@ -1,21 +1,31 @@
 "use client";
 
 import { memo, useMemo } from "react";
+import {
+  getCanonicalAxisName,
+  assertCanonicalLabel,
+  type AxisSlug,
+} from "@/lib/axisRegistry";
 
 /**
  * SVG-based radar chart for multi-axis country profiles.
  * Visual reference: NATO Strategic Foresight Analysis diagrams.
  * Muted, institutional. No neon fills. Subtle grid hierarchy.
+ *
+ * ARCHITECTURAL INVARIANT:
+ * This component resolves ALL display labels internally via
+ * getCanonicalAxisName(). It NEVER accepts display labels as props.
+ * It NEVER reads backend label fields.
  */
 
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.32; // multiplicative distance of labels from chart edge — generous for long names
-const LABEL_FONT_SIZE = 8;
-const LABEL_LINE_HEIGHT = 10;
-const LABEL_MAX_CHARS = 20; // break label lines beyond this width
-const MARGIN = 80; // viewBox margin around the radar for labels — wide to prevent clipping
+const LABEL_OFFSET = 1.35; // multiplicative distance of labels from chart edge
+const LABEL_FONT_SIZE = 7.5;
+const LABEL_LINE_HEIGHT = 9.5;
+const LABEL_MAX_CHARS = 22; // break label lines beyond this width
+const MARGIN = 90; // viewBox margin around the radar for labels
 const LEGEND_HEIGHT = 36; // space below chart for legend
 const DATA_POINT_RADIUS = 2.5;
 const OUTER_RING_STROKE = 0.75;
@@ -24,18 +34,19 @@ const SPOKE_STROKE = 0.5;
 
 // ─── Types ──────────────────────────────────────────────────────────
 
-interface RadarAxis {
-  label: string;
+/** Each axis is identified by slug + numeric value. Label is resolved internally. */
+interface RadarAxisInput {
+  slug: string;
   value: number | null;
 }
 
 interface RadarChartProps {
-  /** Primary country's axis scores */
-  axes: RadarAxis[];
+  /** Primary country's axis scores — slug + value only */
+  axes: RadarAxisInput[];
   /** EU mean per axis (same order as axes), for reference overlay */
   euMean?: (number | null)[];
   /** Second country overlay (for comparison mode) */
-  compareAxes?: RadarAxis[];
+  compareAxes?: RadarAxisInput[];
   compareLabel?: string;
   /** Country label */
   label?: string;
@@ -78,13 +89,25 @@ export const RadarChart = memo(function RadarChart({
 }: RadarChartProps) {
   if (axes.length === 0) return null;
 
-  const n = axes.length;
-  const radius = (CHART_SIZE - 80) / 2; // effective drawing radius — compact polygon, generous label space
+  // Resolve canonical labels from slugs — the ONLY label resolution path
+  const resolvedAxes = useMemo(
+    () =>
+      axes.map((a) => {
+        const canonicalLabel = getCanonicalAxisName(a.slug);
+        // Regression guard — assert label validity in development
+        assertCanonicalLabel(canonicalLabel, "RadarChart");
+        return { label: canonicalLabel, value: a.value };
+      }),
+    [axes],
+  );
+
+  const n = resolvedAxes.length;
+  const radius = (CHART_SIZE - 80) / 2;
   const center = CHART_SIZE / 2;
   const vbMargin = MARGIN;
   const vbSize = CHART_SIZE + vbMargin * 2;
   const vbCenter = vbSize / 2;
-  const legendY = CHART_SIZE + vbMargin + 4; // below chart area
+  const legendY = CHART_SIZE + vbMargin + 4;
   const angleStep = (2 * Math.PI) / n;
 
   const polarToXY = (value: number, index: number) => {
@@ -105,7 +128,7 @@ export const RadarChart = memo(function RadarChart({
   const hasLegend = !!(euMean || compareAxes);
   const totalHeight = vbSize + (hasLegend ? LEGEND_HEIGHT : 0);
 
-  const primaryPath = useMemo(() => buildPath(axes.map((a) => a.value)), [axes]);
+  const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [resolvedAxes]);
   const euMeanPath = useMemo(
     () => (euMean ? buildPath(euMean) : null),
     [euMean],
@@ -141,7 +164,7 @@ export const RadarChart = memo(function RadarChart({
       ))}
 
       {/* Grid spokes */}
-      {axes.map((_, i) => {
+      {resolvedAxes.map((_, i) => {
         const p = polarToXY(1, i);
         return (
           <line
@@ -204,7 +227,7 @@ export const RadarChart = memo(function RadarChart({
       />
 
       {/* Data points */}
-      {axes.map((axis, i) => {
+      {resolvedAxes.map((axis, i) => {
         if (axis.value === null) return null;
         const p = polarToXY(axis.value, i);
         return (
@@ -220,12 +243,11 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
-      {/* Axis labels — multi-line wrapping */}
-      {axes.map((axis, i) => {
+      {/* Axis labels — multi-line wrapping, full canonical names */}
+      {resolvedAxes.map((axis, i) => {
         const labelPoint = polarToXY(LABEL_OFFSET, i);
         const lines = wrapLabel(axis.label);
         const lineCount = lines.length;
-        // Vertically center the multi-line block
         const startDy = -((lineCount - 1) * LABEL_LINE_HEIGHT) / 2;
 
         // Determine text-anchor based on horizontal position

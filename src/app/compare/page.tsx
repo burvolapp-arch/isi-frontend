@@ -9,8 +9,8 @@ import {
   formatScore,
   deviationFromMean,
   countryHref,
-  normalizeAxisName,
 } from "@/lib/format";
+import { getCanonicalAxisName, FIELD_TO_SLUG } from "@/lib/axisRegistry";
 import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -88,32 +88,40 @@ export default function ComparePage() {
     return null;
   }
 
+  function getAxisSlug(
+    c: ISICompositeCountry,
+    prefix: string,
+  ): string {
+    // Resolve slug from field key, e.g. axis_1 → find axis_1_financial → slug "financial"
+    const record = c as unknown as Record<string, unknown>;
+    for (const key of Object.keys(record)) {
+      if (key.startsWith(prefix + "_") && key !== prefix + "_name" && key !== prefix + "_slug") {
+        const slug = FIELD_TO_SLUG[key];
+        if (slug) return slug;
+        // Fallback: extract suffix
+        return key.slice(prefix.length + 1);
+      }
+    }
+    return prefix;
+  }
+
   function getAxisName(
     c: ISICompositeCountry,
     prefix: string,
   ): string {
-    // Derive name from the field key, e.g. axis_1_financial → Financial
-    const record = c as unknown as Record<string, unknown>;
-    for (const key of Object.keys(record)) {
-      if (key.startsWith(prefix + "_")) {
-        const suffix = key.slice(prefix.length + 1);
-        const raw = suffix.charAt(0).toUpperCase() + suffix.slice(1).replace(/_/g, " ");
-        return normalizeAxisName(raw);
-      }
-    }
-    return prefix.replace(/_/g, " ").toUpperCase();
+    return getCanonicalAxisName(getAxisSlug(c, prefix));
   }
 
-  // Build radar axes from discovered keys
+  // Build radar axes from discovered keys — slug-based, labels resolved by RadarChart
   const radarAxesA = countryA
     ? axisKeys.map((k) => ({
-        label: getAxisName(countryA, k),
+        slug: getAxisSlug(countryA, k),
         value: getAxisScore(countryA, k),
       }))
     : [];
   const radarAxesB = countryB
     ? axisKeys.map((k) => ({
-        label: getAxisName(countryB, k),
+        slug: getAxisSlug(countryB, k),
         value: getAxisScore(countryB, k),
       }))
     : [];

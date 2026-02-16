@@ -1,19 +1,29 @@
 import type { ISICompositeCountry } from "@/lib/types";
+import { AXIS_CANONICAL_NAMES, AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
 
-// ─── Axis definitions (fixed order per spec) ────────────────────────
+// ─── Axis definitions (derived from canonical registry) ─────────────
 
 interface AxisDef {
-  label: string;
+  slug: AxisSlug;
   field: keyof ISICompositeCountry;
 }
 
+// Short uppercase labels for compact matrix display — derived from canonical names
+function matrixLabel(slug: AxisSlug): string {
+  const canonical = AXIS_CANONICAL_NAMES[slug];
+  // Extract domain portion: everything before " External Supplier Concentration"
+  return canonical
+    .replace(/ External Supplier Concentration$/, "")
+    .toUpperCase();
+}
+
 const AXES: AxisDef[] = [
-  { label: "ENERGY", field: "axis_2_energy" },
-  { label: "FINANCE", field: "axis_1_financial" },
-  { label: "DEFENSE", field: "axis_4_defense" },
-  { label: "TECHNOLOGY", field: "axis_3_technology" },
-  { label: "CRITICAL INPUTS", field: "axis_5_critical_inputs" },
-  { label: "LOGISTICS", field: "axis_6_logistics" },
+  { slug: "energy", field: AXIS_FIELD_MAP.energy as keyof ISICompositeCountry },
+  { slug: "financial", field: AXIS_FIELD_MAP.financial as keyof ISICompositeCountry },
+  { slug: "defense", field: AXIS_FIELD_MAP.defense as keyof ISICompositeCountry },
+  { slug: "technology", field: AXIS_FIELD_MAP.technology as keyof ISICompositeCountry },
+  { slug: "critical_inputs", field: AXIS_FIELD_MAP.critical_inputs as keyof ISICompositeCountry },
+  { slug: "logistics", field: AXIS_FIELD_MAP.logistics as keyof ISICompositeCountry },
 ];
 
 const SCALE_MAX = 0.5;
@@ -44,7 +54,7 @@ export default function SovereigntyMatrix({
   countries,
 }: SovereigntyMatrixProps) {
   const rows = AXES.map((axis) => ({
-    label: axis.label,
+    label: matrixLabel(axis.slug),
     mean: computeAxisMean(countries, axis.field),
   }));
 

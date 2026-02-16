@@ -5,7 +5,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
-import { formatScore, countryHref, computeStdDev, normalizeAxisName } from "@/lib/format";
+import { formatScore, countryHref, computeStdDev } from "@/lib/format";
+import { getCanonicalAxisName } from "@/lib/axisRegistry";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
@@ -131,7 +132,7 @@ export default async function AxisPage({ params }: PageProps) {
             Axis {axis.axis_id} — {axis.axis_slug}
           </p>
           <h1 className="mt-2 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
-            {normalizeAxisName(axis.axis_name)}
+            {getCanonicalAxisName(axis.axis_slug)}
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
             {axis.description}
@@ -195,7 +196,7 @@ export default async function AxisPage({ params }: PageProps) {
         {axisScores.length > 0 && (
           <section className="mt-14">
             <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
-              Score Distribution — {normalizeAxisName(axis.axis_name)}
+              Score Distribution — {getCanonicalAxisName(axis.axis_slug)}
             </h2>
             <p className="mt-1.5 text-[14px] text-text-tertiary">
               Distribution of HHI scores across all scored EU member states for this axis.
@@ -266,7 +267,7 @@ export default async function AxisPage({ params }: PageProps) {
         {/* ── Country Rankings Table ────────────────────────── */}
         <section className="mt-14">
           <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
-            Country Rankings — {normalizeAxisName(axis.axis_name)}
+              Country Rankings — {getCanonicalAxisName(axis.axis_slug)}
           </h2>
           <div className="mt-6 overflow-x-auto">
             <table className="min-w-full">
@@ -371,7 +372,7 @@ export default async function AxisPage({ params }: PageProps) {
           <div className="mt-3 space-y-2 text-[14px] text-text-tertiary">
             <p>
               This axis measures <strong className="text-text-secondary">structural concentration</strong> (HHI-based)
-              in the {normalizeAxisName(axis.axis_name).toLowerCase()} domain. It does{" "}
+              in the {getCanonicalAxisName(axis.axis_slug).toLowerCase()} domain. It does{" "}
               <strong className="text-text-secondary">not</strong> capture:
             </p>
             <ul className="list-inside list-disc space-y-1 pl-2 text-text-quaternary">

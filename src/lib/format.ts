@@ -10,6 +10,7 @@ import type {
   ISICompositeCountry,
   AxisRegistryEntry,
 } from "./types";
+import { getCanonicalAxisName, FIELD_TO_SLUG } from "./axisRegistry";
 
 // ─── Score Formatting ───────────────────────────────────────────────
 
@@ -156,11 +157,12 @@ export function deriveAxisColumns(
   return fieldKeys.map((key) => {
     const axisNum = parseInt(key.match(/^axis_(\d+)_/)?.[1] ?? "0", 10);
     const entry = registryMap.get(axisNum);
+    const slug = entry?.slug ?? FIELD_TO_SLUG[key] ?? key.replace(/^axis_\d+_/, "");
     return {
       fieldKey: key,
       axisId: axisNum,
-      label: entry?.name ?? key.replace(/^axis_\d+_/, "").replace(/_/g, " "),
-      slug: entry?.slug ?? key.replace(/^axis_\d+_/, ""),
+      label: getCanonicalAxisName(slug),
+      slug,
       tooltip: entry
         ? `${entry.description} (${entry.unit})`
         : "Axis metadata unavailable",
@@ -176,14 +178,14 @@ export function getAxisScores(
   c: ISICompositeCountry
 ): { key: string; label: string; value: number | null }[] {
   const fieldKeys = discoverAxisFieldKeys(c);
-  return fieldKeys.map((key) => ({
-    key,
-    label: key
-      .replace(/^axis_\d+_/, "")
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (ch) => ch.toUpperCase()),
-    value: (c as unknown as Record<string, unknown>)[key] as number | null,
-  }));
+  return fieldKeys.map((key) => {
+    const slug = FIELD_TO_SLUG[key] ?? key.replace(/^axis_\d+_/, "");
+    return {
+      key,
+      label: getCanonicalAxisName(slug),
+      value: (c as unknown as Record<string, unknown>)[key] as number | null,
+    };
+  });
 }
 
 // ─── Slug / Routing ─────────────────────────────────────────────────
@@ -203,39 +205,9 @@ export function countryHref(code: string): string {
 }
 
 // ─── Axis Name Standardization ──────────────────────────────────────
-// All axes measure HHI concentration of external suppliers.
-// Normalize backend names to the mandatory "[Domain] External Supplier Concentration" form.
-
-const AXIS_NAME_MAP: Record<string, string> = {
-  // Backend names → canonical display names
-  "Financial Sovereignty": "Financial External Supplier Concentration",
-  "Energy Dependency": "Energy External Supplier Concentration",
-  "Technology Dependency": "Technology / Semiconductor External Supplier Concentration",
-  "Defense Industrial Dependency": "Defense External Supplier Concentration",
-  "Critical Inputs Dependency": "Critical Inputs / Raw Materials External Supplier Concentration",
-  "Logistics Dependency": "Logistics / Freight External Supplier Concentration",
-  // Previous intermediate normalization values (in case already partially normalized)
-  "Financial External Concentration": "Financial External Supplier Concentration",
-  "Energy External Concentration": "Energy External Supplier Concentration",
-  "Technology External Concentration": "Technology / Semiconductor External Supplier Concentration",
-  "Defense External Concentration": "Defense External Supplier Concentration",
-  "Critical Inputs External Concentration": "Critical Inputs / Raw Materials External Supplier Concentration",
-  "Logistics External Concentration": "Logistics / Freight External Supplier Concentration",
-  // Short labels from getAxisScores field-key derivation (e.g. axis_1_financial → "Financial")
-  "Financial": "Financial External Supplier Concentration",
-  "Energy": "Energy External Supplier Concentration",
-  "Technology": "Technology / Semiconductor External Supplier Concentration",
-  "Defense": "Defense External Supplier Concentration",
-  "Critical Inputs": "Critical Inputs / Raw Materials External Supplier Concentration",
-  "Logistics": "Logistics / Freight External Supplier Concentration",
-};
-
-/** Normalize an axis name to the mandatory "[Domain] External Supplier Concentration" form. */
-export function normalizeAxisName(raw: string): string {
-  // Strip optional "Axis N: " prefix
-  const stripped = raw.replace(/^Axis \d+:\s*/, "");
-  return AXIS_NAME_MAP[stripped] ?? stripped;
-}
+// DEPRECATED: normalizeAxisName has been removed.
+// All axis name resolution MUST go through getCanonicalAxisName() in @/lib/axisRegistry.ts.
+// See axisRegistry.ts for the single source of truth.
 
 // ─── Partner Filtering ──────────────────────────────────────────────
 
