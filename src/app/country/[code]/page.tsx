@@ -223,15 +223,17 @@ export default async function CountryPage({ params }: PageProps) {
         {/* ── Radar + Deviation Side-by-Side ───────────────── */}
         <section className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 lg:grid-cols-2">
           {/* Radar Chart */}
-          <div className="rounded-md border border-border-primary p-3 sm:p-6">
-            <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+          <div className="flex flex-col items-center justify-center rounded-md border border-border-primary px-2 py-3 sm:px-4 sm:py-5">
+            <h2 className="w-full text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Multi-Axis Profile
             </h2>
-            <RadarChart
-              axes={radarAxes}
-              euMean={euMeanPerAxis}
-              label={country.country_name}
-            />
+            <div className="mt-2 flex w-full items-center justify-center">
+              <RadarChart
+                axes={radarAxes}
+                euMean={euMeanPerAxis}
+                label={country.country_name}
+              />
+            </div>
           </div>
 
           {/* Deviation Bars */}
