@@ -85,12 +85,18 @@ export function fetchAxis(axisId: number): Promise<AxisDetail> {
 /**
  * POST helper — no ISR caching, no-store.
  * Used for scenario simulation (ephemeral, user-specific).
+ *
+ * Scenario calls route through the Next.js API proxy (/api/scenario)
+ * to eliminate browser-level CORS preflight failures. The proxy
+ * forwards server-side to the backend. Other POST endpoints, if any,
+ * can still use the direct backend URL.
  */
-async function postJson<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
-  const base = getBaseUrl();
-  const url = `${base}${path}`;
-
-  const res = await fetch(url, {
+async function postJsonProxy<TReq, TRes>(
+  proxyPath: string,
+  body: TReq,
+  signal?: AbortSignal,
+): Promise<TRes> {
+  const res = await fetch(proxyPath, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -98,21 +104,30 @@ async function postJson<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
     },
     cache: "no-store",
     body: JSON.stringify(body),
+    signal,
   });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new ApiError(res.status, path, text);
+    throw new ApiError(res.status, proxyPath, text);
   }
 
   return res.json() as Promise<TRes>;
 }
 
-/** POST /scenario — Run scenario simulation */
+/**
+ * POST /api/scenario — Run scenario simulation via same-origin proxy.
+ * Accepts an optional AbortSignal for cancellation.
+ */
 export function fetchScenario(
-  req: ScenarioRequest
+  req: ScenarioRequest,
+  signal?: AbortSignal,
 ): Promise<ScenarioResponse> {
-  return postJson<ScenarioRequest, ScenarioResponse>("/scenario", req);
+  return postJsonProxy<ScenarioRequest, ScenarioResponse>(
+    "/api/scenario",
+    req,
+    signal,
+  );
 }
 
 export { ApiError };
