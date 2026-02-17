@@ -416,7 +416,22 @@ export default function ScenarioPage() {
           return;
         }
 
-        // SERVICE_ERROR — auto-retry with backoff
+        // HTTP 500 — never auto-retry, immediate fallback
+        if (httpStatus === 500) {
+          if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+          retryCountRef.current = MAX_AUTO_RETRIES;
+
+          if (lastSuccessRef.current) {
+            setScenario(lastSuccessRef.current);
+            setShowingCached(true);
+          } else {
+            setScenario(null);
+          }
+          setServiceState("SERVICE_DOWN");
+          return;
+        }
+
+        // SERVICE_ERROR (502, 503, etc) — auto-retry with backoff, max 2
         if (retryCountRef.current < MAX_AUTO_RETRIES) {
           const delay = RETRY_DELAYS[retryCountRef.current] ?? 2400;
           retryCountRef.current += 1;
@@ -1046,16 +1061,18 @@ export default function ScenarioPage() {
             className="mt-6 rounded-md border border-stone-200 bg-stone-50 px-5 py-4"
           >
             <h3 className="text-[14px] font-medium text-stone-700">
-              Simulation Service Unavailable
+              Simulation Service Temporarily Unavailable
             </h3>
             <p className="mt-2 text-[13px] leading-relaxed text-stone-500">
-              Structural simulation is temporarily unreachable. Published
-              baseline metrics remain authoritative.
+              The structural simulation engine did not return a valid response.
+              Published baseline metrics remain authoritative.
             </p>
             {showingCached && (
-              <p className="mt-2 text-[12px] font-medium text-stone-500">
-                Displaying most recent successful structural simulation.
-              </p>
+              <div className="mt-3 rounded border border-amber-200 bg-amber-50 px-3.5 py-2">
+                <p className="text-[12px] font-medium text-amber-700">
+                  Displaying last successful simulation (service temporarily unavailable)
+                </p>
+              </div>
             )}
             <div className="mt-3 flex items-center gap-3">
               <button
@@ -1073,17 +1090,15 @@ export default function ScenarioPage() {
                 Reset to Baseline
               </button>
             </div>
-            {(failureStatus != null || failureTimestamp != null) && (
-              <details className="mt-3">
-                <summary className="cursor-pointer text-[11px] text-stone-400 hover:text-stone-500">
-                  Technical Status
-                </summary>
-                <div className="mt-1 font-mono text-[11px] text-stone-400">
-                  {failureStatus != null && <p>Code: {failureStatus}</p>}
-                  {failureTimestamp && <p>Timestamp: {failureTimestamp}</p>}
-                </div>
-              </details>
-            )}
+            <details className="mt-4">
+              <summary className="cursor-pointer text-[11px] text-stone-400 hover:text-stone-500">
+                Technical Status
+              </summary>
+              <div className="mt-1.5 space-y-0.5 font-mono text-[11px] text-stone-400">
+                <p>HTTP Code: {failureStatus ?? "N/A"}</p>
+                <p>Timestamp: {failureTimestamp ?? new Date().toISOString()}</p>
+              </div>
+            </details>
           </section>
         )}
 

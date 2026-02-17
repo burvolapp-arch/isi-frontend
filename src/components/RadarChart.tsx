@@ -23,14 +23,14 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.14; // labels sit near axis endpoints — pure polar, no drift
-const LABEL_FONT_SIZE = 11;
-const LABEL_LINE_HEIGHT = 13;
+const LABEL_OFFSET = 1.03; // labels sit tight to axis endpoints — compact polar
+const LABEL_FONT_SIZE = 10;
+const LABEL_LINE_HEIGHT = 12;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const VB_SIZE = 560; // square viewBox — authoritative
-const MARGIN = 90; // symmetric containment margin for labels
-const LEGEND_HEIGHT = 32; // space below chart for legend
-const DATA_POINT_RADIUS = 2.5;
+const VB_SIZE = 460; // square viewBox — 18% tighter than prior 560
+const MARGIN = 74; // symmetric containment margin for labels
+const LEGEND_HEIGHT = 28; // space below chart for legend
+const DATA_POINT_RADIUS = 2;
 const GRID_STROKE = 0.6; // thin, precise grid lines
 const GRID_OPACITY = 0.12; // subtle grid
 const PATH_TRANSITION = "120ms ease-out"; // smooth polygon morph
@@ -230,7 +230,7 @@ export const RadarChart = memo(function RadarChart({
   const n = resolvedAxes.length;
 
   // Safe radius: computed from viewBox and margin — no scale reduction
-  const radius = VB_SIZE / 2 - MARGIN; // 190 — authoritative, +12% vs prior effective
+  const radius = VB_SIZE / 2 - MARGIN; // 156 — contained, 18% tighter than prior
 
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;
@@ -540,20 +540,20 @@ export const RadarChart = memo(function RadarChart({
         <g>
           {label && (
             <g>
-              <line x1={MARGIN} y1={legendY} x2={MARGIN + 16} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 22} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="9" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
+              <line x1={MARGIN} y1={legendY} x2={MARGIN + 14} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 19} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="8" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
             </g>
           )}
           {euMean && (
             <g>
-              <line x1={MARGIN} y1={legendY + 16} x2={MARGIN + 16} y2={legendY + 16} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 22} y={legendY + 19} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">EU-27 Mean</text>
+              <line x1={MARGIN} y1={legendY + 14} x2={MARGIN + 14} y2={legendY + 14} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 19} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">EU-27 Mean</text>
             </g>
           )}
           {compareLabel && (
             <g>
-              <line x1={MARGIN + 140} y1={legendY} x2={MARGIN + 156} y2={legendY} stroke="var(--color-stone-400)" strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 162} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="9" fontFamily="var(--font-sans)">{compareLabel}</text>
+              <line x1={MARGIN + 110} y1={legendY} x2={MARGIN + 124} y2={legendY} stroke="var(--color-stone-400)" strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 129} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">{compareLabel}</text>
             </g>
           )}
         </g>
