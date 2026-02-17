@@ -87,6 +87,7 @@ export function fetchAxis(axisId: number): Promise<AxisDetail> {
 
 export type FailureKind =
   | "ROUTE_MISSING"
+  | "BAD_INPUT"
   | "SERVICE_ERROR"
   | "TRANSPORT_LAYER_BLOCKED";
 
@@ -94,6 +95,10 @@ export function classifyFetchError(err: unknown): FailureKind {
   // Status 404 from our own proxy — route not deployed
   if (err instanceof ApiError && err.status === 404) {
     return "ROUTE_MISSING";
+  }
+  // Status 400 — bad input rejected by backend (never retry)
+  if (err instanceof ApiError && err.status === 400) {
+    return "BAD_INPUT";
   }
   // TypeError: Failed to fetch — network unreachable / blocked
   if (err instanceof TypeError && /failed to fetch/i.test(err.message)) {

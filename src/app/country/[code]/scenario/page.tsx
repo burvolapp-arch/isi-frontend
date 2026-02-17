@@ -398,9 +398,10 @@ export default function ScenarioPage() {
         setFailureTimestamp(now);
         setFailureStatus(httpStatus);
 
-        // ROUTE_MISSING or TRANSPORT — never auto-retry
+        // ROUTE_MISSING, BAD_INPUT, or TRANSPORT — never auto-retry
         if (
           kind === "ROUTE_MISSING" ||
+          kind === "BAD_INPUT" ||
           kind === "TRANSPORT_LAYER_BLOCKED"
         ) {
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
@@ -412,12 +413,13 @@ export default function ScenarioPage() {
           } else {
             setScenario(null);
           }
-          setServiceState("SERVICE_DOWN");
+          setServiceState(kind === "BAD_INPUT" ? "ERROR" : "SERVICE_DOWN");
           return;
         }
 
-        // HTTP 500 — never auto-retry, immediate fallback
-        if (httpStatus === 500) {
+        // HTTP 500 or 502 — never auto-retry, immediate fallback
+        // (proxy returns 502 for all backend failures; 500 = proxy itself broken)
+        if (httpStatus === 500 || httpStatus === 502) {
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
           retryCountRef.current = MAX_AUTO_RETRIES;
 
@@ -431,7 +433,7 @@ export default function ScenarioPage() {
           return;
         }
 
-        // SERVICE_ERROR (502, 503, etc) — auto-retry with backoff, max 2
+        // SERVICE_ERROR (503, 504, etc) — auto-retry with backoff, max 2
         if (retryCountRef.current < MAX_AUTO_RETRIES) {
           const delay = RETRY_DELAYS[retryCountRef.current] ?? 2400;
           retryCountRef.current += 1;
