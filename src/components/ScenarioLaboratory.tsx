@@ -536,7 +536,6 @@ export function ScenarioLaboratory({
                     title={preset.description}
                     className={`
                       rounded border px-2.5 py-1.5 text-[11px] font-medium
-                      transition-colors duration-75
                       focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
                       disabled:opacity-40 disabled:cursor-not-allowed
                       ${isActive
@@ -591,7 +590,6 @@ export function ScenarioLaboratory({
                               aria-pressed={isActive}
                               className={`
                                 rounded px-2 py-1 font-mono text-[10px] font-medium
-                                transition-colors duration-75
                                 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
                                 disabled:opacity-40 disabled:cursor-not-allowed
                                 ${isActive
@@ -880,7 +878,7 @@ export function ScenarioLaboratory({
                     <div className="relative flex h-4 flex-1 items-center">
                       <div className="absolute inset-0 rounded bg-stone-100" />
                       <div
-                        className={`relative h-full rounded ${isPositive ? "bg-red-200" : "bg-emerald-200"}`}
+                        className={`relative h-full rounded ${isPositive ? "bg-stone-400" : "bg-stone-300"}`}
                         style={{ width: `${Math.max(pct, 2)}%` }}
                       />
                     </div>

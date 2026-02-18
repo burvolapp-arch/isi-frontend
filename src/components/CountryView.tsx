@@ -102,7 +102,7 @@ export function CountryView({
             type="button"
             onClick={() => setMode("baseline")}
             className={`
-              relative pb-2.5 text-[13px] font-medium transition-colors duration-75
+              relative pb-2.5 text-[13px] font-medium
               ${mode === "baseline"
                 ? "text-text-primary"
                 : "text-text-quaternary hover:text-text-secondary"
@@ -118,7 +118,7 @@ export function CountryView({
             type="button"
             onClick={() => setMode("scenario")}
             className={`
-              relative pb-2.5 text-[13px] font-medium transition-colors duration-75
+              relative pb-2.5 text-[13px] font-medium
               ${mode === "scenario"
                 ? "text-text-primary"
                 : "text-text-quaternary hover:text-text-secondary"
@@ -186,14 +186,14 @@ export function CountryView({
 
           {/* Distribution */}
           {allScores.length > 0 && country.isi_composite !== null && (
-            <section className="mt-10">
-              <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary">
+            <section className="mt-8">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
                 Position in EU-27 Distribution
               </h2>
-              <p className="mt-1 text-[13px] text-text-tertiary">
+              <p className="mt-1.5 text-[12px] text-text-tertiary">
                 {country.country_name}&apos;s composite score relative to all EU-27 member states.
               </p>
-              <div className="mt-4 rounded-md border border-border-primary p-3 sm:p-5">
+              <div className="mt-3 rounded-md border border-border-primary p-3 sm:p-5">
                 <DistributionHistogram
                   scores={allScores}
                   mean={compositeMean}
@@ -207,7 +207,7 @@ export function CountryView({
           )}
 
           {/* Radar + Deviation */}
-          <section className="mt-8 grid gap-4 sm:gap-5 lg:grid-cols-[3fr_2fr]">
+          <section className="mt-6 grid gap-4 sm:gap-5 lg:grid-cols-[3fr_2fr]">
             <div className="relative flex flex-col overflow-hidden rounded-md border border-border-primary px-2 pt-3 pb-1 sm:px-3 sm:pt-4 sm:pb-2">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                 Multi-Axis Profile
@@ -238,7 +238,7 @@ export function CountryView({
             const summary = generateStructuralSummary(country, compositeMean, allScores);
             if (!summary) return null;
             return (
-              <section className="mt-8 rounded-md border border-border-primary bg-surface-tertiary p-4">
+              <section className="mt-6 rounded-md border border-border-primary bg-surface-tertiary p-4">
                 <h3 className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Structural Exposure Summary
                 </h3>
@@ -251,7 +251,7 @@ export function CountryView({
 
           {/* Strengths & Vulnerabilities */}
           {scoredAxes.length >= 2 && (
-            <section className="mt-8 grid gap-3 md:grid-cols-2">
+            <section className="mt-6 grid gap-3 md:grid-cols-2">
               <div className="border-l-2 border-l-deviation-negative rounded-md border border-border-primary p-4">
                 <h3 className="text-[10px] font-medium uppercase tracking-[0.12em] text-deviation-negative">
                   Most Diversified (Lowest HHI)
