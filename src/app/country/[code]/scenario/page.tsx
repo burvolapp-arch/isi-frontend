@@ -29,7 +29,6 @@ import type {
   CountryDetail,
   ISIComposite,
   ScenarioResponse,
-  ScenarioAxisResult,
   ScoreClassification,
 } from "@/lib/types";
 
@@ -162,22 +161,40 @@ function getServiceStatus(state: ScenarioState): ServiceState {
 // ═══════════════════════════════════════════════════════════════════════
 // Runtime Response Validation
 // ═══════════════════════════════════════════════════════════════════════
-// Validates that the response object has the expected shape before
+// Validates that the response object has the expected backend shape before
 // transitioning to SUCCESS state. Prevents rendering of malformed data.
+//
+// Backend shape:
+// { country, baseline: { composite, rank, classification, axes },
+//   simulated: { composite, rank, classification, axes },
+//   delta: { composite, rank, axes }, meta? }
 
 function isFiniteOrNull(v: unknown): v is number | null {
   return v === null || (typeof v === "number" && Number.isFinite(v));
 }
 
-function isValidAxisResult(a: unknown): a is ScenarioAxisResult {
+function isStringOrNull(v: unknown): v is string | null {
+  return v === null || typeof v === "string";
+}
+
+function isValidAggregate(a: unknown): boolean {
   if (a == null || typeof a !== "object") return false;
-  const ax = a as Record<string, unknown>;
+  const agg = a as Record<string, unknown>;
   return (
-    typeof ax.axis_slug === "string" &&
-    ax.axis_slug.length > 0 &&
-    isFiniteOrNull(ax.baseline) &&
-    isFiniteOrNull(ax.simulated) &&
-    isFiniteOrNull(ax.delta)
+    isFiniteOrNull(agg.composite) &&
+    isFiniteOrNull(agg.rank) &&
+    isStringOrNull(agg.classification) &&
+    Array.isArray(agg.axes)
+  );
+}
+
+function isValidDelta(d: unknown): boolean {
+  if (d == null || typeof d !== "object") return false;
+  const delta = d as Record<string, unknown>;
+  return (
+    isFiniteOrNull(delta.composite) &&
+    isFiniteOrNull(delta.rank) &&
+    Array.isArray(delta.axes)
   );
 }
 
@@ -186,18 +203,9 @@ function isValidScenarioResponse(r: unknown): r is ScenarioResponse {
   const resp = r as Record<string, unknown>;
   return (
     typeof resp.country === "string" &&
-    Array.isArray(resp.simulated_axes) &&
-    resp.simulated_axes.length > 0 &&
-    resp.simulated_axes.every(isValidAxisResult) &&
-    isFiniteOrNull(resp.simulated_composite) &&
-    isFiniteOrNull(resp.simulated_rank) &&
-    (resp.simulated_classification === null ||
-      typeof resp.simulated_classification === "string") &&
-    isFiniteOrNull(resp.baseline_composite) &&
-    isFiniteOrNull(resp.baseline_rank) &&
-    (resp.baseline_classification === null ||
-      typeof resp.baseline_classification === "string") &&
-    isFiniteOrNull(resp.delta_from_baseline)
+    isValidAggregate(resp.baseline) &&
+    isValidAggregate(resp.simulated) &&
+    isValidDelta(resp.delta)
   );
 }
 
@@ -474,9 +482,9 @@ export default function ScenarioPage() {
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             timestamp: new Date().toISOString(),
             adjustments: { ...adj },
-            composite: result.simulated_composite,
-            rank: result.simulated_rank,
-            classification: result.simulated_classification,
+            composite: result.simulated.composite,
+            rank: result.simulated.rank,
+            classification: result.simulated.classification as ScoreClassification | null,
             presetLabel: activePresetLabel,
           };
           const next = [entry, ...prev].slice(0, MAX_TIMELINE_ENTRIES);
@@ -645,10 +653,10 @@ export default function ScenarioPage() {
 
   // ── Simulated radar axes ──
   const simulatedRadarAxes = useMemo(() => {
-    if (!scenario?.simulated_axes) return null;
-    return scenario.simulated_axes.map((a) => ({
-      slug: a.axis_slug,
-      value: a.simulated,
+    if (!scenario?.simulated?.axes) return null;
+    return scenario.simulated.axes.map((a) => ({
+      slug: a.slug,
+      value: a.score,
     }));
   }, [scenario]);
 
@@ -656,20 +664,20 @@ export default function ScenarioPage() {
   const classificationChanged = useMemo(() => {
     if (!country || !scenario) return false;
     return (
-      scenario.simulated_classification !== null &&
+      scenario.simulated.classification !== null &&
       country.isi_classification !== null &&
-      scenario.simulated_classification !== country.isi_classification
+      scenario.simulated.classification !== country.isi_classification
     );
   }, [country, scenario]);
 
   // ── Delta decomposition data ──
   const decomposition = useMemo(() => {
-    if (!scenario?.simulated_axes) return null;
-    const items = scenario.simulated_axes
+    if (!scenario?.delta?.axes) return null;
+    const items = scenario.delta.axes
       .filter((a) => a.delta != null && a.delta !== 0)
       .map((a) => ({
-        slug: a.axis_slug,
-        label: shortDomain(a.axis_slug),
+        slug: a.slug,
+        label: shortDomain(a.slug),
         delta: a.delta as number,
       }));
     if (items.length === 0) return null;
@@ -684,15 +692,15 @@ export default function ScenarioPage() {
 
   // ── Elasticity data (delta per 1% shift) ──
   const elasticityData = useMemo(() => {
-    if (!scenario?.simulated_axes) return null;
-    const items = scenario.simulated_axes
+    if (!scenario?.delta?.axes) return null;
+    const items = scenario.delta.axes
       .map((a) => {
-        const adj = activeAdjustments[a.axis_slug] ?? 0;
+        const adj = activeAdjustments[a.slug] ?? 0;
         const pctShift = Math.abs(adj * 100);
         if (pctShift === 0 || a.delta == null) return null;
         return {
-          slug: a.axis_slug,
-          label: shortDomain(a.axis_slug),
+          slug: a.slug,
+          label: shortDomain(a.slug),
           elasticity: Math.abs(a.delta) / pctShift,
           delta: a.delta,
         };
@@ -722,22 +730,22 @@ export default function ScenarioPage() {
     }
 
     const adjustDesc = parts.join("; ");
-    const delta = scenario.delta_from_baseline;
+    const delta = scenario.delta.composite;
     const deltaStr =
       delta !== null
         ? `${delta >= 0 ? "raises" : "lowers"} composite exposure by ${Math.abs(delta).toFixed(4)}`
         : "has no measurable effect on composite exposure";
 
-    const baseRank = scenario.baseline_rank ?? baselineRank;
-    const simRank = scenario.simulated_rank;
+    const baseRank = scenario.baseline.rank ?? baselineRank;
+    const simRank = scenario.simulated.rank;
     let rankStr = "";
     if (baseRank !== null && simRank !== null && baseRank !== simRank) {
       rankStr = ` and ${simRank < baseRank ? "improves" : "worsens"} rank from ${baseRank} to ${simRank}`;
     }
 
     let classStr = "";
-    if (classificationChanged && scenario.simulated_classification) {
-      classStr = `. Classification shifts to ${classificationLabel(scenario.simulated_classification)}`;
+    if (classificationChanged && scenario.simulated.classification) {
+      classStr = `. Classification shifts to ${classificationLabel(scenario.simulated.classification as ScoreClassification)}`;
     }
 
     return `${adjustDesc} ${deltaStr}${rankStr}${classStr}.`;
@@ -778,36 +786,35 @@ export default function ScenarioPage() {
     const snapshot = {
       country: country.country,
       baseline: {
-        composite: country.isi_composite,
-        classification: country.isi_classification,
-        rank: baselineRank,
-        axes: country.axes.map((a) => ({
-          axis_slug: a.axis_slug,
+        composite: scenario.baseline.composite,
+        classification: scenario.baseline.classification,
+        rank: scenario.baseline.rank ?? baselineRank,
+        axes: scenario.baseline.axes.map((a) => ({
+          slug: a.slug,
           score: a.score,
         })),
       },
       simulated: {
-        composite: scenario.simulated_composite,
-        classification: scenario.simulated_classification,
-        rank: scenario.simulated_rank,
-        axes: scenario.simulated_axes.map((a) => ({
-          axis_slug: a.axis_slug,
-          baseline: a.baseline,
-          simulated: a.simulated,
-          delta: a.delta,
+        composite: scenario.simulated.composite,
+        classification: scenario.simulated.classification,
+        rank: scenario.simulated.rank,
+        axes: scenario.simulated.axes.map((a) => ({
+          slug: a.slug,
+          score: a.score,
         })),
       },
-      deltas: {
-        composite: scenario.delta_from_baseline,
+      delta: {
+        composite: scenario.delta.composite,
+        rank: scenario.delta.rank,
         per_axis: Object.fromEntries(
-          scenario.simulated_axes
+          scenario.delta.axes
             .filter((a) => a.delta != null)
-            .map((a) => [a.axis_slug, a.delta]),
+            .map((a) => [a.slug, a.delta]),
         ),
       },
       adjustments: activeAdjustments,
       timestamp: new Date().toISOString(),
-      version: "1.0",
+      version: "2.0",
     };
 
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
@@ -1280,7 +1287,7 @@ export default function ScenarioPage() {
               </p>
               <p className="mt-1 font-mono text-[24px] font-medium leading-none tracking-tight text-text-primary">
                 {showSimulated
-                  ? formatScore(scenario.simulated_composite)
+                  ? formatScore(scenario.simulated.composite)
                   : formatScore(country.isi_composite)}
               </p>
             </div>
@@ -1292,8 +1299,8 @@ export default function ScenarioPage() {
                   {showSimulated ? "Simulated Rank" : "Baseline Rank"}
                 </p>
                 <p className="mt-1 font-mono text-[24px] font-medium leading-none tracking-tight text-text-primary">
-                  {showSimulated && scenario.simulated_rank != null
-                    ? `${scenario.simulated_rank} / ${totalRanked}`
+                  {showSimulated && scenario.simulated.rank != null
+                    ? `${scenario.simulated.rank} / ${totalRanked}`
                     : baselineRank != null
                       ? `${baselineRank} / ${totalRanked}`
                       : "—"}
@@ -1318,7 +1325,7 @@ export default function ScenarioPage() {
                 <StatusBadge
                   classification={
                     showSimulated
-                      ? scenario.simulated_classification
+                      ? scenario.simulated.classification as ScoreClassification | null
                       : country.isi_classification
                   }
                 />
@@ -1333,7 +1340,7 @@ export default function ScenarioPage() {
                   </span>
                   <span className="rounded bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
                     {classificationLabel(
-                      scenario?.simulated_classification ?? null,
+                      (scenario?.simulated.classification as ScoreClassification) ?? null,
                     )}
                   </span>
                 </div>
@@ -1341,64 +1348,68 @@ export default function ScenarioPage() {
             </div>
 
             {/* Delta */}
-            {showSimulated && scenario.delta_from_baseline != null && (
+            {showSimulated && scenario.delta.composite != null && (
               <div className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Delta vs. Baseline
                 </p>
                 <p
                   className={`mt-1 font-mono text-[20px] font-medium leading-none tracking-tight ${
-                    scenario.delta_from_baseline > 0
+                    scenario.delta.composite > 0
                       ? "text-deviation-positive"
-                      : scenario.delta_from_baseline < 0
+                      : scenario.delta.composite < 0
                         ? "text-deviation-negative"
                         : "text-text-primary"
                   }`}
                 >
-                  {scenario.delta_from_baseline >= 0 ? "+" : ""}
-                  {scenario.delta_from_baseline.toFixed(4)}
+                  {scenario.delta.composite >= 0 ? "+" : ""}
+                  {scenario.delta.composite.toFixed(4)}
                 </p>
               </div>
             )}
 
             {/* Per-axis results */}
-            {showSimulated && scenario.simulated_axes && (
+            {showSimulated && scenario.simulated.axes && (
               <div className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 sm:px-5 sm:py-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Per-Axis Results
                 </p>
                 <div className="mt-3 space-y-2">
-                  {scenario.simulated_axes.map((sa) => (
-                    <div
-                      key={sa.axis_slug}
-                      className="flex items-center justify-between text-[13px]"
-                    >
-                      <span className="text-text-secondary">
-                        {getCanonicalAxisName(sa.axis_slug)}
-                      </span>
-                      <div className="flex items-center gap-3 font-mono text-[12px]">
-                        <span className="text-text-quaternary">
-                          {formatScore(sa.baseline)}
+                  {scenario.simulated.axes.map((sa) => {
+                    const baseAxis = scenario.baseline.axes.find((b) => b.slug === sa.slug);
+                    const deltaAxis = scenario.delta.axes.find((d) => d.slug === sa.slug);
+                    return (
+                      <div
+                        key={sa.slug}
+                        className="flex items-center justify-between text-[13px]"
+                      >
+                        <span className="text-text-secondary">
+                          {getCanonicalAxisName(sa.slug)}
                         </span>
-                        <span className="text-text-quaternary">→</span>
-                        <span className="text-text-primary">
-                          {formatScore(sa.simulated)}
-                        </span>
-                        {sa.delta != null && sa.delta !== 0 && (
-                          <span
-                            className={
-                              sa.delta > 0
-                                ? "text-deviation-positive"
-                                : "text-deviation-negative"
-                            }
-                          >
-                            {sa.delta >= 0 ? "+" : ""}
-                            {sa.delta.toFixed(4)}
+                        <div className="flex items-center gap-3 font-mono text-[12px]">
+                          <span className="text-text-quaternary">
+                            {formatScore(baseAxis?.score ?? null)}
                           </span>
-                        )}
+                          <span className="text-text-quaternary">→</span>
+                          <span className="text-text-primary">
+                            {formatScore(sa.score)}
+                          </span>
+                          {deltaAxis?.delta != null && deltaAxis.delta !== 0 && (
+                            <span
+                              className={
+                                deltaAxis.delta > 0
+                                  ? "text-deviation-positive"
+                                  : "text-deviation-negative"
+                              }
+                            >
+                              {deltaAxis.delta >= 0 ? "+" : ""}
+                              {deltaAxis.delta.toFixed(4)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -1411,20 +1422,20 @@ export default function ScenarioPage() {
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Contribution Breakdown
             </h2>
-            {scenario.delta_from_baseline != null && (
+            {scenario.delta.composite != null && (
               <p className="mt-2 font-mono text-[14px] font-medium text-text-primary">
                 Composite Change:{" "}
                 <span
                   className={
-                    scenario.delta_from_baseline > 0
+                    scenario.delta.composite > 0
                       ? "text-deviation-positive"
-                      : scenario.delta_from_baseline < 0
+                      : scenario.delta.composite < 0
                         ? "text-deviation-negative"
                         : ""
                   }
                 >
-                  {scenario.delta_from_baseline >= 0 ? "+" : ""}
-                  {scenario.delta_from_baseline.toFixed(4)}
+                  {scenario.delta.composite >= 0 ? "+" : ""}
+                  {scenario.delta.composite.toFixed(4)}
                 </span>
               </p>
             )}
@@ -1475,7 +1486,7 @@ export default function ScenarioPage() {
                   Baseline Rank
                 </p>
                 <p className="mt-1 font-mono text-[20px] font-medium text-text-primary">
-                  {scenario.baseline_rank ?? baselineRank ?? "—"}
+                  {scenario.baseline.rank ?? baselineRank ?? "—"}
                 </p>
               </div>
               <div className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-3">
@@ -1483,7 +1494,7 @@ export default function ScenarioPage() {
                   Simulated Rank
                 </p>
                 <p className="mt-1 font-mono text-[20px] font-medium text-text-primary">
-                  {scenario.simulated_rank ?? "—"}
+                  {scenario.simulated.rank ?? "—"}
                 </p>
               </div>
               <div className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-3">
@@ -1491,8 +1502,8 @@ export default function ScenarioPage() {
                   Rank Shift
                 </p>
                 {(() => {
-                  const base = scenario.baseline_rank ?? baselineRank;
-                  const sim = scenario.simulated_rank;
+                  const base = scenario.baseline.rank ?? baselineRank;
+                  const sim = scenario.simulated.rank;
                   if (base == null || sim == null) {
                     return (
                       <p className="mt-1 font-mono text-[20px] font-medium text-text-primary">

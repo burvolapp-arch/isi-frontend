@@ -214,34 +214,62 @@ export interface AxisDetail {
 
 /**
  * Request body for scenario simulation endpoint.
- * Contract: scenario-v1 — { country, adjustments }.
+ * Contract: scenario-v2 — { country, adjustments }.
  * country: 2-letter uppercase ISO code.
  * adjustments: long-form backend axis keys → float in [-0.2, 0.2].
  * All 6 axes always present.
- * Canonical source: scenarioContract.ts
  */
 export interface ScenarioRequest {
   country: string;
   adjustments: Record<string, number>;
 }
 
-/** Simulated axis score returned by scenario endpoint */
-export interface ScenarioAxisResult {
-  axis_slug: string;
-  baseline: number | null;
-  simulated: number | null;
+/** Single axis in the baseline/simulated sections of scenario response */
+export interface ScenarioAxisEntry {
+  slug: string;
+  score: number | null;
+}
+
+/** Single axis delta in the delta section of scenario response */
+export interface ScenarioAxisDelta {
+  slug: string;
   delta: number | null;
 }
 
-/** Response from scenario simulation endpoint */
+/** Baseline or simulated aggregate block */
+export interface ScenarioAggregate {
+  composite: number | null;
+  rank: number | null;
+  classification: string | null;
+  axes: ScenarioAxisEntry[];
+}
+
+/** Delta block */
+export interface ScenarioDelta {
+  composite: number | null;
+  rank: number | null;
+  axes: ScenarioAxisDelta[];
+}
+
+/** Meta block */
+export interface ScenarioMeta {
+  version?: string;
+  timestamp?: string;
+  bounds?: Record<string, unknown>;
+}
+
+/**
+ * Response from scenario simulation endpoint.
+ * This is the EXACT shape returned by the backend — no reshaping.
+ *
+ * {
+ *   country, baseline, simulated, delta, meta
+ * }
+ */
 export interface ScenarioResponse {
   country: string;
-  simulated_axes: ScenarioAxisResult[];
-  simulated_composite: number | null;
-  simulated_rank: number | null;
-  simulated_classification: ScoreClassification | null;
-  baseline_composite: number | null;
-  baseline_rank: number | null;
-  baseline_classification: ScoreClassification | null;
-  delta_from_baseline: number | null;
+  baseline: ScenarioAggregate;
+  simulated: ScenarioAggregate;
+  delta: ScenarioDelta;
+  meta?: ScenarioMeta;
 }
