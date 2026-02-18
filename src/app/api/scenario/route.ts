@@ -5,17 +5,18 @@
 // through the Next.js server. The browser only talks to the same origin;
 // the server-side fetch to the backend has no CORS constraints.
 //
-// CONTRACT BRIDGE (backend v0.2):
-//   Frontend sends:  { country: "SE", adjustments: { defense: 0.10 } }
-//   Backend expects:  { country_code: "SE", adjustments: { defense: 0.10 } }
+// CONTRACT (backend v0.2):
+//   Backend expects:  { country_code: "SE", axis_shifts: { defense: 0.10, ... } }
 //   Backend returns:  { composite, rank, classification, axes[], request_id }
 //   Frontend expects: { simulated_axes[], simulated_composite, simulated_rank,
 //                       simulated_classification, baseline_composite, ... }
 //
-// This proxy transforms in both directions so neither side changes.
+// This proxy validates, sanitizes, and transforms in both directions.
+// No unknown keys are forwarded. No invalid payloads reach the backend.
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { validateProxyBody } from "@/lib/scenarioValidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,14 +24,12 @@ export const dynamic = "force-dynamic";
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function getBackendUrl(): string {
-  // Allow override via BACKEND_URL; fall back to production Railway URL.
   const url =
     process.env.BACKEND_URL ||
     "https://isi-backend-production.up.railway.app";
   return url.replace(/\/+$/, "");
 }
 
-/** Always log in this route — production needs visibility into 500s. */
 function log(...args: unknown[]) {
   // eslint-disable-next-line no-console
   console.log("[scenario proxy]", ...args);
@@ -55,7 +54,6 @@ interface BackendScenarioResponse {
   request_id: string;
 }
 
-/** Type guard: does the upstream JSON match the v0.2 shape? */
 function isValidBackendResponse(d: unknown): d is BackendScenarioResponse {
   if (typeof d !== "object" || d === null) return false;
   const obj = d as Record<string, unknown>;
@@ -82,10 +80,9 @@ export async function POST(request: NextRequest) {
 
   // ── 1. Parse incoming request ──
 
-  let payload: unknown;
-
+  let rawBody: unknown;
   try {
-    payload = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json(
       { error: "Invalid request body" },
@@ -93,40 +90,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (
-    typeof payload !== "object" ||
-    payload === null ||
-    !("country" in payload) ||
-    !("adjustments" in payload)
-  ) {
+  // ── 2. Validate and sanitize — only canonical keys, only valid ranges ──
+
+  const validated = validateProxyBody(rawBody);
+  if (!validated) {
+    logError("rejected malformed payload:", JSON.stringify(rawBody).slice(0, 300));
     return NextResponse.json(
-      { error: "Missing required fields: country, adjustments" },
+      { error: "Invalid scenario input: payload does not match expected schema" },
       { status: 400 },
     );
   }
 
-  const { country, adjustments } = payload as {
-    country: string;
-    adjustments: Record<string, number>;
-  };
-
-  // ── 2. Transform to backend v0.2 contract: country → country_code ──
+  // ── 3. Construct exact backend payload — no extra keys ──
 
   const backendPayload = {
-    country_code: country.toUpperCase(),
-    adjustments,
+    country_code: validated.country_code,
+    axis_shifts: validated.axis_shifts,
   };
 
-  log(
-    "→",
-    `${backendUrl}/scenario`,
-    JSON.stringify(backendPayload).slice(0, 300),
-  );
+  log("→", `${backendUrl}/scenario`, JSON.stringify(backendPayload).slice(0, 300));
 
-  // ── 3. Forward to backend ──
+  // ── 4. Forward to backend ──
 
   let upstream: Response;
-
   try {
     upstream = await fetch(`${backendUrl}/scenario`, {
       method: "POST",
@@ -145,31 +131,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ── 4. Handle upstream errors ──
+  // ── 5. Handle upstream errors ──
 
   if (!upstream.ok) {
     const text = await upstream.text().catch(() => "");
     logError("upstream", upstream.status, text.slice(0, 500));
 
-    // Forward 400 (bad input) as-is so the client sees the validation message
     if (upstream.status === 400) {
       return NextResponse.json(
-        { error: "Invalid scenario input", detail: text },
+        { error: "Backend rejected scenario input", detail: text },
         { status: 400 },
       );
     }
 
-    // Everything else → 502 (proxy signals "backend problem")
     return NextResponse.json(
-      {
-        error: "Upstream simulation service error",
-        upstream_status: upstream.status,
-      },
+      { error: "Upstream simulation service error", upstream_status: upstream.status },
       { status: 502 },
     );
   }
 
-  // ── 5. Parse and validate upstream JSON ──
+  // ── 6. Parse and validate upstream JSON ──
 
   let data: unknown;
   try {
@@ -192,7 +173,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ── 6. Transform backend v0.2 → frontend ScenarioResponse ──
+  // ── 7. Transform backend v0.2 → frontend ScenarioResponse ──
 
   const simulatedAxes = data.axes.map((a) => ({
     axis_slug: a.slug,
@@ -201,7 +182,6 @@ export async function POST(request: NextRequest) {
     delta: a.delta,
   }));
 
-  // Baseline composite = mean of baseline values (ISI uses equal-weight mean)
   const baselineValues = simulatedAxes.map((a) => a.baseline);
   const baselineComposite =
     baselineValues.length > 0
@@ -209,7 +189,7 @@ export async function POST(request: NextRequest) {
       : null;
 
   const transformed = {
-    country: country.toUpperCase(),
+    country: validated.country_code,
     simulated_axes: simulatedAxes,
     simulated_composite: data.composite,
     simulated_rank: data.rank,

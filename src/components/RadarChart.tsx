@@ -23,14 +23,15 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.03; // labels sit tight to axis endpoints — compact polar
+const LABEL_OFFSET = 1.08; // labels slightly offset from axis tips
 const LABEL_FONT_SIZE = 10;
 const LABEL_LINE_HEIGHT = 12;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const VB_SIZE = 460; // square viewBox — 18% tighter than prior 560
-const MARGIN = 74; // symmetric containment margin for labels
+const VB_SIZE = 460; // square viewBox
+const RADAR_RADIUS = Math.round(VB_SIZE * 0.42); // 193 — dominant, proportional
+const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // 37 — derived, not arbitrary
 const LEGEND_HEIGHT = 28; // space below chart for legend
-const DATA_POINT_RADIUS = 2;
+const DATA_POINT_RADIUS = 2.5;
 const GRID_STROKE = 0.6; // thin, precise grid lines
 const GRID_OPACITY = 0.12; // subtle grid
 const PATH_TRANSITION = "120ms ease-out"; // smooth polygon morph
@@ -229,8 +230,8 @@ export const RadarChart = memo(function RadarChart({
 
   const n = resolvedAxes.length;
 
-  // Safe radius: computed from viewBox and margin — no scale reduction
-  const radius = VB_SIZE / 2 - MARGIN; // 156 — contained, 18% tighter than prior
+  // Radius from authoritative constant — no runtime arithmetic drift
+  const radius = RADAR_RADIUS; // 193 — VB_SIZE * 0.42
 
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;

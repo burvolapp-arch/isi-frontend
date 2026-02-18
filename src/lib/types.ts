@@ -212,10 +212,14 @@ export interface AxisDetail {
 
 // --- POST /scenario ---
 
-/** Request body for scenario simulation endpoint */
+/**
+ * Request body for scenario simulation endpoint.
+ * Backend v0.2 contract: { country_code, axis_shifts }.
+ * The proxy accepts the frontend format and transforms it.
+ */
 export interface ScenarioRequest {
-  country: string;
-  adjustments: Record<string, number>;
+  country_code: string;
+  axis_shifts: Record<string, number>;
 }
 
 /** Simulated axis score returned by scenario endpoint */

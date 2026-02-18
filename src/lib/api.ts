@@ -19,6 +19,7 @@ import type {
   ScenarioRequest,
   ScenarioResponse,
 } from "./types";
+import { validateScenarioInput } from "./scenarioValidation";
 
 function getBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL;
@@ -128,15 +129,31 @@ function logOnce(key: string, ...args: unknown[]) {
  * POST /api/scenario — Run scenario simulation via same-origin proxy.
  * Accepts optional AbortSignal for cancellation.
  *
+ * Pre-flight validation ensures the payload matches the backend schema
+ * EXACTLY before any network request is made. Invalid input throws
+ * an ApiError(400) immediately — no round-trip.
+ *
  * Error classification:
+ * - BAD_INPUT (400): invalid payload — never retry
  * - ROUTE_MISSING (404): proxy route not deployed — never retry
  * - TRANSPORT_LAYER_BLOCKED: network/CORS — never retry
  * - SERVICE_ERROR (500/502/other): upstream down — retryable
  */
 export async function fetchScenario(
-  req: ScenarioRequest,
+  countryCode: string,
+  adjustments: Record<string, number>,
   signal?: AbortSignal,
 ): Promise<ScenarioResponse> {
+  // ── Pre-flight validation — block invalid requests at source ──
+  const validation = validateScenarioInput(countryCode, adjustments);
+  if (!validation.valid) {
+    const err = new ApiError(400, "/api/scenario", validation.reason);
+    logOnce(`BAD_INPUT-preflight`, `BAD_INPUT: ${validation.reason}`);
+    throw err;
+  }
+
+  const payload: ScenarioRequest = validation.payload;
+
   try {
     const res = await fetch("/api/scenario", {
       method: "POST",
@@ -145,7 +162,7 @@ export async function fetchScenario(
         Accept: "application/json",
       },
       cache: "no-store",
-      body: JSON.stringify(req),
+      body: JSON.stringify(payload),
       signal,
     });
 

@@ -358,7 +358,8 @@ export default function ScenarioPage() {
 
       try {
         const result = await fetchScenario(
-          { country: code, adjustments: adj },
+          code,
+          adj,
           controller.signal,
         );
 
@@ -1063,11 +1064,16 @@ export default function ScenarioPage() {
             className="mt-6 rounded-md border border-stone-200 bg-stone-50 px-5 py-4"
           >
             <h3 className="text-[14px] font-medium text-stone-700">
-              Simulation Service Temporarily Unavailable
+              {failureStatus === 400
+                ? "Simulation Input Invalid"
+                : serviceState === "SERVICE_DOWN"
+                  ? "Simulation Service Unavailable"
+                  : "Simulation Error"}
             </h3>
             <p className="mt-2 text-[13px] leading-relaxed text-stone-500">
-              The structural simulation engine did not return a valid response.
-              Published baseline metrics remain authoritative.
+              {failureStatus === 400
+                ? "The simulation request was rejected due to invalid input parameters. Adjust axis values and retry."
+                : "The structural simulation engine did not return a valid response. Published baseline metrics remain authoritative."}
             </p>
             {showingCached && (
               <div className="mt-3 rounded border border-amber-200 bg-amber-50 px-3.5 py-2">
