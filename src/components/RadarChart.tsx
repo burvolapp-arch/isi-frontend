@@ -217,15 +217,29 @@ export const RadarChart = memo(function RadarChart({
 
   if (axes.length === 0) return null;
 
+  // ── Safety invariant: filter out undefined/invalid axis entries ──
+  const safeAxes = axes.filter(
+    (a): a is RadarAxisInput =>
+      a != null &&
+      typeof a.slug === "string" &&
+      a.slug.length > 0,
+  );
+  if (safeAxes.length === 0) return null;
+
   // Resolve canonical labels from slugs — the ONLY label resolution path
   const resolvedAxes = useMemo(
     () =>
-      axes.map((a) => {
+      safeAxes.map((a) => {
         const canonicalLabel = getCanonicalAxisName(a.slug);
         assertCanonicalLabel(canonicalLabel, "RadarChart");
-        return { slug: a.slug, label: canonicalLabel, value: a.value };
+        // Clamp value to [0, 1] and replace NaN/Infinity with null
+        const safeValue =
+          a.value === null || a.value === undefined || !Number.isFinite(a.value)
+            ? null
+            : Math.max(0, Math.min(1, a.value));
+        return { slug: a.slug, label: canonicalLabel, value: safeValue };
       }),
-    [axes],
+    [safeAxes],
   );
 
   const n = resolvedAxes.length;
@@ -239,14 +253,18 @@ export const RadarChart = memo(function RadarChart({
 
   const polarToXY = (value: number, index: number) => {
     const angle = angleStep * index - Math.PI / 2;
+    const safeVal = Number.isFinite(value) ? value : 0;
     return {
-      x: vbCenterX + radius * value * Math.cos(angle),
-      y: vbCenterY + radius * value * Math.sin(angle),
+      x: vbCenterX + radius * safeVal * Math.cos(angle),
+      y: vbCenterY + radius * safeVal * Math.sin(angle),
     };
   };
 
   const buildPath = (values: (number | null)[]) => {
-    const points = values.map((v, i) => polarToXY(v ?? 0, i));
+    const points = values.map((v, i) => {
+      const safe = v != null && Number.isFinite(v) ? v : 0;
+      return polarToXY(safe, i);
+    });
     return (
       points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z"
     );
@@ -262,7 +280,7 @@ export const RadarChart = memo(function RadarChart({
     [euMean],
   );
   const comparePath = useMemo(
-    () => (compareAxes ? buildPath(compareAxes.map((a) => a.value)) : null),
+    () => (compareAxes && compareAxes.length > 0 ? buildPath(compareAxes.map((a) => a?.value ?? null)) : null),
     [compareAxes],
   );
 

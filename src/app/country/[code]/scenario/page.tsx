@@ -29,6 +29,7 @@ import type {
   CountryDetail,
   ISIComposite,
   ScenarioResponse,
+  ScenarioAxisResult,
   ScoreClassification,
 } from "@/lib/types";
 
@@ -118,8 +119,11 @@ interface TimelineEntry {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// Service State Machine
+// Discriminated Union State Machine
 // ═══════════════════════════════════════════════════════════════════════
+// INVARIANT: scenario data is ONLY accessible when status === "SUCCESS".
+// Every other state carries ZERO scenario data. This eliminates all
+// partial-data render paths that cause React Error #300.
 
 type ServiceState =
   | "IDLE"
@@ -128,6 +132,74 @@ type ServiceState =
   | "RETRYING"
   | "SERVICE_DOWN"
   | "ERROR";
+
+type ScenarioState =
+  | { status: "IDLE" }
+  | { status: "COMPUTING" }
+  | { status: "RETRYING" }
+  | { status: "SUCCESS"; data: ScenarioResponse }
+  | { status: "SERVICE_DOWN"; cached: ScenarioResponse | null }
+  | { status: "ERROR"; cached: ScenarioResponse | null };
+
+/** Extract scenario data ONLY from a SUCCESS state. Returns null otherwise. */
+function getScenarioData(state: ScenarioState): ScenarioResponse | null {
+  return state.status === "SUCCESS" ? state.data : null;
+}
+
+/** Extract cached data from failure states. Returns null otherwise. */
+function getCachedData(state: ScenarioState): ScenarioResponse | null {
+  if (state.status === "SERVICE_DOWN" || state.status === "ERROR") {
+    return state.cached;
+  }
+  return null;
+}
+
+/** Get the ServiceState string for backward-compatible render logic. */
+function getServiceStatus(state: ScenarioState): ServiceState {
+  return state.status;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Runtime Response Validation
+// ═══════════════════════════════════════════════════════════════════════
+// Validates that the response object has the expected shape before
+// transitioning to SUCCESS state. Prevents rendering of malformed data.
+
+function isFiniteOrNull(v: unknown): v is number | null {
+  return v === null || (typeof v === "number" && Number.isFinite(v));
+}
+
+function isValidAxisResult(a: unknown): a is ScenarioAxisResult {
+  if (a == null || typeof a !== "object") return false;
+  const ax = a as Record<string, unknown>;
+  return (
+    typeof ax.axis_slug === "string" &&
+    ax.axis_slug.length > 0 &&
+    isFiniteOrNull(ax.baseline) &&
+    isFiniteOrNull(ax.simulated) &&
+    isFiniteOrNull(ax.delta)
+  );
+}
+
+function isValidScenarioResponse(r: unknown): r is ScenarioResponse {
+  if (r == null || typeof r !== "object") return false;
+  const resp = r as Record<string, unknown>;
+  return (
+    typeof resp.country === "string" &&
+    Array.isArray(resp.simulated_axes) &&
+    resp.simulated_axes.length > 0 &&
+    resp.simulated_axes.every(isValidAxisResult) &&
+    isFiniteOrNull(resp.simulated_composite) &&
+    isFiniteOrNull(resp.simulated_rank) &&
+    (resp.simulated_classification === null ||
+      typeof resp.simulated_classification === "string") &&
+    isFiniteOrNull(resp.baseline_composite) &&
+    isFiniteOrNull(resp.baseline_rank) &&
+    (resp.baseline_classification === null ||
+      typeof resp.baseline_classification === "string") &&
+    isFiniteOrNull(resp.delta_from_baseline)
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // Deduplicated console logging
@@ -184,7 +256,20 @@ export default function ScenarioPage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ── Scenario state ──
+  // ── Scenario state (discriminated union — single source of truth) ──
+  const [scenarioState, setScenarioState] = useState<ScenarioState>(
+    { status: "IDLE" },
+  );
+  const [failureTimestamp, setFailureTimestamp] = useState<string | null>(null);
+  const [failureStatus, setFailureStatus] = useState<number | null>(null);
+  const [failureMessage, setFailureMessage] = useState<string | null>(null);
+
+  // Derived accessors — safe by construction
+  const scenario = getScenarioData(scenarioState);
+  const serviceState = getServiceStatus(scenarioState);
+  const showingCached = getCachedData(scenarioState) !== null;
+
+  // ── Adjustments state ──
   const [adjustments, setAdjustments] = useState<Record<AxisSlug, number>>(
     () => {
       const init: Record<string, number> = {};
@@ -200,15 +285,9 @@ export default function ScenarioPage() {
       return init as Record<AxisSlug, number>;
     },
   );
-  const [scenario, setScenario] = useState<ScenarioResponse | null>(null);
-  const [serviceState, setServiceState] = useState<ServiceState>("IDLE");
-  const [failureTimestamp, setFailureTimestamp] = useState<string | null>(null);
-  const [failureStatus, setFailureStatus] = useState<number | null>(null);
-  const [failureMessage, setFailureMessage] = useState<string | null>(null);
 
-  // ── In-memory cache ──
+  // ── In-memory cache (last successful response for fallback) ──
   const lastSuccessRef = useRef<ScenarioResponse | null>(null);
-  const [showingCached, setShowingCached] = useState(false);
 
   // ── Preset tracking ──
   const [activePresetLabel, setActivePresetLabel] = useState<string | null>(
@@ -356,8 +435,8 @@ export default function ScenarioPage() {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      setServiceState(isRetry ? "RETRYING" : "COMPUTING");
-      setShowingCached(false);
+      // Transition to COMPUTING or RETRYING — no scenario data accessible
+      setScenarioState(isRetry ? { status: "RETRYING" } : { status: "COMPUTING" });
 
       try {
         const result = await fetchScenario(
@@ -368,10 +447,22 @@ export default function ScenarioPage() {
 
         if (controller.signal.aborted) return;
 
-        setScenario(result);
+        // Runtime validation — reject malformed responses before SUCCESS
+        if (!isValidScenarioResponse(result)) {
+          logOnce("invalid-response", "Response failed runtime validation", result);
+          setScenarioState({
+            status: "ERROR",
+            cached: lastSuccessRef.current,
+          });
+          setFailureTimestamp(new Date().toISOString());
+          setFailureStatus(null);
+          setFailureMessage("Response validation failed — malformed data.");
+          return;
+        }
+
+        // Atomically transition to SUCCESS with validated data
         lastSuccessRef.current = result;
-        setServiceState("SUCCESS");
-        setShowingCached(false);
+        setScenarioState({ status: "SUCCESS", data: result });
         setFailureTimestamp(null);
         setFailureStatus(null);
         setFailureMessage(null);
@@ -415,16 +506,13 @@ export default function ScenarioPage() {
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
           retryCountRef.current = MAX_AUTO_RETRIES;
 
-          if (lastSuccessRef.current) {
-            setScenario(lastSuccessRef.current);
-            setShowingCached(true);
-          } else {
-            setScenario(null);
-          }
           // 400 → ERROR, 404 → ERROR, transport → SERVICE_DOWN
-          setServiceState(
-            kind === "BAD_INPUT" || kind === "ROUTE_MISSING" ? "ERROR" : "SERVICE_DOWN",
-          );
+          const failStatus =
+            kind === "BAD_INPUT" || kind === "ROUTE_MISSING" ? "ERROR" : "SERVICE_DOWN";
+          setScenarioState({
+            status: failStatus as "ERROR" | "SERVICE_DOWN",
+            cached: lastSuccessRef.current,
+          });
           return;
         }
 
@@ -441,24 +529,18 @@ export default function ScenarioPage() {
           }
 
           // Exhausted retries for 500/502
-          if (lastSuccessRef.current) {
-            setScenario(lastSuccessRef.current);
-            setShowingCached(true);
-          } else {
-            setScenario(null);
-          }
-          setServiceState("SERVICE_DOWN");
+          setScenarioState({
+            status: "SERVICE_DOWN",
+            cached: lastSuccessRef.current,
+          });
           return;
         }
 
         // All other errors — immediate failure, no retry
-        if (lastSuccessRef.current) {
-          setScenario(lastSuccessRef.current);
-          setShowingCached(true);
-        } else {
-          setScenario(null);
-        }
-        setServiceState("ERROR");
+        setScenarioState({
+          status: "ERROR",
+          cached: lastSuccessRef.current,
+        });
       }
     },
     [code, activePresetLabel],
@@ -474,9 +556,7 @@ export default function ScenarioPage() {
       retryCountRef.current = 0;
 
       if (Object.keys(adj).length === 0) {
-        setScenario(null);
-        setServiceState("IDLE");
-        setShowingCached(false);
+        setScenarioState({ status: "IDLE" });
         setFailureTimestamp(null);
         setFailureStatus(null);
         return;
@@ -506,7 +586,7 @@ export default function ScenarioPage() {
   // ── Manual retry ──
   const retrySimulation = useCallback(() => {
     retryCountRef.current = 0;
-    setServiceState("IDLE");
+    setScenarioState({ status: "IDLE" });
     setFailureTimestamp(null);
     setFailureStatus(null);
     setFailureMessage(null);
@@ -546,9 +626,7 @@ export default function ScenarioPage() {
       reset[slug] = 0;
     }
     setAdjustments(reset as Record<AxisSlug, number>);
-    setScenario(null);
-    setServiceState("IDLE");
-    setShowingCached(false);
+    setScenarioState({ status: "IDLE" });
     setFailureTimestamp(null);
     setFailureStatus(null);
     setFailureMessage(null);
