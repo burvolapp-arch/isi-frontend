@@ -95,41 +95,42 @@ export function CountryView({
         </p>
       </section>
 
-      {/* ── Mode Toggle ── */}
-      <nav className="mt-5 border-b border-border-primary" aria-label="View mode">
-        <div className="flex gap-6">
-          <button
-            type="button"
-            onClick={() => setMode("baseline")}
-            className={`
-              relative pb-2.5 text-[13px] font-medium
-              ${mode === "baseline"
-                ? "text-text-primary"
-                : "text-text-quaternary hover:text-text-secondary"
-              }
-            `}
-          >
-            Published Baseline
-            {mode === "baseline" && (
-              <span className="absolute inset-x-0 bottom-0 h-[2px] bg-navy-700" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("scenario")}
-            className={`
-              relative pb-2.5 text-[13px] font-medium
-              ${mode === "scenario"
-                ? "text-text-primary"
-                : "text-text-quaternary hover:text-text-secondary"
-              }
-            `}
-          >
-            Scenario Laboratory
-            {mode === "scenario" && (
-              <span className="absolute inset-x-0 bottom-0 h-[2px] bg-navy-700" />
-            )}
-          </button>
+      {/* ── Mode Toggle (Segmented Control) ── */}
+      <nav className="mt-5" aria-label="View mode">
+        <div className="inline-flex items-center gap-2.5">
+          <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+            Mode
+          </span>
+          <div className="inline-flex rounded border border-border-primary bg-surface-tertiary p-0.5">
+            <button
+              type="button"
+              onClick={() => setMode("baseline")}
+              className={`
+                rounded px-4 py-1.5 text-[12px] font-medium transition-colors
+                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                ${mode === "baseline"
+                  ? "bg-navy-700 text-white shadow-sm"
+                  : "text-text-tertiary hover:text-text-secondary"
+                }
+              `}
+            >
+              Baseline
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("scenario")}
+              className={`
+                rounded px-4 py-1.5 text-[12px] font-medium transition-colors
+                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                ${mode === "scenario"
+                  ? "bg-navy-700 text-white shadow-sm"
+                  : "text-text-tertiary hover:text-text-secondary"
+                }
+              `}
+            >
+              Simulation
+            </button>
+          </div>
         </div>
       </nav>
 

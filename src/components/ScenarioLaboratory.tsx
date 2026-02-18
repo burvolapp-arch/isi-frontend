@@ -15,8 +15,7 @@ import {
   classificationLabel,
 } from "@/lib/format";
 import {
-  getCanonicalAxisName,
-  getAxisShortName,
+  formatAxisLabel,
   normalizeAxisKey,
   ALL_AXIS_SLUGS,
   type AxisSlug,
@@ -223,6 +222,7 @@ export function ScenarioLaboratory({
   // ── Adjustments state ──
   const [adjustments, setAdjustments] = useState<Record<AxisSlug, number>>(() => {
     const init: Record<string, number> = {};
+    for (const slug of ALL_AXIS_SLUGS) init[slug] = 0;          // default ALL to 0
     for (const slug of ALL_AXIS_SLUGS) {
       const param = searchParams.get(slug);
       if (param !== null) {
@@ -466,7 +466,7 @@ export function ScenarioLaboratory({
     if (!scenario?.delta?.axes) return null;
     const items = Object.entries(scenario.delta.axes)
       .filter(([, d]) => d != null && d !== 0)
-      .map(([slug, d]) => ({ slug, label: getAxisShortName(slug), delta: d }));
+      .map(([slug, d]) => ({ slug, label: formatAxisLabel(slug), delta: d }));
     return items.length === 0 ? null : items;
   }, [scenario]);
 
@@ -503,271 +503,290 @@ export function ScenarioLaboratory({
   // RENDER
   // ═══════════════════════════════════════════════════════════════════
 
+  // ── Contribution summary helpers ──
+  const mainDriver = decomposition
+    ? [...decomposition].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0] ?? null
+    : null;
+  const offsetting = decomposition && decomposition.length > 1
+    ? [...decomposition]
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .find((d) => mainDriver && Math.sign(d.delta) !== Math.sign(mainDriver.delta)) ?? null
+    : null;
+
   return (
-    <div className="mt-8">
-      {/* ── 2-Column Layout: Controls | Results ── */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        {/* ═══ LEFT COLUMN: Controls ═══ */}
-        <div className="space-y-6">
-          {/* Structural Shock Presets */}
-          <div>
-            <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-              Structural Shock Presets
-            </h3>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {STRUCTURAL_PRESETS.map((preset) => {
-                const isActive = activePresetLabel === preset.label;
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    disabled={controlsLocked}
-                    onClick={() => applyPreset(preset)}
-                    title={preset.description}
-                    className={`
-                      rounded border px-2.5 py-1.5 text-[11px] font-medium
-                      focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
-                      disabled:opacity-40 disabled:cursor-not-allowed
-                      ${isActive
-                        ? "border-navy-700 bg-navy-700 text-white"
-                        : "border-border-primary bg-white text-text-secondary hover:bg-stone-50"
-                      }
-                    `}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+    <div className="mt-6 space-y-6">
 
-          {/* Axis-Level Adjustments */}
-          <div>
-            <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-              Axis-Level Adjustments
-            </h3>
-            <div className="mt-2.5 space-y-1.5">
-              {country.axes.map((axis) => {
-                const slug = axis.axis_slug as AxisSlug;
-                const currentAdj = adjustments[slug] ?? 0;
-                return (
-                  <div
-                    key={slug}
-                    className={`rounded border border-border-primary px-3 py-2.5 ${
-                      controlsLocked ? "bg-stone-50 opacity-70" : "bg-surface-tertiary"
-                    }`}
-                  >
-                    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-[12px] font-medium text-text-secondary">
-                          {getCanonicalAxisName(slug)}
-                        </p>
-                        <p className="font-mono text-[11px] text-text-quaternary">
-                          Baseline: {formatScore(axis.score)}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1">
-                        {SHIFT_OPTIONS.map((shift) => {
-                          const isActive = currentAdj === shift;
-                          const isBase = shift === 0;
-                          return (
-                            <button
-                              key={shift}
-                              type="button"
-                              disabled={controlsLocked}
-                              onClick={() => setAxisAdjustment(slug, shift)}
-                              aria-label={`Set ${getCanonicalAxisName(slug)} to ${SHIFT_LABELS[shift]}`}
-                              aria-pressed={isActive}
-                              className={`
-                                rounded px-2 py-1 font-mono text-[10px] font-medium
-                                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
-                                disabled:opacity-40 disabled:cursor-not-allowed
-                                ${isActive
-                                  ? isBase
-                                    ? "bg-stone-700 text-white"
-                                    : "bg-navy-700 text-white"
-                                  : "border border-border-primary bg-white text-text-tertiary hover:bg-stone-50"
-                                }
-                              `}
-                            >
-                              {SHIFT_LABELS[shift]}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      {/* ═══ 1. RESULTS SUMMARY ═══ */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* Composite */}
+        <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+            {showSimulated ? "Simulated Composite" : "Baseline Composite"}
+          </p>
+          <p className="mt-1 font-mono text-[24px] font-medium leading-none tracking-tight text-text-primary">
+            {showSimulated
+              ? formatScore(scenario.simulated.composite)
+              : formatScore(country.isi_composite)}
+          </p>
+        </div>
 
-          {/* Actions */}
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={resetToBaseline}
-              disabled={(!hasAdjustments && serviceState === "IDLE") || serviceState === "COMPUTING"}
-              className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed"
+        {/* Delta */}
+        <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+            Delta vs. Baseline
+          </p>
+          {showSimulated && scenario.delta.composite != null ? (
+            <p
+              className={`mt-1 font-mono text-[20px] font-medium leading-none tracking-tight ${
+                scenario.delta.composite > 0
+                  ? "text-deviation-positive"
+                  : scenario.delta.composite < 0
+                    ? "text-deviation-negative"
+                    : "text-text-primary"
+              }`}
             >
-              Reset to Baseline
-            </button>
-            {(serviceState === "SERVICE_DOWN" || serviceState === "ERROR") && (
-              <button
-                type="button"
-                onClick={retrySimulation}
-                className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
-              >
-                Retry
-              </button>
-            )}
-            {showSimulated && (
-              <button
-                type="button"
-                onClick={exportSnapshot}
-                className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
-              >
-                Export JSON
-              </button>
-            )}
-            {(serviceState === "COMPUTING" || serviceState === "RETRYING") && (
-              <span className="text-[11px] text-text-quaternary">
-                {serviceState === "RETRYING" ? "Retrying…" : "Computing…"}
-              </span>
-            )}
+              {scenario.delta.composite >= 0 ? "+" : ""}
+              {scenario.delta.composite.toFixed(4)}
+            </p>
+          ) : (
+            <p className="mt-1 font-mono text-[20px] font-medium leading-none tracking-tight text-text-quaternary">—</p>
+          )}
+        </div>
+
+        {/* Rank */}
+        <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+            {showSimulated ? "Simulated Rank" : "Baseline Rank"}
+          </p>
+          <div className="mt-1 flex items-baseline gap-2">
+            <p className="font-mono text-[20px] font-medium leading-none tracking-tight text-text-primary">
+              {showSimulated && scenario.simulated.rank != null
+                ? `${scenario.simulated.rank} / ${totalRanked}`
+                : baselineRank != null
+                  ? `${baselineRank} / ${totalRanked}`
+                  : "—"}
+            </p>
+            {showSimulated && (() => {
+              const base = scenario.baseline.rank ?? baselineRank;
+              const sim = scenario.simulated.rank;
+              if (base == null || sim == null || base === sim) return null;
+              const shift = base - sim;
+              return (
+                <span className={`font-mono text-[13px] font-medium ${shift > 0 ? "text-deviation-negative" : "text-deviation-positive"}`}>
+                  {shift > 0 ? "↑" : "↓"}{Math.abs(shift)}
+                </span>
+              );
+            })()}
           </div>
         </div>
 
-        {/* ═══ RIGHT COLUMN: Results ═══ */}
-        <div className="space-y-3">
-          {/* Simulated Composite */}
-          <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-              {showSimulated ? "Simulated Composite" : "Baseline Composite"}
-            </p>
-            <p className="mt-1 font-mono text-[24px] font-medium leading-none tracking-tight text-text-primary">
-              {showSimulated
-                ? formatScore(scenario.simulated.composite)
-                : formatScore(country.isi_composite)}
-            </p>
+        {/* Classification */}
+        <div className={`rounded border px-4 py-3 ${
+          classificationChanged
+            ? "border-l-2 border-l-accent border-border-primary bg-surface-tertiary"
+            : "border-border-primary bg-surface-tertiary"
+        }`}>
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+            {showSimulated ? "Simulated Class." : "Baseline Class."}
+          </p>
+          <div className="mt-1.5">
+            <StatusBadge
+              classification={
+                showSimulated
+                  ? (scenario.simulated.classification as ScoreClassification | null)
+                  : country.isi_classification
+              }
+            />
           </div>
+          {classificationChanged && (
+            <div className="mt-2 flex items-center gap-2 text-[11px]">
+              <span className="text-text-quaternary">
+                {classificationLabel(country.isi_classification)}
+              </span>
+              <span className="text-text-quaternary" aria-hidden="true">→</span>
+              <span className="font-medium text-text-secondary">
+                {classificationLabel(
+                  (scenario?.simulated.classification as ScoreClassification) ?? null
+                )}
+              </span>
+            </div>
+          )}
+        </div>
+      </section>
 
-          {/* Delta vs Baseline */}
-          {showSimulated && scenario.delta.composite != null && (
-            <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-                Delta vs. Baseline
-              </p>
-              <p
-                className={`mt-1 font-mono text-[20px] font-medium leading-none tracking-tight ${
-                  scenario.delta.composite > 0
-                    ? "text-deviation-positive"
-                    : scenario.delta.composite < 0
-                      ? "text-deviation-negative"
-                      : "text-text-primary"
+      {/* Per-axis results (compact) */}
+      {showSimulated && scenario.simulated.axes && (
+        <section className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+            Per-Axis Results
+          </p>
+          <div className="mt-2 space-y-1">
+            {Object.entries(scenario.simulated.axes).map(([slug, simScore]) => {
+              const baseScore = scenario.baseline.axes[slug] ?? null;
+              const axisDelta = scenario.delta.axes[slug] ?? null;
+              return (
+                <div key={slug} className="flex items-center justify-between text-[12px]">
+                  <span className="text-text-secondary">{formatAxisLabel(slug)}</span>
+                  <div className="flex items-center gap-2 font-mono text-[11px]">
+                    <span className="text-text-quaternary">{formatScore(baseScore)}</span>
+                    <span className="text-text-quaternary">→</span>
+                    <span className="text-text-primary">{formatScore(simScore)}</span>
+                    {axisDelta != null && axisDelta !== 0 && (
+                      <span className={axisDelta > 0 ? "text-deviation-positive" : "text-deviation-negative"}>
+                        {axisDelta >= 0 ? "+" : ""}{axisDelta.toFixed(4)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ═══ 2. STRUCTURAL SHOCK PRESETS ═══ */}
+      <section>
+        <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+          Structural Shock Presets
+        </h3>
+        {activePresetLabel && (
+          <p className="mt-1 text-[12px] text-text-tertiary">
+            Active Scenario:{" "}
+            <span className="font-medium text-text-secondary">{activePresetLabel}</span>
+            {(() => {
+              const preset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
+              return preset ? (
+                <span className="ml-1 text-text-quaternary">({preset.description})</span>
+              ) : null;
+            })()}
+          </p>
+        )}
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {STRUCTURAL_PRESETS.map((preset) => {
+            const isActive = activePresetLabel === preset.label;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                disabled={controlsLocked}
+                onClick={() => applyPreset(preset)}
+                title={preset.description}
+                className={`
+                  rounded border px-2.5 py-1.5 text-[11px] font-medium
+                  focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  ${isActive
+                    ? "border-navy-700 bg-navy-700 text-white"
+                    : "border-border-primary bg-white text-text-secondary hover:bg-stone-50"
+                  }
+                `}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ═══ 3. AXIS-LEVEL ADJUSTMENTS ═══ */}
+      <section>
+        <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+          Axis-Level Adjustments
+        </h3>
+        <div className="mt-2.5 space-y-1.5">
+          {country.axes.map((axis) => {
+            const slug = axis.axis_slug as AxisSlug;
+            const currentAdj = adjustments[slug] ?? 0;
+            return (
+              <div
+                key={slug}
+                className={`rounded border border-border-primary px-3 py-2 ${
+                  controlsLocked ? "bg-stone-50 opacity-70" : "bg-surface-tertiary"
                 }`}
               >
-                {scenario.delta.composite >= 0 ? "+" : ""}
-                {scenario.delta.composite.toFixed(4)}
-              </p>
-            </div>
-          )}
-
-          {/* Rank */}
-          <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-              {showSimulated ? "Simulated Rank" : "Baseline Rank"}
-            </p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <p className="font-mono text-[20px] font-medium leading-none tracking-tight text-text-primary">
-                {showSimulated && scenario.simulated.rank != null
-                  ? `${scenario.simulated.rank} / ${totalRanked}`
-                  : baselineRank != null
-                    ? `${baselineRank} / ${totalRanked}`
-                    : "—"}
-              </p>
-              {showSimulated && (() => {
-                const base = scenario.baseline.rank ?? baselineRank;
-                const sim = scenario.simulated.rank;
-                if (base == null || sim == null || base === sim) return null;
-                const shift = base - sim;
-                return (
-                  <span className={`font-mono text-[13px] font-medium ${shift > 0 ? "text-deviation-negative" : "text-deviation-positive"}`}>
-                    {shift > 0 ? "↑" : "↓"}{Math.abs(shift)}
-                  </span>
-                );
-              })()}
-            </div>
-          </div>
-
-          {/* Classification */}
-          <div className={`rounded border px-4 py-3 ${
-            classificationChanged
-              ? "border-l-2 border-l-accent border-border-primary bg-surface-tertiary"
-              : "border-border-primary bg-surface-tertiary"
-          }`}>
-            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-              {showSimulated ? "Simulated Classification" : "Baseline Classification"}
-            </p>
-            <div className="mt-1.5">
-              <StatusBadge
-                classification={
-                  showSimulated
-                    ? (scenario.simulated.classification as ScoreClassification | null)
-                    : country.isi_classification
-                }
-              />
-            </div>
-            {classificationChanged && (
-              <div className="mt-2 flex items-center gap-2 text-[11px]">
-                <span className="text-text-quaternary">
-                  {classificationLabel(country.isi_classification)}
-                </span>
-                <span className="text-text-quaternary" aria-hidden="true">→</span>
-                <span className="font-medium text-text-secondary">
-                  {classificationLabel(
-                    (scenario?.simulated.classification as ScoreClassification) ?? null
-                  )}
-                </span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 shrink-0">
+                    <p className="text-[12px] font-medium text-text-secondary">
+                      {formatAxisLabel(slug)}
+                    </p>
+                    <p className="font-mono text-[11px] text-text-quaternary">
+                      Baseline: {formatScore(axis.score)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    {SHIFT_OPTIONS.map((shift) => {
+                      const isActive = currentAdj === shift;
+                      const isBase = shift === 0;
+                      return (
+                        <button
+                          key={shift}
+                          type="button"
+                          disabled={controlsLocked}
+                          onClick={() => setAxisAdjustment(slug, shift)}
+                          aria-label={`Set ${formatAxisLabel(slug)} to ${SHIFT_LABELS[shift]}`}
+                          aria-pressed={isActive}
+                          className={`
+                            w-[42px] rounded px-1 py-0.5 text-center font-mono text-[10px] font-medium whitespace-nowrap
+                            focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                            disabled:opacity-40 disabled:cursor-not-allowed
+                            ${isActive
+                              ? isBase
+                                ? "bg-stone-700 text-white"
+                                : "bg-navy-700 text-white"
+                              : "border border-border-primary bg-white text-text-tertiary hover:bg-stone-50"
+                            }
+                          `}
+                        >
+                          {SHIFT_LABELS[shift]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Per-axis results (compact) */}
-          {showSimulated && scenario.simulated.axes && (
-            <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-                Per-Axis Results
-              </p>
-              <div className="mt-2 space-y-1">
-                {Object.entries(scenario.simulated.axes).map(([slug, simScore]) => {
-                  const baseScore = scenario.baseline.axes[slug] ?? null;
-                  const axisDelta = scenario.delta.axes[slug] ?? null;
-                  return (
-                    <div key={slug} className="flex items-center justify-between text-[12px]">
-                      <span className="text-text-secondary">{getAxisShortName(slug)}</span>
-                      <div className="flex items-center gap-2 font-mono text-[11px]">
-                        <span className="text-text-quaternary">{formatScore(baseScore)}</span>
-                        <span className="text-text-quaternary">→</span>
-                        <span className="text-text-primary">{formatScore(simScore)}</span>
-                        {axisDelta != null && axisDelta !== 0 && (
-                          <span className={axisDelta > 0 ? "text-deviation-positive" : "text-deviation-negative"}>
-                            {axisDelta >= 0 ? "+" : ""}{axisDelta.toFixed(4)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
+      </section>
+
+      {/* ═══ 4. ACTIONS ═══ */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={resetToBaseline}
+          disabled={(!hasAdjustments && serviceState === "IDLE") || serviceState === "COMPUTING"}
+          className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Reset to Baseline
+        </button>
+        {(serviceState === "SERVICE_DOWN" || serviceState === "ERROR") && (
+          <button
+            type="button"
+            onClick={retrySimulation}
+            className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+          >
+            Retry
+          </button>
+        )}
+        {showSimulated && (
+          <button
+            type="button"
+            onClick={exportSnapshot}
+            className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+          >
+            Export JSON
+          </button>
+        )}
+        {(serviceState === "COMPUTING" || serviceState === "RETRYING") && (
+          <span className="text-[11px] text-text-quaternary">
+            {serviceState === "RETRYING" ? "Retrying…" : "Computing…"}
+          </span>
+        )}
       </div>
 
       {/* ═══ FAILURE PANEL ═══ */}
       {(serviceState === "SERVICE_DOWN" || serviceState === "ERROR") && (
-        <div role="alert" className="mt-6 rounded border border-stone-200 bg-stone-50 px-4 py-3">
+        <div role="alert" className="rounded border border-stone-200 bg-stone-50 px-4 py-3">
           <p className="text-[13px] font-medium text-stone-600">
             {failureStatus === 404
               ? "Country not available for simulation."
@@ -811,8 +830,8 @@ export function ScenarioLaboratory({
         </div>
       )}
 
-      {/* ═══ FULL-WIDTH: Radar + Contribution Breakdown ═══ */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-[3fr_2fr]">
+      {/* ═══ 5. RADAR + CONTRIBUTION BREAKDOWN ═══ */}
+      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         {/* Radar Chart */}
         <div className="relative flex flex-col rounded border border-border-primary px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
@@ -856,7 +875,20 @@ export function ScenarioLaboratory({
                 </span>
               </p>
             )}
-            <div className="mt-3 space-y-1.5">
+            {/* Main driver / offsetting summary */}
+            {mainDriver && (
+              <p className="mt-1 text-[11px] text-text-tertiary">
+                Main driver: <span className="font-medium text-text-secondary">{mainDriver.label}</span>
+                {" "}({mainDriver.delta >= 0 ? "+" : ""}{mainDriver.delta.toFixed(4)})
+                {offsetting && (
+                  <>
+                    {" · "}Offsetting: <span className="font-medium text-text-secondary">{offsetting.label}</span>
+                    {" "}({offsetting.delta >= 0 ? "+" : ""}{offsetting.delta.toFixed(4)})
+                  </>
+                )}
+              </p>
+            )}
+            <div className="mt-3 space-y-1">
               {decomposition.map((item) => {
                 const pct = (Math.abs(item.delta) / maxAbsDelta) * 100;
                 const isPositive = item.delta > 0;
@@ -865,7 +897,7 @@ export function ScenarioLaboratory({
                     <span className="w-24 shrink-0 text-[11px] font-medium text-text-secondary">
                       {item.label}
                     </span>
-                    <div className="relative flex h-4 flex-1 items-center">
+                    <div className="relative flex h-3 flex-1 items-center">
                       <div className="absolute inset-0 rounded bg-stone-100" />
                       <div
                         className={`relative h-full rounded ${isPositive ? "bg-stone-400" : "bg-stone-300"}`}
@@ -891,9 +923,9 @@ export function ScenarioLaboratory({
         )}
       </div>
 
-      {/* ═══ TIMELINE ═══ */}
+      {/* ═══ 6. TIMELINE ═══ */}
       {timeline.length > 0 && (
-        <div className="mt-8">
+        <section>
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
             Session Timeline
           </p>
@@ -938,11 +970,11 @@ export function ScenarioLaboratory({
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       )}
 
       {/* ═══ Institutional Note ═══ */}
-      <p className="mt-8 text-[11px] leading-relaxed text-text-quaternary">
+      <p className="text-[11px] leading-relaxed text-text-quaternary">
         Scenario results are computed server-side and reflect proportional adjustments
         to HHI concentration indices.
       </p>

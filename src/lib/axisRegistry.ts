@@ -56,6 +56,18 @@ export function getAxisShortName(slug: string): string {
 }
 
 /**
+ * Universal axis label formatter.
+ * Accepts any backend key, slug, or long-form name and returns a clean,
+ * human-readable short label with no underscores or camelCase.
+ *
+ * This is the single entry point for all axis label rendering.
+ * Use instead of getAxisShortName / getCanonicalAxisName for display.
+ */
+export function formatAxisLabel(key: string): string {
+  return getAxisShortName(key);
+}
+
+/**
  * Map axis slug → ISICompositeCountry field key.
  * Used by components that read scores from composite data.
  */
