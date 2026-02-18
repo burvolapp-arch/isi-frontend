@@ -1,23 +1,18 @@
 import Link from "next/link";
 import { fetchCountry, fetchISI, ApiError } from "@/lib/api";
-import { StatusBadge } from "@/components/StatusBadge";
-import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
-import { RadarChart } from "@/components/RadarChart";
-import { DeviationBarChart } from "@/components/DeviationBar";
-import { DistributionHistogram } from "@/components/DistributionHistogram";
+import { StatusBadge } from "@/components/StatusBadge";
+import { CountryView } from "@/components/CountryView";
 import {
   formatScore,
   computePercentile,
   extractCompositeScores,
-  deviationFromMean,
   axisHref,
   isAggregatePartner,
   formatCompactVolume,
   computeRank,
 } from "@/lib/format";
 import { getCanonicalAxisName } from "@/lib/axisRegistry";
-import { generateStructuralSummary } from "@/lib/summary";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -25,7 +20,7 @@ import type {
   Warning,
 } from "@/lib/types";
 
-export const revalidate = 300; // ISR: rebuild at most every 5 minutes
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -36,8 +31,7 @@ export default async function CountryPage({ params }: PageProps) {
   const upperCode = code.toUpperCase();
 
   let country: CountryDetail | null = null;
-  let error: { message: string; endpoint: string; status?: number } | null =
-    null;
+  let error: { message: string; endpoint: string; status?: number } | null = null;
 
   const [countryResult, isiResult] = await Promise.allSettled([
     fetchCountry(upperCode),
@@ -80,7 +74,6 @@ export default async function CountryPage({ params }: PageProps) {
     );
   }
 
-  // Compute percentile and rank from ISI composite data
   const allScores = isi ? extractCompositeScores(isi.countries) : [];
   const percentile =
     country.isi_composite !== null && allScores.length > 0
@@ -91,38 +84,12 @@ export default async function CountryPage({ params }: PageProps) {
       ? computeRank(country.isi_composite, allScores)
       : null;
   const totalRanked = allScores.length;
-
-  // Identify strengths (lowest HHI) and vulnerabilities (highest HHI)
-  const scoredAxes = country.axes
-    .filter((a) => a.score !== null)
-    .sort((a, b) => (a.score ?? 0) - (b.score ?? 0));
-  const strengths = scoredAxes.slice(0, 2);
-  const vulnerabilities = scoredAxes.slice(-2).reverse();
-
   const compositeMean = isi?.statistics.mean ?? null;
-
-  // Build radar data from country axes (dynamic, no hardcoded count)
-  const radarAxes = country.axes.map((a) => ({
-    slug: a.axis_slug,
-    value: a.score,
-  }));
-
-  // Build EU mean per axis (matching order) if ISI data available
-  const euMeanPerAxis = isi
-    ? country.axes.map(() => compositeMean) // Approximate — use composite mean per axis
-    : undefined;
-
-  // Build deviation bar items
-  const deviationItems = country.axes.map((a) => ({
-    label: getCanonicalAxisName(a.axis_slug),
-    score: a.score,
-    href: axisHref(a.axis_slug),
-  }));
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
-        {/* ── Breadcrumb ────────────────────────────────────── */}
+      <main className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-16">
+        {/* ── Breadcrumb ── */}
         <div className="pt-6 sm:pt-10">
           <Link
             href="/"
@@ -132,210 +99,23 @@ export default async function CountryPage({ params }: PageProps) {
           </Link>
         </div>
 
-        {/* ── Country Header ────────────────────────────────── */}
-        <section className="mt-6">
-          <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
-            <h1
-              className="font-serif font-bold leading-[1.15] tracking-tight text-text-primary"
-              style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}
-            >
-              {country.country_name}
-            </h1>
-            <span className="font-mono text-[14px] text-text-quaternary sm:text-[15px]">
-              {country.country}
-            </span>
-          </div>
-          <p className="mt-2 text-[14px] text-text-tertiary">
-            {country.version} · {country.window} ·{" "}
-            {country.axes_available}/{country.axes_required} axes available
-          </p>
-        </section>
+        {/* ── Country Header + Mode Toggle + Views (client) ── */}
+        <CountryView
+          country={country}
+          isi={isi}
+          code={code}
+          allScores={allScores}
+          rank={rank}
+          totalRanked={totalRanked}
+          percentile={percentile}
+          compositeMean={compositeMean}
+        />
 
-        {/* ── Composite KPI Row ─────────────────────────────── */}
-        <section className="mt-12">
-          <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-            Composite Score
-          </h2>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-            <KPICard
-              label="ISI Composite"
-              value={formatScore(country.isi_composite)}
-              variant="highlight"
-            />
-            <div className="flex items-center rounded-md border border-border-primary bg-surface-tertiary px-5">
-              <StatusBadge classification={country.isi_classification} />
-            </div>
-            <KPICard
-              label="EU-27 Rank"
-              value={rank !== null ? `${rank} / ${totalRanked}` : "—"}
-              subtitle={
-                percentile !== null
-                  ? `Less concentrated than ${100 - percentile}% of EU-27`
-                  : "ISI composite data unavailable"
-              }
-            />
-            <KPICard
-              label="Axes Coverage"
-              value={`${country.axes_available} / ${country.axes_required}`}
-              subtitle={
-                country.axes_available < country.axes_required
-                  ? "Incomplete — composite may be partial"
-                  : "All axes available"
-              }
-            />
-          </div>
-          {/* EU Mean Reference */}
-          {compositeMean !== null && country.isi_composite !== null && (
-            <p className="mt-3 text-[13px] tabular-nums text-text-tertiary">
-              EU-27 Mean: {formatScore(compositeMean)} · Δ{" "}
-              {(deviationFromMean(country.isi_composite, compositeMean) ?? 0) > 0
-                ? "+"
-                : ""}
-              {formatScore(
-                deviationFromMean(country.isi_composite, compositeMean)
-              )}
-            </p>
-          )}
-          <div className="mt-4">
-            <Link
-              href={`/country/${code.toLowerCase()}/scenario`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border-primary bg-white px-4 py-2 text-[13px] font-medium text-text-secondary transition-colors hover:bg-stone-50"
-            >
-              Open Scenario Laboratory
-              <span aria-hidden="true" className="text-text-quaternary">→</span>
-            </Link>
-          </div>
-        </section>
-
-        {/* ── Distribution Context (where does this country sit?) ── */}
-        {allScores.length > 0 && country.isi_composite !== null && (
-          <section className="mt-12">
-            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
-              Position in EU-27 Distribution
-            </h2>
-            <p className="mt-1.5 text-[14px] text-text-tertiary">
-              {country.country_name}&apos;s composite score relative to all EU-27 member states.
-            </p>
-            <div className="mt-6 rounded-md border border-border-primary p-3 sm:p-6">
-            <DistributionHistogram
-              scores={allScores}
-              mean={compositeMean}
-              highlight={country.isi_composite}
-              highlightLabel={country.country}
-              height={160}
-              binCount={16}
-            />
-            </div>
-          </section>
-        )}
-
-        {/* ── Radar + Deviation Side-by-Side ───────────────── */}
-        <section className="mt-10 grid gap-4 sm:mt-14 sm:gap-6 lg:grid-cols-[3fr_2fr]">
-          {/* Radar Chart */}
-          <div className="relative flex flex-col overflow-hidden rounded-md border border-border-primary px-2 pt-3 pb-1 sm:px-3 sm:pt-4 sm:pb-2">
-            <h2 className="text-[12.5px] font-semibold uppercase tracking-[0.14em] text-text-quaternary">
-              Multi-Axis Profile
-            </h2>
-            <div className="mt-4 flex w-full items-center justify-center">
-              <RadarChart
-                axes={radarAxes}
-                euMean={euMeanPerAxis}
-                label={country.country_name}
-                countryCode={country.country}
-              />
-            </div>
-          </div>
-
-          {/* Deviation Bars */}
-          <div className="rounded-md border border-border-primary p-3 sm:p-6">
-            <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-              Deviation from EU-27 Mean
-            </h2>
-            <p className="mt-2 mb-3 text-[12px] text-text-quaternary">
-              Bars show deviation from the EU-27 composite mean ({formatScore(compositeMean)}).
-              Red = above mean (more concentrated). Green = below mean (more diversified).
-            </p>
-            <DeviationBarChart
-              items={deviationItems}
-              mean={compositeMean}
-            />
-          </div>
-        </section>
-
-        {/* ── Structural Exposure Summary ───────────────────── */}
-        {(() => {
-          const summary = generateStructuralSummary(
-            country,
-            compositeMean,
-            allScores
-          );
-          if (!summary) return null;
-          return (
-            <section className="mt-10 rounded-md border border-border-primary bg-surface-tertiary p-5">
-              <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-                Structural Exposure Summary
-              </h3>
-              <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
-                {summary}
-              </p>
-              <p className="mt-3 text-[12px] leading-relaxed text-text-quaternary">
-                HHI captures concentration structure only. It does not measure substitutability, domestic production capacity, or geopolitical resilience.
-              </p>
-            </section>
-          );
-        })()}
-
-        {/* ── Strengths & Vulnerabilities ───────────────────── */}
-        {scoredAxes.length >= 2 && (
-          <section className="mt-12 grid gap-4 md:grid-cols-2">
-            <div className="border-l-2 border-l-deviation-negative rounded-md border border-border-primary p-4 sm:p-5">
-              <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-deviation-negative">
-                Most Diversified Axes (Lowest HHI)
-              </h3>
-              <div className="mt-4 space-y-2">
-                {strengths.map((a) => (
-                  <div key={a.axis_id} className="flex items-center justify-between">
-                    <Link
-                      href={axisHref(a.axis_slug)}
-                      className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
-                    >
-                      {getCanonicalAxisName(a.axis_slug)}
-                    </Link>
-                    <span className="font-mono text-[14px] text-deviation-negative">
-                      {formatScore(a.score)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="border-l-2 border-l-deviation-positive rounded-md border border-border-primary p-4 sm:p-5">
-              <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-deviation-positive">
-                Most Concentrated Axes (Highest HHI)
-              </h3>
-              <div className="mt-4 space-y-2">
-                {vulnerabilities.map((a) => (
-                  <div key={a.axis_id} className="flex items-center justify-between">
-                    <Link
-                      href={axisHref(a.axis_slug)}
-                      className="text-[14px] font-medium text-text-secondary hover:text-navy-700"
-                    >
-                      {getCanonicalAxisName(a.axis_slug)}
-                    </Link>
-                    <span className="font-mono text-[14px] text-deviation-positive">
-                      {formatScore(a.score)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── Per-Axis Details ──────────────────────────────── */}
-        <div className="mt-14 mb-16 space-y-4">
-        {country.axes.map((axis) => (
-          <AxisSection key={axis.axis_id} axis={axis} />
-        ))}
+        {/* ── Per-Axis Details (always visible) ── */}
+        <div className="mt-10 mb-16 space-y-3">
+          {country.axes.map((axis) => (
+            <AxisSection key={axis.axis_id} axis={axis} />
+          ))}
         </div>
       </main>
     </div>
