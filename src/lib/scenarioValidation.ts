@@ -5,18 +5,17 @@
 //
 // Backend contract (hardened):
 //   POST /scenario
-//   Body: { country: string (2-letter uppercase), shifts: { [canonicalAxisName]: number } }
+//   Body: { country: string (2-letter uppercase), adjustments: { [longBackendSlug]: number } }
 //
 // INVARIANTS:
 //   - country is ALWAYS 2-letter uppercase
-//   - shifts only include canonical axis names from axisRegistry
+//   - adjustments keys are long-form backend axis slugs
+//   - ALL 6 axes are ALWAYS present (including zeros)
 //   - all values are parseFloat-coerced, bounded to [-0.2, 0.2]
-//   - zero-value shifts are EXCLUDED from payload
 //   - no meta block, no extra keys
 // ============================================================================
 
 import {
-  AXIS_CANONICAL_NAMES,
   ALL_AXIS_SLUGS,
   type AxisSlug,
 } from "./axisRegistry";
@@ -26,8 +25,18 @@ import {
 const MIN_SHIFT = -0.20;
 const MAX_SHIFT = 0.20;
 
-/** Set of valid canonical axis names (display-name form, from axisRegistry) */
-const VALID_CANONICAL_NAMES: Set<string> = new Set(Object.values(AXIS_CANONICAL_NAMES));
+/** Long-form backend axis slugs — the ONLY keys the backend accepts */
+const UI_TO_BACKEND: Record<AxisSlug, string> = {
+  financial: "financial_external_supplier_concentration",
+  energy: "energy_external_supplier_concentration",
+  technology: "technology_semiconductor_external_supplier_concentration",
+  defense: "defense_external_supplier_concentration",
+  critical_inputs: "critical_inputs_raw_materials_external_supplier_concentration",
+  logistics: "logistics_freight_external_supplier_concentration",
+};
+
+/** Set of valid long-form backend axis slugs */
+const VALID_BACKEND_SLUGS: Set<string> = new Set(Object.values(UI_TO_BACKEND));
 
 /** ISO-2 uppercase country codes for EU-27 */
 const EU27_CODES = new Set([
@@ -40,7 +49,7 @@ const EU27_CODES = new Set([
 
 export interface ScenarioPayload {
   country: string;
-  shifts: Record<string, number>;
+  adjustments: Record<string, number>;
 }
 
 export interface ValidationFailure {
@@ -62,37 +71,37 @@ export type ValidationResult = ValidationSuccess | ValidationFailure;
  *
  * GUARANTEES:
  *   - country is 2-letter uppercase
- *   - shifts keys are canonical axis names from AXIS_CANONICAL_NAMES
+ *   - adjustments keys are long-form backend axis slugs
+ *   - ALL 6 axes are ALWAYS present (including zeros)
  *   - all values are parseFloat-coerced, clamped to [-0.2, 0.2]
- *   - zero-value shifts are EXCLUDED
  *   - no extra keys, no meta block
  *
  * @param countryCode - 2-letter ISO code (uppercased internally)
- * @param adjustments - UI-level adjustments (short slug → number)
+ * @param uiAdjustments - UI-level adjustments (short slug → number)
  */
 export function buildScenarioPayload(
   countryCode: string,
-  adjustments: Record<string, number>,
+  uiAdjustments: Record<string, number>,
 ): ScenarioPayload {
-  const shifts: Record<string, number> = {};
+  const adjustments: Record<string, number> = {};
 
   for (const slug of ALL_AXIS_SLUGS) {
-    const raw = adjustments[slug];
-    if (raw === undefined || raw === null) continue;
+    const raw = uiAdjustments[slug];
+    const value = raw !== undefined && raw !== null
+      ? parseFloat(String(raw))
+      : 0;
 
-    const value = parseFloat(String(raw));
-    if (!Number.isFinite(value)) continue;
+    const clamped = Number.isFinite(value)
+      ? Math.max(MIN_SHIFT, Math.min(MAX_SHIFT, value))
+      : 0.0;
 
-    const clamped = Math.max(MIN_SHIFT, Math.min(MAX_SHIFT, value));
-    if (clamped === 0) continue; // exclude zero shifts
-
-    const canonicalName = AXIS_CANONICAL_NAMES[slug];
-    shifts[canonicalName] = clamped;
+    const backendSlug = UI_TO_BACKEND[slug];
+    adjustments[backendSlug] = clamped;
   }
 
   return {
     country: countryCode.toUpperCase().trim(),
-    shifts,
+    adjustments,
   };
 }
 
@@ -132,7 +141,7 @@ export function validateScenarioInput(
 
 /**
  * Validate an incoming proxy request body.
- * Accepts: { country: string, shifts: { [canonicalAxisName]: number } }
+ * Accepts: { country: string, adjustments: { [longBackendSlug]: number } }
  *
  * Returns a clean backend-ready payload or null.
  */
@@ -150,27 +159,24 @@ export function validateProxyBody(
   const country = rawCountry.toUpperCase().trim();
   if (country.length !== 2) return null;
 
-  // Extract shifts
-  const rawShifts = obj.shifts;
-  if (typeof rawShifts !== "object" || rawShifts === null) return null;
+  // Extract adjustments
+  const rawAdj = obj.adjustments;
+  if (typeof rawAdj !== "object" || rawAdj === null) return null;
 
-  const inputShifts = rawShifts as Record<string, unknown>;
-  const shifts: Record<string, number> = {};
+  const inputAdj = rawAdj as Record<string, unknown>;
+  const adjustments: Record<string, number> = {};
 
-  for (const [key, rawValue] of Object.entries(inputShifts)) {
-    // Only allow canonical axis names from axisRegistry
-    if (!VALID_CANONICAL_NAMES.has(key)) continue;
+  for (const [key, rawValue] of Object.entries(inputAdj)) {
+    // Only allow long-form backend axis slugs
+    if (!VALID_BACKEND_SLUGS.has(key)) continue;
 
     const value = parseFloat(String(rawValue));
     if (!Number.isFinite(value)) return null; // reject non-numeric
 
-    const clamped = Math.max(MIN_SHIFT, Math.min(MAX_SHIFT, value));
-    if (clamped === 0) continue; // exclude zero shifts
-
-    shifts[key] = clamped;
+    adjustments[key] = Math.max(MIN_SHIFT, Math.min(MAX_SHIFT, value));
   }
 
-  return { country, shifts };
+  return { country, adjustments };
 }
 
 // ── Response Validation ─────────────────────────────────────────────

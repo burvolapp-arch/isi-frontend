@@ -128,13 +128,13 @@ function logOnce(key: string, ...args: unknown[]) {
  * POST /api/scenario — Run scenario simulation via same-origin proxy.
  *
  * Backend contract (hardened):
- *   { country: string (2-letter uppercase), shifts: { [canonicalAxisName]: number } }
+ *   { country: string (2-letter uppercase), adjustments: { [longBackendSlug]: number } }
  *
  * GUARANTEES:
  *   - Pre-flight validation blocks invalid payloads (no round-trip)
- *   - Only canonical axis names from axisRegistry in shifts
+ *   - Only long-form backend axis slugs in adjustments
+ *   - ALL 6 axes always present (including zeros)
  *   - All values are parseFloat-coerced, bounded to [-0.2, 0.2]
- *   - Zero-value shifts excluded from payload
  *   - Outgoing payload logged before POST
  *   - 400 errors surface backend validation message, NEVER retried
  *   - 500/502 → institutional failure panel, retryable

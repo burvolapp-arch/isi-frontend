@@ -5,15 +5,15 @@
 // this route; the server-side fetch to the backend has no CORS constraints.
 //
 // HARDENED CONTRACT:
-//   Browser sends:   { country: "SE", shifts: { "Energy External ...": 0.05 } }
-//   Backend expects:  same — { country, shifts }
+//   Browser sends:   { country: "SE", adjustments: { "financial_external_supplier_concentration": 0.05 } }
+//   Backend expects:  same — { country, adjustments }
 //   Backend returns:  { composite, rank, classification, axes[], request_id }
 //   Frontend expects: { simulated_axes[], simulated_composite, ... }
 //
 // INVARIANTS:
-//   - Only canonical axis names from axisRegistry in shifts
+//   - Only long-form backend axis slugs in adjustments
+//   - All 6 axes always present (including zeros)
 //   - All values are floats bounded to [-0.2, 0.2]
-//   - Zero-value shifts excluded
 //   - 200 responses validated for required fields before returning
 //   - 400 backend message surfaced to client
 // ============================================================================
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   const backendPayload = {
     country: validated.country,
-    shifts: validated.shifts,
+    adjustments: validated.adjustments,
   };
 
   log("→", `${backendUrl}/scenario`, JSON.stringify(backendPayload).slice(0, 500));

@@ -214,14 +214,14 @@ export interface AxisDetail {
 
 /**
  * Request body for scenario simulation endpoint.
- * Hardened backend contract: { country, shifts }.
+ * Hardened backend contract: { country, adjustments }.
  * country: 2-letter uppercase ISO code.
- * shifts: canonical axis names from axisRegistry → float in [-0.2, 0.2].
- * Zero-value shifts are excluded.
+ * adjustments: long-form backend axis slugs → float in [-0.2, 0.2].
+ * All 6 axes always present.
  */
 export interface ScenarioRequest {
   country: string;
-  shifts: Record<string, number>;
+  adjustments: Record<string, number>;
 }
 
 /** Simulated axis score returned by scenario endpoint */
