@@ -1,22 +1,24 @@
 // ============================================================================
 // Next.js API Route — Scenario Proxy
 // ============================================================================
-// Eliminates browser-level CORS by proxying scenario POST requests
-// through the Next.js server. The browser only talks to the same origin;
-// the server-side fetch to the backend has no CORS constraints.
+// Same-origin proxy for scenario simulation. The browser only talks to
+// this route; the server-side fetch to the backend has no CORS constraints.
 //
-// CONTRACT (backend v0.2):
-//   Backend expects:  { country_code: "SE", axis_shifts: { defense: 0.10, ... } }
+// STABILIZED CONTRACT:
+//   Backend expects:  { country_code, adjustments: { <canonical_slug>: float }, meta }
 //   Backend returns:  { composite, rank, classification, axes[], request_id }
 //   Frontend expects: { simulated_axes[], simulated_composite, simulated_rank,
 //                       simulated_classification, baseline_composite, ... }
 //
-// This proxy validates, sanitizes, and transforms in both directions.
-// No unknown keys are forwarded. No invalid payloads reach the backend.
+// INVARIANTS:
+//   - All 6 canonical axes present in adjustments (no partials)
+//   - All values are floats clamped to [-0.20, +0.20]
+//   - No unknown keys forwarded
+//   - 200 responses validated for required fields before returning
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { validateProxyBody } from "@/lib/scenarioValidation";
+import { validateProxyBody, isValidScenarioResponse } from "@/lib/scenarioValidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,41 +38,6 @@ function log(...args: unknown[]) {
 }
 function logError(...args: unknown[]) {
   console.error("[scenario proxy]", ...args);
-}
-
-// ── Backend response shape (v0.2 contract) ──────────────────────────
-
-interface BackendAxis {
-  slug: string;
-  value: number;
-  delta: number;
-}
-
-interface BackendScenarioResponse {
-  composite: number;
-  rank: number;
-  classification: string;
-  axes: BackendAxis[];
-  request_id: string;
-}
-
-function isValidBackendResponse(d: unknown): d is BackendScenarioResponse {
-  if (typeof d !== "object" || d === null) return false;
-  const obj = d as Record<string, unknown>;
-  return (
-    typeof obj.composite === "number" &&
-    typeof obj.rank === "number" &&
-    typeof obj.classification === "string" &&
-    Array.isArray(obj.axes) &&
-    obj.axes.every(
-      (a: unknown) =>
-        typeof a === "object" &&
-        a !== null &&
-        typeof (a as Record<string, unknown>).slug === "string" &&
-        typeof (a as Record<string, unknown>).value === "number" &&
-        typeof (a as Record<string, unknown>).delta === "number",
-    )
-  );
 }
 
 // ── POST /api/scenario ──────────────────────────────────────────────
@@ -94,7 +61,7 @@ export async function POST(request: NextRequest) {
 
   const validated = validateProxyBody(rawBody);
   if (!validated) {
-    logError("rejected malformed payload:", JSON.stringify(rawBody).slice(0, 300));
+    logError("rejected malformed payload:", JSON.stringify(rawBody).slice(0, 500));
     return NextResponse.json(
       { error: "Invalid scenario input: payload does not match expected schema" },
       { status: 400 },
@@ -105,10 +72,11 @@ export async function POST(request: NextRequest) {
 
   const backendPayload = {
     country_code: validated.country_code,
-    axis_shifts: validated.axis_shifts,
+    adjustments: validated.adjustments,
+    meta: validated.meta,
   };
 
-  log("→", `${backendUrl}/scenario`, JSON.stringify(backendPayload).slice(0, 300));
+  log("→", `${backendUrl}/scenario`, JSON.stringify(backendPayload).slice(0, 500));
 
   // ── 4. Forward to backend ──
 
@@ -137,6 +105,7 @@ export async function POST(request: NextRequest) {
     const text = await upstream.text().catch(() => "");
     logError("upstream", upstream.status, text.slice(0, 500));
 
+    // 400 → bad input (never retry)
     if (upstream.status === 400) {
       return NextResponse.json(
         { error: "Backend rejected scenario input", detail: text },
@@ -144,13 +113,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 404 → country not found (never retry)
+    if (upstream.status === 404) {
+      return NextResponse.json(
+        { error: "Country not available for simulation" },
+        { status: 404 },
+      );
+    }
+
+    // Everything else → 502 (proxy signals "backend problem")
     return NextResponse.json(
       { error: "Upstream simulation service error", upstream_status: upstream.status },
       { status: 502 },
     );
   }
 
-  // ── 6. Parse and validate upstream JSON ──
+  // ── 6. Parse upstream JSON ──
 
   let data: unknown;
   try {
@@ -165,17 +143,28 @@ export async function POST(request: NextRequest) {
 
   log("← raw upstream:", JSON.stringify(data).slice(0, 500));
 
-  if (!isValidBackendResponse(data)) {
-    logError("upstream shape mismatch:", JSON.stringify(data).slice(0, 500));
+  // ── 7. Validate response has required fields ──
+
+  if (!isValidScenarioResponse(data)) {
+    logError("upstream 200 but missing required fields:", JSON.stringify(data).slice(0, 500));
     return NextResponse.json(
-      { error: "Upstream response shape mismatch" },
+      { error: "Upstream response missing required fields" },
       { status: 502 },
     );
   }
 
-  // ── 7. Transform backend v0.2 → frontend ScenarioResponse ──
+  // Safe to cast after validation
+  const resp = data as {
+    composite: number;
+    rank: number;
+    classification: string;
+    axes: { slug: string; value: number; delta: number }[];
+    request_id?: string;
+  };
 
-  const simulatedAxes = data.axes.map((a) => ({
+  // ── 8. Transform backend → frontend ScenarioResponse ──
+
+  const simulatedAxes = resp.axes.map((a) => ({
     axis_slug: a.slug,
     baseline: a.value - a.delta,
     simulated: a.value,
@@ -191,19 +180,19 @@ export async function POST(request: NextRequest) {
   const transformed = {
     country: validated.country_code,
     simulated_axes: simulatedAxes,
-    simulated_composite: data.composite,
-    simulated_rank: data.rank,
-    simulated_classification: data.classification,
+    simulated_composite: resp.composite,
+    simulated_rank: resp.rank,
+    simulated_classification: resp.classification,
     baseline_composite: baselineComposite,
     baseline_rank: null as number | null,
     baseline_classification: null as string | null,
     delta_from_baseline:
       baselineComposite !== null
-        ? data.composite - baselineComposite
+        ? resp.composite - baselineComposite
         : null,
   };
 
-  log("← transformed ok, composite:", data.composite, "rank:", data.rank);
+  log("← transformed ok, composite:", resp.composite, "rank:", resp.rank);
 
   return NextResponse.json(transformed);
 }

@@ -24,8 +24,8 @@ import {
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
 const LABEL_OFFSET = 1.08; // labels slightly offset from axis tips
-const LABEL_FONT_SIZE = 10;
-const LABEL_LINE_HEIGHT = 12;
+const LABEL_FONT_SIZE = 9; // −10% from prior 10
+const LABEL_LINE_HEIGHT = 11; // −10% from prior 12
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
 const VB_SIZE = 460; // square viewBox
 const RADAR_RADIUS = Math.round(VB_SIZE * 0.42); // 193 — dominant, proportional

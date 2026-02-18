@@ -214,12 +214,18 @@ export interface AxisDetail {
 
 /**
  * Request body for scenario simulation endpoint.
- * Backend v0.2 contract: { country_code, axis_shifts }.
- * The proxy accepts the frontend format and transforms it.
+ * Stabilized backend contract: { country_code, adjustments, meta }.
+ * The adjustments use full canonical backend axis slugs.
+ * All 6 axes MUST be present. Values are floats in [-0.20, +0.20].
  */
 export interface ScenarioRequest {
   country_code: string;
-  axis_shifts: Record<string, number>;
+  adjustments: Record<string, number>;
+  meta: {
+    preset: string | null;
+    client_version: string;
+    timestamp: string;
+  };
 }
 
 /** Simulated axis score returned by scenario endpoint */

@@ -16,10 +16,10 @@ import type {
   CountryDetail,
   AxisRegistryEntry,
   AxisDetail,
-  ScenarioRequest,
   ScenarioResponse,
 } from "./types";
 import { validateScenarioInput } from "./scenarioValidation";
+import type { ScenarioPayload } from "./scenarioValidation";
 
 function getBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL;
@@ -127,15 +127,17 @@ function logOnce(key: string, ...args: unknown[]) {
 
 /**
  * POST /api/scenario — Run scenario simulation via same-origin proxy.
- * Accepts optional AbortSignal for cancellation.
  *
- * Pre-flight validation ensures the payload matches the backend schema
- * EXACTLY before any network request is made. Invalid input throws
- * an ApiError(400) immediately — no round-trip.
+ * GUARANTEES:
+ *   - Pre-flight validation blocks invalid payloads (no round-trip)
+ *   - Payload is structurally identical every time (all 6 axes, all floats)
+ *   - No strings-as-numbers ever leave the client
+ *   - 400 errors are NEVER retried
+ *   - Only 500/502 are retryable
  *
  * Error classification:
  * - BAD_INPUT (400): invalid payload — never retry
- * - ROUTE_MISSING (404): proxy route not deployed — never retry
+ * - ROUTE_MISSING (404): country or proxy not found — never retry
  * - TRANSPORT_LAYER_BLOCKED: network/CORS — never retry
  * - SERVICE_ERROR (500/502/other): upstream down — retryable
  */
@@ -143,16 +145,17 @@ export async function fetchScenario(
   countryCode: string,
   adjustments: Record<string, number>,
   signal?: AbortSignal,
+  currentPreset: string | null = null,
 ): Promise<ScenarioResponse> {
   // ── Pre-flight validation — block invalid requests at source ──
-  const validation = validateScenarioInput(countryCode, adjustments);
+  const validation = validateScenarioInput(countryCode, adjustments, currentPreset);
   if (!validation.valid) {
     const err = new ApiError(400, "/api/scenario", validation.reason);
     logOnce(`BAD_INPUT-preflight`, `BAD_INPUT: ${validation.reason}`);
     throw err;
   }
 
-  const payload: ScenarioRequest = validation.payload;
+  const payload: ScenarioPayload = validation.payload;
 
   try {
     const res = await fetch("/api/scenario", {

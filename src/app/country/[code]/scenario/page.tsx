@@ -361,6 +361,7 @@ export default function ScenarioPage() {
           code,
           adj,
           controller.signal,
+          activePresetLabel,
         );
 
         if (controller.signal.aborted) return;
@@ -399,7 +400,7 @@ export default function ScenarioPage() {
         setFailureTimestamp(now);
         setFailureStatus(httpStatus);
 
-        // ROUTE_MISSING, BAD_INPUT, or TRANSPORT — never auto-retry
+        // BAD_INPUT (400), ROUTE_MISSING (404), TRANSPORT — never auto-retry
         if (
           kind === "ROUTE_MISSING" ||
           kind === "BAD_INPUT" ||
@@ -414,16 +415,26 @@ export default function ScenarioPage() {
           } else {
             setScenario(null);
           }
-          setServiceState(kind === "BAD_INPUT" ? "ERROR" : "SERVICE_DOWN");
+          // 400 → ERROR, 404 → ERROR, transport → SERVICE_DOWN
+          setServiceState(
+            kind === "BAD_INPUT" || kind === "ROUTE_MISSING" ? "ERROR" : "SERVICE_DOWN",
+          );
           return;
         }
 
-        // HTTP 500 or 502 — never auto-retry, immediate fallback
-        // (proxy returns 502 for all backend failures; 500 = proxy itself broken)
+        // HTTP 500 or 502 — institutional failure panel, only these are retryable
         if (httpStatus === 500 || httpStatus === 502) {
-          if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-          retryCountRef.current = MAX_AUTO_RETRIES;
+          // Auto-retry 500/502 with backoff, max 2
+          if (retryCountRef.current < MAX_AUTO_RETRIES) {
+            const delay = RETRY_DELAYS[retryCountRef.current] ?? 2400;
+            retryCountRef.current += 1;
+            retryTimerRef.current = setTimeout(() => {
+              executeScenarioRequest(adj, true);
+            }, delay);
+            return;
+          }
 
+          // Exhausted retries for 500/502
           if (lastSuccessRef.current) {
             setScenario(lastSuccessRef.current);
             setShowingCached(true);
@@ -434,18 +445,7 @@ export default function ScenarioPage() {
           return;
         }
 
-        // SERVICE_ERROR (503, 504, etc) — auto-retry with backoff, max 2
-        if (retryCountRef.current < MAX_AUTO_RETRIES) {
-          const delay = RETRY_DELAYS[retryCountRef.current] ?? 2400;
-          retryCountRef.current += 1;
-
-          retryTimerRef.current = setTimeout(() => {
-            executeScenarioRequest(adj, true);
-          }, delay);
-          return;
-        }
-
-        // Exhausted retries
+        // All other errors — immediate failure, no retry
         if (lastSuccessRef.current) {
           setScenario(lastSuccessRef.current);
           setShowingCached(true);
@@ -1064,16 +1064,26 @@ export default function ScenarioPage() {
             className="mt-6 rounded-md border border-stone-200 bg-stone-50 px-5 py-4"
           >
             <h3 className="text-[14px] font-medium text-stone-700">
-              {failureStatus === 400
-                ? "Simulation Input Invalid"
-                : serviceState === "SERVICE_DOWN"
-                  ? "Simulation Service Unavailable"
-                  : "Simulation Error"}
+              {failureStatus === 404
+                ? "Country Not Available for Simulation"
+                : failureStatus === 400
+                  ? "Simulation Input Invalid"
+                  : (failureStatus === 500 || failureStatus === 502)
+                    ? "Simulation Service Unavailable"
+                    : failureStatus === null
+                      ? "Network Connection Error"
+                      : "Simulation Error"}
             </h3>
             <p className="mt-2 text-[13px] leading-relaxed text-stone-500">
-              {failureStatus === 400
-                ? "The simulation request was rejected due to invalid input parameters. Adjust axis values and retry."
-                : "The structural simulation engine did not return a valid response. Published baseline metrics remain authoritative."}
+              {failureStatus === 404
+                ? "This country is not currently available for scenario simulation. Baseline metrics remain authoritative."
+                : failureStatus === 400
+                  ? "The simulation request was rejected due to invalid input parameters. Adjust axis values and retry."
+                  : (failureStatus === 500 || failureStatus === 502)
+                    ? "The structural simulation engine did not return a valid response. Published baseline metrics remain authoritative."
+                    : failureStatus === null
+                      ? "Unable to reach the simulation service. Check your network connection and retry."
+                      : "An unexpected error occurred during simulation. Published baseline metrics remain authoritative."}
             </p>
             {showingCached && (
               <div className="mt-3 rounded border border-amber-200 bg-amber-50 px-3.5 py-2">
@@ -1158,7 +1168,7 @@ export default function ScenarioPage() {
                 {activePresetLabel}
               </p>
             )}
-            <div className="mt-4 flex w-full items-center justify-center">
+            <div className="mx-auto mt-4 flex w-full max-w-[520px] items-center justify-center">
               {showSimulated && simulatedRadarAxes ? (
                 <RadarChart
                   axes={simulatedRadarAxes}
