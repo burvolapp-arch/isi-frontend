@@ -202,6 +202,7 @@ export default function ScenarioPage() {
   const [serviceState, setServiceState] = useState<ServiceState>("IDLE");
   const [failureTimestamp, setFailureTimestamp] = useState<string | null>(null);
   const [failureStatus, setFailureStatus] = useState<number | null>(null);
+  const [failureMessage, setFailureMessage] = useState<string | null>(null);
 
   // ── In-memory cache ──
   const lastSuccessRef = useRef<ScenarioResponse | null>(null);
@@ -361,7 +362,6 @@ export default function ScenarioPage() {
           code,
           adj,
           controller.signal,
-          activePresetLabel,
         );
 
         if (controller.signal.aborted) return;
@@ -372,6 +372,7 @@ export default function ScenarioPage() {
         setShowingCached(false);
         setFailureTimestamp(null);
         setFailureStatus(null);
+        setFailureMessage(null);
         retryCountRef.current = 0;
 
         // Add to timeline
@@ -399,6 +400,9 @@ export default function ScenarioPage() {
 
         setFailureTimestamp(now);
         setFailureStatus(httpStatus);
+        setFailureMessage(
+          err instanceof ApiError && err.body ? err.body : null,
+        );
 
         // BAD_INPUT (400), ROUTE_MISSING (404), TRANSPORT — never auto-retry
         if (
@@ -503,6 +507,7 @@ export default function ScenarioPage() {
     setServiceState("IDLE");
     setFailureTimestamp(null);
     setFailureStatus(null);
+    setFailureMessage(null);
     if (hasAdjustments) {
       executeScenarioRequest(activeAdjustments, false);
     }
@@ -544,6 +549,7 @@ export default function ScenarioPage() {
     setShowingCached(false);
     setFailureTimestamp(null);
     setFailureStatus(null);
+    setFailureMessage(null);
     setActivePresetLabel(null);
   }, []);
 
@@ -1078,7 +1084,7 @@ export default function ScenarioPage() {
               {failureStatus === 404
                 ? "This country is not currently available for scenario simulation. Baseline metrics remain authoritative."
                 : failureStatus === 400
-                  ? "The simulation request was rejected due to invalid input parameters. Adjust axis values and retry."
+                  ? (failureMessage || "The simulation request was rejected due to invalid input parameters. Adjust axis values and retry.")
                   : (failureStatus === 500 || failureStatus === 502)
                     ? "The structural simulation engine did not return a valid response. Published baseline metrics remain authoritative."
                     : failureStatus === null

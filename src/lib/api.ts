@@ -19,7 +19,6 @@ import type {
   ScenarioResponse,
 } from "./types";
 import { validateScenarioInput } from "./scenarioValidation";
-import type { ScenarioPayload } from "./scenarioValidation";
 
 function getBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL;
@@ -128,55 +127,67 @@ function logOnce(key: string, ...args: unknown[]) {
 /**
  * POST /api/scenario — Run scenario simulation via same-origin proxy.
  *
+ * Backend contract (hardened):
+ *   { country: string (2-letter uppercase), shifts: { [canonicalAxisName]: number } }
+ *
  * GUARANTEES:
  *   - Pre-flight validation blocks invalid payloads (no round-trip)
- *   - Payload is structurally identical every time (all 6 axes, all floats)
- *   - No strings-as-numbers ever leave the client
- *   - 400 errors are NEVER retried
- *   - Only 500/502 are retryable
- *
- * Error classification:
- * - BAD_INPUT (400): invalid payload — never retry
- * - ROUTE_MISSING (404): country or proxy not found — never retry
- * - TRANSPORT_LAYER_BLOCKED: network/CORS — never retry
- * - SERVICE_ERROR (500/502/other): upstream down — retryable
+ *   - Only canonical axis names from axisRegistry in shifts
+ *   - All values are parseFloat-coerced, bounded to [-0.2, 0.2]
+ *   - Zero-value shifts excluded from payload
+ *   - Outgoing payload logged before POST
+ *   - 400 errors surface backend validation message, NEVER retried
+ *   - 500/502 → institutional failure panel, retryable
+ *   - Does not modify axis labels, does not mutate baseline,
+ *     does not compute composite client-side
  */
 export async function fetchScenario(
   countryCode: string,
   adjustments: Record<string, number>,
   signal?: AbortSignal,
-  currentPreset: string | null = null,
 ): Promise<ScenarioResponse> {
   // ── Pre-flight validation — block invalid requests at source ──
-  const validation = validateScenarioInput(countryCode, adjustments, currentPreset);
+  const validation = validateScenarioInput(countryCode, adjustments);
   if (!validation.valid) {
     const err = new ApiError(400, "/api/scenario", validation.reason);
     logOnce(`BAD_INPUT-preflight`, `BAD_INPUT: ${validation.reason}`);
     throw err;
   }
 
-  const payload: ScenarioPayload = validation.payload;
+  const payload = validation.payload;
+
+  // Log outgoing payload before POST
+  // eslint-disable-next-line no-console
+  console.log("SCENARIO PAYLOAD", payload);
 
   try {
     const res = await fetch("/api/scenario", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      cache: "no-store",
       signal,
     });
 
     if (!res.ok) {
+      // Parse backend error body — surface validation message for 400s
       const text = await res.text().catch(() => "");
-      const err = new ApiError(res.status, "/api/scenario", text);
+      let errorMessage = text;
+      try {
+        const parsed = JSON.parse(text);
+        if (typeof parsed.detail === "string") errorMessage = parsed.detail;
+        else if (typeof parsed.error === "string") errorMessage = parsed.error;
+        else if (typeof parsed.message === "string") errorMessage = parsed.message;
+      } catch {
+        // text is already the message
+      }
+
+      const err = new ApiError(res.status, "/api/scenario", errorMessage);
       const kind = classifyFetchError(err);
 
       logOnce(
         `${kind}-${res.status}`,
-        `${kind}: status=${res.status}`,
+        `${kind}: status=${res.status} body=${errorMessage}`,
       );
 
       throw err;
@@ -184,16 +195,11 @@ export async function fetchScenario(
 
     return (await res.json()) as ScenarioResponse;
   } catch (err) {
-    // Re-throw ApiError as-is (already classified above)
     if (err instanceof ApiError) throw err;
-
-    // AbortError — pass through silently
     if (err instanceof DOMException && err.name === "AbortError") throw err;
 
-    // Network-level failure
     const kind = classifyFetchError(err);
     logOnce(`${kind}-network`, `${kind}: ${String(err)}`);
-
     throw err;
   }
 }

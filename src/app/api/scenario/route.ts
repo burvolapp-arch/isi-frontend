@@ -4,17 +4,18 @@
 // Same-origin proxy for scenario simulation. The browser only talks to
 // this route; the server-side fetch to the backend has no CORS constraints.
 //
-// STABILIZED CONTRACT:
-//   Backend expects:  { country_code, adjustments: { <canonical_slug>: float }, meta }
+// HARDENED CONTRACT:
+//   Browser sends:   { country: "SE", shifts: { "Energy External ...": 0.05 } }
+//   Backend expects:  same — { country, shifts }
 //   Backend returns:  { composite, rank, classification, axes[], request_id }
-//   Frontend expects: { simulated_axes[], simulated_composite, simulated_rank,
-//                       simulated_classification, baseline_composite, ... }
+//   Frontend expects: { simulated_axes[], simulated_composite, ... }
 //
 // INVARIANTS:
-//   - All 6 canonical axes present in adjustments (no partials)
-//   - All values are floats clamped to [-0.20, +0.20]
-//   - No unknown keys forwarded
+//   - Only canonical axis names from axisRegistry in shifts
+//   - All values are floats bounded to [-0.2, 0.2]
+//   - Zero-value shifts excluded
 //   - 200 responses validated for required fields before returning
+//   - 400 backend message surfaced to client
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ── 2. Validate and sanitize — only canonical keys, only valid ranges ──
+  // ── 2. Validate and sanitize ──
 
   const validated = validateProxyBody(rawBody);
   if (!validated) {
@@ -71,9 +72,8 @@ export async function POST(request: NextRequest) {
   // ── 3. Construct exact backend payload — no extra keys ──
 
   const backendPayload = {
-    country_code: validated.country_code,
-    adjustments: validated.adjustments,
-    meta: validated.meta,
+    country: validated.country,
+    shifts: validated.shifts,
   };
 
   log("→", `${backendUrl}/scenario`, JSON.stringify(backendPayload).slice(0, 500));
@@ -84,10 +84,7 @@ export async function POST(request: NextRequest) {
   try {
     upstream = await fetch(`${backendUrl}/scenario`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       cache: "no-store",
       body: JSON.stringify(backendPayload),
     });
@@ -105,15 +102,24 @@ export async function POST(request: NextRequest) {
     const text = await upstream.text().catch(() => "");
     logError("upstream", upstream.status, text.slice(0, 500));
 
-    // 400 → bad input (never retry)
+    // 400 → surface backend validation message
     if (upstream.status === 400) {
+      let detail = text;
+      try {
+        const parsed = JSON.parse(text);
+        if (typeof parsed.detail === "string") detail = parsed.detail;
+        else if (typeof parsed.error === "string") detail = parsed.error;
+        else if (typeof parsed.message === "string") detail = parsed.message;
+      } catch {
+        // text is already the detail
+      }
       return NextResponse.json(
-        { error: "Backend rejected scenario input", detail: text },
+        { error: detail },
         { status: 400 },
       );
     }
 
-    // 404 → country not found (never retry)
+    // 404 → country not found
     if (upstream.status === 404) {
       return NextResponse.json(
         { error: "Country not available for simulation" },
@@ -121,7 +127,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Everything else → 502 (proxy signals "backend problem")
+    // 500/502 → institutional failure
     return NextResponse.json(
       { error: "Upstream simulation service error", upstream_status: upstream.status },
       { status: 502 },
@@ -153,7 +159,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Safe to cast after validation
   const resp = data as {
     composite: number;
     rank: number;
@@ -178,7 +183,7 @@ export async function POST(request: NextRequest) {
       : null;
 
   const transformed = {
-    country: validated.country_code,
+    country: validated.country,
     simulated_axes: simulatedAxes,
     simulated_composite: resp.composite,
     simulated_rank: resp.rank,
