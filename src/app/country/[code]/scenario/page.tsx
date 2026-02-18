@@ -177,24 +177,26 @@ function isStringOrNull(v: unknown): v is string | null {
   return v === null || typeof v === "string";
 }
 
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return v != null && typeof v === "object" && !Array.isArray(v);
+}
+
 function isValidAggregate(a: unknown): boolean {
-  if (a == null || typeof a !== "object") return false;
-  const agg = a as Record<string, unknown>;
+  if (!isPlainObject(a)) return false;
   return (
-    isFiniteOrNull(agg.composite) &&
-    isFiniteOrNull(agg.rank) &&
-    isStringOrNull(agg.classification) &&
-    Array.isArray(agg.axes)
+    isFiniteOrNull(a.composite) &&
+    isFiniteOrNull(a.rank) &&
+    isStringOrNull(a.classification) &&
+    isPlainObject(a.axes)
   );
 }
 
 function isValidDelta(d: unknown): boolean {
-  if (d == null || typeof d !== "object") return false;
-  const delta = d as Record<string, unknown>;
+  if (!isPlainObject(d)) return false;
   return (
-    isFiniteOrNull(delta.composite) &&
-    isFiniteOrNull(delta.rank) &&
-    Array.isArray(delta.axes)
+    isFiniteOrNull(d.composite) &&
+    isFiniteOrNull(d.rank) &&
+    isPlainObject(d.axes)
   );
 }
 
@@ -482,9 +484,9 @@ export default function ScenarioPage() {
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             timestamp: new Date().toISOString(),
             adjustments: { ...adj },
-            composite: result.simulated.composite,
-            rank: result.simulated.rank,
-            classification: result.simulated.classification as ScoreClassification | null,
+            composite: result.simulated?.composite ?? null,
+            rank: result.simulated?.rank ?? null,
+            classification: (result.simulated?.classification as ScoreClassification) ?? null,
             presetLabel: activePresetLabel,
           };
           const next = [entry, ...prev].slice(0, MAX_TIMELINE_ENTRIES);
@@ -654,9 +656,9 @@ export default function ScenarioPage() {
   // ── Simulated radar axes ──
   const simulatedRadarAxes = useMemo(() => {
     if (!scenario?.simulated?.axes) return null;
-    return scenario.simulated.axes.map((a) => ({
-      slug: a.slug,
-      value: a.score,
+    return Object.entries(scenario.simulated.axes).map(([slug, score]) => ({
+      slug,
+      value: score,
     }));
   }, [scenario]);
 
@@ -673,12 +675,12 @@ export default function ScenarioPage() {
   // ── Delta decomposition data ──
   const decomposition = useMemo(() => {
     if (!scenario?.delta?.axes) return null;
-    const items = scenario.delta.axes
-      .filter((a) => a.delta != null && a.delta !== 0)
-      .map((a) => ({
-        slug: a.slug,
-        label: shortDomain(a.slug),
-        delta: a.delta as number,
+    const items = Object.entries(scenario.delta.axes)
+      .filter(([, d]) => d != null && d !== 0)
+      .map(([slug, d]) => ({
+        slug,
+        label: shortDomain(slug),
+        delta: d,
       }));
     if (items.length === 0) return null;
     return items;
@@ -693,16 +695,16 @@ export default function ScenarioPage() {
   // ── Elasticity data (delta per 1% shift) ──
   const elasticityData = useMemo(() => {
     if (!scenario?.delta?.axes) return null;
-    const items = scenario.delta.axes
-      .map((a) => {
-        const adj = activeAdjustments[a.slug] ?? 0;
+    const items = Object.entries(scenario.delta.axes)
+      .map(([slug, d]) => {
+        const adj = activeAdjustments[slug] ?? 0;
         const pctShift = Math.abs(adj * 100);
-        if (pctShift === 0 || a.delta == null) return null;
+        if (pctShift === 0 || d == null) return null;
         return {
-          slug: a.slug,
-          label: shortDomain(a.slug),
-          elasticity: Math.abs(a.delta) / pctShift,
-          delta: a.delta,
+          slug,
+          label: shortDomain(slug),
+          elasticity: Math.abs(d) / pctShift,
+          delta: d,
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)
@@ -789,28 +791,18 @@ export default function ScenarioPage() {
         composite: scenario.baseline.composite,
         classification: scenario.baseline.classification,
         rank: scenario.baseline.rank ?? baselineRank,
-        axes: scenario.baseline.axes.map((a) => ({
-          slug: a.slug,
-          score: a.score,
-        })),
+        axes: scenario.baseline.axes,
       },
       simulated: {
         composite: scenario.simulated.composite,
         classification: scenario.simulated.classification,
         rank: scenario.simulated.rank,
-        axes: scenario.simulated.axes.map((a) => ({
-          slug: a.slug,
-          score: a.score,
-        })),
+        axes: scenario.simulated.axes,
       },
       delta: {
         composite: scenario.delta.composite,
         rank: scenario.delta.rank,
-        per_axis: Object.fromEntries(
-          scenario.delta.axes
-            .filter((a) => a.delta != null)
-            .map((a) => [a.slug, a.delta]),
-        ),
+        axes: scenario.delta.axes,
       },
       adjustments: activeAdjustments,
       timestamp: new Date().toISOString(),
@@ -1375,35 +1367,35 @@ export default function ScenarioPage() {
                   Per-Axis Results
                 </p>
                 <div className="mt-3 space-y-2">
-                  {scenario.simulated.axes.map((sa) => {
-                    const baseAxis = scenario.baseline.axes.find((b) => b.slug === sa.slug);
-                    const deltaAxis = scenario.delta.axes.find((d) => d.slug === sa.slug);
+                  {Object.entries(scenario.simulated.axes).map(([slug, simScore]) => {
+                    const baseScore = scenario.baseline.axes[slug] ?? null;
+                    const axisDelta = scenario.delta.axes[slug] ?? null;
                     return (
                       <div
-                        key={sa.slug}
+                        key={slug}
                         className="flex items-center justify-between text-[13px]"
                       >
                         <span className="text-text-secondary">
-                          {getCanonicalAxisName(sa.slug)}
+                          {getCanonicalAxisName(slug)}
                         </span>
                         <div className="flex items-center gap-3 font-mono text-[12px]">
                           <span className="text-text-quaternary">
-                            {formatScore(baseAxis?.score ?? null)}
+                            {formatScore(baseScore)}
                           </span>
                           <span className="text-text-quaternary">→</span>
                           <span className="text-text-primary">
-                            {formatScore(sa.score)}
+                            {formatScore(simScore)}
                           </span>
-                          {deltaAxis?.delta != null && deltaAxis.delta !== 0 && (
+                          {axisDelta != null && axisDelta !== 0 && (
                             <span
                               className={
-                                deltaAxis.delta > 0
+                                axisDelta > 0
                                   ? "text-deviation-positive"
                                   : "text-deviation-negative"
                               }
                             >
-                              {deltaAxis.delta >= 0 ? "+" : ""}
-                              {deltaAxis.delta.toFixed(4)}
+                              {axisDelta >= 0 ? "+" : ""}
+                              {axisDelta.toFixed(4)}
                             </span>
                           )}
                         </div>

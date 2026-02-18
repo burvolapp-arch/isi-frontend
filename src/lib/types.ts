@@ -224,31 +224,21 @@ export interface ScenarioRequest {
   adjustments: Record<string, number>;
 }
 
-/** Single axis in the baseline/simulated sections of scenario response */
-export interface ScenarioAxisEntry {
-  slug: string;
-  score: number | null;
-}
-
-/** Single axis delta in the delta section of scenario response */
-export interface ScenarioAxisDelta {
-  slug: string;
-  delta: number | null;
-}
-
 /** Baseline or simulated aggregate block */
 export interface ScenarioAggregate {
   composite: number | null;
   rank: number | null;
   classification: string | null;
-  axes: ScenarioAxisEntry[];
+  /** Axes as returned by backend: { slug: score, ... } */
+  axes: Record<string, number>;
 }
 
 /** Delta block */
 export interface ScenarioDelta {
   composite: number | null;
   rank: number | null;
-  axes: ScenarioAxisDelta[];
+  /** Per-axis deltas as returned by backend: { slug: delta, ... } */
+  axes: Record<string, number>;
 }
 
 /** Meta block */
