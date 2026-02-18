@@ -385,6 +385,11 @@
 			"label": "TypeScript check",
 			"type": "shell",
 			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1 | head -40"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1 && echo 'TSC_PASS' || echo 'TSC_FAIL'"
 		}
 	]
 }

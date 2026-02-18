@@ -45,12 +45,60 @@ export async function POST(request: NextRequest) {
 
     if (!upstream.ok) {
       console.error(`[scenario proxy] upstream ${upstream.status}: ${body.slice(0, 500)}`);
+      return new NextResponse(body, {
+        status: upstream.status,
+        headers: { "Content-Type": upstream.headers.get("Content-Type") || "application/json" },
+      });
     }
 
-    return new NextResponse(body, {
-      status: upstream.status,
-      headers: { "Content-Type": upstream.headers.get("Content-Type") || "application/json" },
-    });
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(body);
+    } catch {
+      return NextResponse.json({ error: "Upstream returned non-JSON" }, { status: 502 });
+    }
+
+    const axes = Array.isArray(data.axes) ? data.axes : [];
+    const simulatedAxes = axes.map((a: Record<string, unknown>) => ({
+      axis_slug: a.slug ?? "",
+      baseline: typeof a.value === "number" && typeof a.delta === "number" ? a.value - a.delta : null,
+      simulated: typeof a.value === "number" ? a.value : null,
+      delta: typeof a.delta === "number" ? a.delta : null,
+    }));
+
+    const baselineValues = simulatedAxes
+      .map((a: { baseline: number | null }) => a.baseline)
+      .filter((v: number | null): v is number => v !== null);
+    const baselineComposite =
+      baselineValues.length > 0
+        ? baselineValues.reduce((s: number, v: number) => s + v, 0) / baselineValues.length
+        : null;
+
+    let parsedReq: Record<string, unknown> = {};
+    try {
+      parsedReq = JSON.parse(rawBody);
+    } catch {
+      // ignore
+    }
+
+    const composite = typeof data.composite === "number" ? data.composite : null;
+
+    const transformed = {
+      country: typeof parsedReq.country === "string" ? parsedReq.country : "",
+      simulated_axes: simulatedAxes,
+      simulated_composite: composite,
+      simulated_rank: typeof data.rank === "number" ? data.rank : null,
+      simulated_classification: typeof data.classification === "string" ? data.classification : null,
+      baseline_composite: baselineComposite,
+      baseline_rank: null,
+      baseline_classification: null,
+      delta_from_baseline:
+        composite !== null && baselineComposite !== null
+          ? composite - baselineComposite
+          : null,
+    };
+
+    return NextResponse.json(transformed);
   } catch (err: unknown) {
     clearTimeout(timeout);
     const message = err instanceof Error ? err.message : String(err);

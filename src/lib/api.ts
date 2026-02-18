@@ -19,7 +19,6 @@ import type {
   ScenarioResponse,
 } from "./types";
 import { validateScenarioInput } from "./scenarioValidation";
-import { FrontendResponseSchema } from "./scenarioContract";
 
 function getBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL;
@@ -174,16 +173,7 @@ export async function fetchScenario(
     }
 
     const json = await res.json();
-
-    // Client-side Zod validation of response
-    const zodResult = FrontendResponseSchema.safeParse(json);
-    if (!zodResult.success) {
-      logOnce("response-shape", "Response Zod validation failed:", zodResult.error.issues);
-      // Still return the data if it's castable — proxy already validated upstream
-      return json as ScenarioResponse;
-    }
-
-    return zodResult.data as ScenarioResponse;
+    return json as ScenarioResponse;
   } catch (err) {
     if (err instanceof ApiError) throw err;
     if (err instanceof DOMException && err.name === "AbortError") throw err;

@@ -1,25 +1,36 @@
 // ============================================================================
-// ISI Frontend — Scenario Validation (delegates to scenarioContract.ts)
+// ISI Frontend — Scenario Validation (zero external dependencies)
 // ============================================================================
-// Thin validation layer. The canonical contract lives in scenarioContract.ts.
-// This file provides the pre-flight validator for the client and the
-// proxy-side body validator for route.ts.
+// Pre-flight validator for the client. No Zod. No heavy imports.
+// Keeps the client bundle minimal and production-safe.
 // ============================================================================
 
-import {
-  buildScenarioRequest,
-  ScenarioRequestSchema,
-  BackendResponseSchema,
-  isEU27,
-  type ScenarioRequestPayload,
-} from "./scenarioContract";
+import { ALL_AXIS_SLUGS, type AxisSlug } from "./axisRegistry";
 
-// ── Re-exports (for backward compat) ────────────────────────────────
+const MIN_SHIFT = -0.20;
+const MAX_SHIFT = 0.20;
 
-export type ScenarioPayload = ScenarioRequestPayload;
-export { buildScenarioRequest as buildScenarioPayload };
+const UI_SLUG_TO_BACKEND_KEY: Record<AxisSlug, string> = {
+  financial: "financial_external_supplier_concentration",
+  energy: "energy_external_supplier_concentration",
+  technology: "technology_semiconductor_external_supplier_concentration",
+  defense: "defense_external_supplier_concentration",
+  critical_inputs: "critical_inputs_raw_materials_external_supplier_concentration",
+  logistics: "logistics_freight_external_supplier_concentration",
+};
+
+const EU27_CODES = new Set([
+  "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "EL", "ES",
+  "FI", "FR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT",
+  "NL", "PL", "PT", "RO", "SE", "SI", "SK",
+]);
 
 // ── Types ───────────────────────────────────────────────────────────
+
+export interface ScenarioPayload {
+  country: string;
+  adjustments: Record<string, number>;
+}
 
 export interface ValidationFailure {
   valid: false;
@@ -33,13 +44,32 @@ export interface ValidationSuccess {
 
 export type ValidationResult = ValidationSuccess | ValidationFailure;
 
-// ── Pre-flight Validator (client-side) ──────────────────────────────
+// ── Payload Builder ─────────────────────────────────────────────────
 
-/**
- * Validate inputs BEFORE building the payload.
- * Returns a structurally correct payload or a failure reason.
- * Invalid inputs are BLOCKED — no request leaves the client.
- */
+export function buildScenarioPayload(
+  countryCode: string,
+  uiAdjustments: Record<string, number>,
+): ScenarioPayload {
+  const adjustments: Record<string, number> = {};
+
+  for (const slug of ALL_AXIS_SLUGS) {
+    const backendKey = UI_SLUG_TO_BACKEND_KEY[slug];
+    const raw = uiAdjustments[slug];
+    const value = raw !== undefined && raw !== null ? parseFloat(String(raw)) : 0;
+    const clamped = Number.isFinite(value)
+      ? Math.max(MIN_SHIFT, Math.min(MAX_SHIFT, value))
+      : 0.0;
+    adjustments[backendKey] = clamped;
+  }
+
+  return {
+    country: countryCode.toUpperCase().trim(),
+    adjustments,
+  };
+}
+
+// ── Pre-flight Validator ────────────────────────────────────────────
+
 export function validateScenarioInput(
   countryCode: string,
   adjustments: Record<string, number>,
@@ -49,11 +79,10 @@ export function validateScenarioInput(
   if (code.length !== 2) {
     return { valid: false, reason: `Invalid country code length: "${code}"` };
   }
-  if (!isEU27(code)) {
+  if (!EU27_CODES.has(code)) {
     return { valid: false, reason: `Country code not in EU-27: "${code}"` };
   }
 
-  // Validate each adjustment value is a usable number
   for (const [key, rawValue] of Object.entries(adjustments)) {
     const value = parseFloat(String(rawValue));
     if (!Number.isFinite(value)) {
@@ -61,37 +90,6 @@ export function validateScenarioInput(
     }
   }
 
-  const payload = buildScenarioRequest(code, adjustments);
+  const payload = buildScenarioPayload(code, adjustments);
   return { valid: true, payload };
-}
-
-// ── Proxy-side Validator (for route.ts) — Zod-based ─────────────────
-
-/**
- * Validate an incoming proxy request body using Zod.
- * Returns a clean backend-ready payload or null.
- */
-export function validateProxyBody(
-  body: unknown,
-): ScenarioPayload | null {
-  const result = ScenarioRequestSchema.safeParse(body);
-  if (!result.success) return null;
-  return result.data;
-}
-
-// ── Response Validation — Zod-based ─────────────────────────────────
-
-/**
- * Validate a backend scenario response using Zod.
- * Returns { success: true, data } or { success: false, issues }.
- */
-export function validateBackendResponse(data: unknown) {
-  return BackendResponseSchema.safeParse(data);
-}
-
-/**
- * Legacy boolean check — delegates to Zod.
- */
-export function isValidScenarioResponse(data: unknown): boolean {
-  return BackendResponseSchema.safeParse(data).success;
 }
