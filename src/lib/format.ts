@@ -20,6 +20,21 @@ export function formatScore(score: number | null | undefined): string {
   return score.toFixed(4);
 }
 
+/**
+ * Convert a snake_case backend key into a human-readable title.
+ * e.g. "fuel_gas_natural" → "Fuel Gas Natural"
+ *      "hhi_normalized"   → "HHI Normalized"
+ */
+export function humanizeKey(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\bHhi\b/g, "HHI")
+    .replace(/\bIsi\b/g, "ISI")
+    .replace(/\bEu\b/g, "EU")
+    .replace(/\bUsd\b/g, "USD");
+}
+
 /** Format a score as percentage (0–100%), or em-dash for null */
 export function formatScorePercent(score: number | null | undefined): string {
   if (score === null || score === undefined) return "—";

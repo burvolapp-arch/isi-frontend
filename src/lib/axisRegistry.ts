@@ -47,6 +47,9 @@ export const AXIS_SHORT_NAMES: Record<AxisSlug, string> = {
 /** Return a compact axis label suitable for constrained UI contexts. */
 export function getAxisShortName(slug: string): string {
   if (slug in AXIS_SHORT_NAMES) return AXIS_SHORT_NAMES[slug as AxisSlug];
+  // Try normalizing long-form backend keys to a canonical slug first
+  const normalized = normalizeAxisKey(slug);
+  if (normalized && normalized in AXIS_SHORT_NAMES) return AXIS_SHORT_NAMES[normalized];
   // Fallback: strip "External Supplier Concentration" from canonical name
   const canonical = getCanonicalAxisName(slug);
   return canonical.replace(/\s*External Supplier Concentration$/i, "") || canonical;
@@ -127,6 +130,12 @@ export function getCanonicalAxisName(input: string): string {
     return stripped;
   }
 
+  // Long-form backend key match (e.g. "financial_external_supplier_concentration")
+  const normalized = normalizeAxisKey(stripped);
+  if (normalized && normalized in AXIS_CANONICAL_NAMES) {
+    return AXIS_CANONICAL_NAMES[normalized as AxisSlug];
+  }
+
   // Development guard — unknown input
   if (process.env.NODE_ENV === "development") {
     console.error(
@@ -152,6 +161,47 @@ export function resolveAxisSlug(input: string): AxisSlug | null {
   // Try matching field key → slug
   if (stripped in FIELD_TO_SLUG) return FIELD_TO_SLUG[stripped];
 
+  // Try long-form backend key normalization
+  const normalized = normalizeAxisKey(stripped);
+  if (normalized) return normalized;
+
+  return null;
+}
+
+/**
+ * Long-form backend axis key → canonical slug.
+ * Handles keys like "financial_external_supplier_concentration" → "financial".
+ */
+const LONG_KEY_TO_SLUG: Record<string, AxisSlug> = {
+  financial_external_supplier_concentration: "financial",
+  energy_external_supplier_concentration: "energy",
+  technology_semiconductor_external_supplier_concentration: "technology",
+  defense_external_supplier_concentration: "defense",
+  critical_inputs_raw_materials_external_supplier_concentration: "critical_inputs",
+  logistics_freight_external_supplier_concentration: "logistics",
+};
+
+/**
+ * Normalize any backend axis key to a canonical slug.
+ * Accepts short slugs, long-form keys, or prefixed variants.
+ * Returns the AxisSlug or null if unresolvable.
+ */
+export function normalizeAxisKey(input: string): AxisSlug | null {
+  // Direct slug match
+  if (input in AXIS_CANONICAL_NAMES) return input as AxisSlug;
+  // Long-form match
+  if (input in LONG_KEY_TO_SLUG) return LONG_KEY_TO_SLUG[input];
+  // Fuzzy: strip common suffixes and try prefix matching
+  const stripped = input
+    .replace(/_?external_supplier_concentration$/i, "")
+    .replace(/_?raw_materials$/i, "")
+    .replace(/_?semiconductor$/i, "")
+    .replace(/_?freight$/i, "");
+  if (stripped in AXIS_CANONICAL_NAMES) return stripped as AxisSlug;
+  // Last resort: check if any slug is a prefix of the input
+  for (const slug of ALL_AXIS_SLUGS) {
+    if (input.startsWith(slug)) return slug;
+  }
   return null;
 }
 

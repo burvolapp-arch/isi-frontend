@@ -16,6 +16,8 @@ import {
 } from "@/lib/format";
 import {
   getCanonicalAxisName,
+  getAxisShortName,
+  normalizeAxisKey,
   ALL_AXIS_SLUGS,
   type AxisSlug,
 } from "@/lib/axisRegistry";
@@ -173,18 +175,6 @@ function logOnce(key: string, ...args: unknown[]) {
 
 function classifyErrorLocal(err: unknown): FailureKind {
   return classifyFetchError(err);
-}
-
-function shortDomain(slug: string): string {
-  const map: Record<string, string> = {
-    financial: "Financial",
-    energy: "Energy",
-    technology: "Technology",
-    defense: "Defense",
-    critical_inputs: "Critical Inputs",
-    logistics: "Logistics",
-  };
-  return map[slug] ?? slug;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -457,8 +447,8 @@ export function ScenarioLaboratory({
   // ── Derived data ──
   const simulatedRadarAxes = useMemo(() => {
     if (!scenario?.simulated?.axes) return null;
-    return Object.entries(scenario.simulated.axes).map(([slug, score]) => ({
-      slug,
+    return Object.entries(scenario.simulated.axes).map(([key, score]) => ({
+      slug: normalizeAxisKey(key) ?? key,
       value: score,
     }));
   }, [scenario]);
@@ -476,7 +466,7 @@ export function ScenarioLaboratory({
     if (!scenario?.delta?.axes) return null;
     const items = Object.entries(scenario.delta.axes)
       .filter(([, d]) => d != null && d !== 0)
-      .map(([slug, d]) => ({ slug, label: shortDomain(slug), delta: d }));
+      .map(([slug, d]) => ({ slug, label: getAxisShortName(slug), delta: d }));
     return items.length === 0 ? null : items;
   }, [scenario]);
 
@@ -755,7 +745,7 @@ export function ScenarioLaboratory({
                   const axisDelta = scenario.delta.axes[slug] ?? null;
                   return (
                     <div key={slug} className="flex items-center justify-between text-[12px]">
-                      <span className="text-text-secondary">{shortDomain(slug)}</span>
+                      <span className="text-text-secondary">{getAxisShortName(slug)}</span>
                       <div className="flex items-center gap-2 font-mono text-[11px]">
                         <span className="text-text-quaternary">{formatScore(baseScore)}</span>
                         <span className="text-text-quaternary">→</span>

@@ -11,6 +11,7 @@ import {
   isAggregatePartner,
   formatCompactVolume,
   computeRank,
+  humanizeKey,
 } from "@/lib/format";
 import { getCanonicalAxisName } from "@/lib/axisRegistry";
 import type {
@@ -131,7 +132,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-              Axis {axis.axis_id} — {axis.axis_slug}
+              Axis {axis.axis_id}
             </p>
             <h3 className="mt-1 font-serif text-[16px] font-semibold text-text-primary sm:text-[17px]">
               <Link
@@ -173,7 +174,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                     className="rounded-md border border-border-primary bg-surface-tertiary p-3"
                   >
                     <p className="text-[11px] text-text-quaternary">
-                      {key.replace(/_/g, " ")}
+                      {humanizeKey(key)}
                     </p>
                     <p className="font-mono text-sm font-medium text-text-secondary">
                       {typeof val === "number" ? val.toFixed(4) : String(val)}
@@ -211,8 +212,8 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                   key={fuel}
                   className="rounded-md border border-border-primary bg-surface-tertiary p-3"
                 >
-                  <p className="text-[11px] capitalize text-text-quaternary">
-                    {fuel.replace(/_/g, " ")}
+                  <p className="text-[11px] text-text-quaternary">
+                    {humanizeKey(fuel)}
                   </p>
                   <p className="font-mono text-sm font-medium text-text-secondary">
                     {hhi.toFixed(4)}

@@ -15,6 +15,7 @@ import {
   computeMedian,
   computeStdDev,
   axisHref,
+  humanizeKey,
 } from "@/lib/format";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
@@ -225,9 +226,7 @@ export default async function ExecutiveOverviewPage() {
               />
               <KPICard
                 label="Aggregation"
-                value={isi.aggregation_rule
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+                value={humanizeKey(isi.aggregation_rule)}
                 subtitle={isi.formula}
               />
             </div>
