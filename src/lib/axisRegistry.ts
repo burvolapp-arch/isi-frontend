@@ -32,6 +32,27 @@ export type AxisSlug = keyof typeof AXIS_CANONICAL_NAMES;
 export const ALL_AXIS_SLUGS = Object.keys(AXIS_CANONICAL_NAMES) as AxisSlug[];
 
 /**
+ * Short-form display names for compact contexts (radar charts, small badges).
+ * These abbreviate the canonical names while preserving domain clarity.
+ */
+export const AXIS_SHORT_NAMES: Record<AxisSlug, string> = {
+  financial: "Financial",
+  energy: "Energy",
+  technology: "Technology / Semiconductor",
+  defense: "Defense",
+  critical_inputs: "Critical Inputs",
+  logistics: "Logistics / Freight",
+} as const;
+
+/** Return a compact axis label suitable for constrained UI contexts. */
+export function getAxisShortName(slug: string): string {
+  if (slug in AXIS_SHORT_NAMES) return AXIS_SHORT_NAMES[slug as AxisSlug];
+  // Fallback: strip "External Supplier Concentration" from canonical name
+  const canonical = getCanonicalAxisName(slug);
+  return canonical.replace(/\s*External Supplier Concentration$/i, "") || canonical;
+}
+
+/**
  * Map axis slug → ISICompositeCountry field key.
  * Used by components that read scores from composite data.
  */

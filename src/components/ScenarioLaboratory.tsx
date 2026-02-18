@@ -824,14 +824,14 @@ export function ScenarioLaboratory({
       {/* ═══ FULL-WIDTH: Radar + Contribution Breakdown ═══ */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[3fr_2fr]">
         {/* Radar Chart */}
-        <div className="relative flex flex-col overflow-hidden rounded border border-border-primary px-2 pt-3 pb-1 sm:px-3">
+        <div className="relative flex flex-col rounded border border-border-primary px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
             {showSimulated ? "Baseline vs. Simulated" : "Baseline Profile"}
           </p>
           {activePresetLabel && showSimulated && (
             <p className="mt-0.5 text-[10px] text-text-quaternary">{activePresetLabel}</p>
           )}
-          <div className="mx-auto mt-3 flex w-full max-w-lg items-center justify-center">
+          <div className="mt-2 w-full">
             {showSimulated && simulatedRadarAxes ? (
               <RadarChart
                 axes={simulatedRadarAxes}

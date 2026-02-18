@@ -208,11 +208,11 @@ export function CountryView({
 
           {/* Radar + Deviation */}
           <section className="mt-6 grid gap-4 sm:gap-5 lg:grid-cols-[3fr_2fr]">
-            <div className="relative flex flex-col overflow-hidden rounded-md border border-border-primary px-2 pt-3 pb-1 sm:px-3 sm:pt-4 sm:pb-2">
+            <div className="relative flex flex-col rounded-md border border-border-primary px-4 py-4 sm:px-5 sm:py-5">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                 Multi-Axis Profile
               </h2>
-              <div className="mt-3 flex w-full items-center justify-center">
+              <div className="mt-2 w-full">
                 <RadarChart
                   axes={radarAxes}
                   euMean={euMeanPerAxis}

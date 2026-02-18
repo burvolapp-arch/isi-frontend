@@ -4,6 +4,7 @@ import { memo, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   getCanonicalAxisName,
+  getAxisShortName,
   assertCanonicalLabel,
 } from "@/lib/axisRegistry";
 
@@ -23,18 +24,18 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.22; // labels offset from axis tips — close but no clip
-const LABEL_FONT_SIZE = 9;
-const LABEL_LINE_HEIGHT = 11;
-const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const VB_SIZE = 520; // expanded viewBox for label breathing room
-const RADAR_RADIUS = Math.round(VB_SIZE * 0.38); // 198 — larger absolute radius
-const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // 62 — generous label margin
+const LABEL_OFFSET = 1.28; // labels offset from axis tips
+const LABEL_FONT_SIZE = 10.5;
+const LABEL_LINE_HEIGHT = 13;
+const LABEL_MAX_CHARS = 18; // break label lines — keep them compact
+const VB_SIZE = 460; // compact viewBox — chart fills more of the card
+const RADAR_RADIUS = Math.round(VB_SIZE * 0.32); // 147 — leaves room for labels
+const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // margin for labels
 const LEGEND_HEIGHT = 28; // space below chart for legend
-const DATA_POINT_RADIUS = 2.5;
-const GRID_STROKE = 0.6; // thin, precise grid lines
-const GRID_OPACITY = 0.12; // subtle grid
-const PATH_TRANSITION = "120ms ease-out"; // smooth polygon morph
+const DATA_POINT_RADIUS = 3.5;
+const GRID_STROKE = 0.8; // clearly visible grid lines
+const GRID_OPACITY = 0.28; // visible grid
+const OUTER_RING_OPACITY = 0.40; // outer ring more prominent
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -232,12 +233,14 @@ export const RadarChart = memo(function RadarChart({
       safeAxes.map((a) => {
         const canonicalLabel = getCanonicalAxisName(a.slug);
         assertCanonicalLabel(canonicalLabel, "RadarChart");
+        // Use short name for compact radar display
+        const shortLabel = getAxisShortName(a.slug);
         // Clamp value to [0, 1] and replace NaN/Infinity with null
         const safeValue =
           a.value === null || a.value === undefined || !Number.isFinite(a.value)
             ? null
             : Math.max(0, Math.min(1, a.value));
-        return { slug: a.slug, label: canonicalLabel, value: safeValue };
+        return { slug: a.slug, label: shortLabel, fullLabel: canonicalLabel, value: safeValue };
       }),
     [safeAxes],
   );
@@ -335,7 +338,7 @@ export const RadarChart = memo(function RadarChart({
         : null);
 
     return {
-      label: axis.label,
+      label: axis.fullLabel,
       score: axis.value,
       euMean: euMeanVal,
       deviation,
@@ -370,7 +373,7 @@ export const RadarChart = memo(function RadarChart({
           fill="none"
           stroke="var(--color-stone-300)"
           strokeWidth={GRID_STROKE}
-          strokeOpacity={r === 1.0 ? 0.20 : GRID_OPACITY}
+          strokeOpacity={r === 1.0 ? OUTER_RING_OPACITY : GRID_OPACITY}
           vectorEffect="non-scaling-stroke"
         />
       ))}
@@ -403,9 +406,9 @@ export const RadarChart = memo(function RadarChart({
           textAnchor="start"
           dominantBaseline="middle"
           fill="var(--color-text-quaternary)"
-          fontSize="8"
+          fontSize="9"
           fontFamily="var(--font-mono)"
-          opacity={0.5}
+          opacity={0.7}
         >
           {r.toFixed(2)}
         </text>
@@ -416,43 +419,40 @@ export const RadarChart = memo(function RadarChart({
         <path
           d={euMeanPath}
           fill="var(--color-stone-300)"
-          fillOpacity={0.08}
+          fillOpacity={0.14}
           stroke="var(--color-stone-400)"
           strokeWidth={1}
           strokeDasharray="3 3"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
-          style={{ transition: `d ${PATH_TRANSITION}` }}
         />
       )}
 
-      {/* Comparison polygon — dashed subtle gray (baseline reference) */}
+      {/* Comparison polygon — dashed, clearly visible baseline reference */}
       {comparePath && (
         <path
           d={comparePath}
           fill="var(--color-stone-400)"
-          fillOpacity={0.04}
-          stroke="var(--color-stone-400)"
-          strokeWidth={1.2}
+          fillOpacity={0.12}
+          stroke="var(--color-stone-500)"
+          strokeWidth={1.4}
           strokeDasharray="4 3"
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          style={{ transition: `d ${PATH_TRANSITION}, fill-opacity ${PATH_TRANSITION}` }}
         />
       )}
 
-      {/* Primary polygon — solid navy, institutional authority */}
+      {/* Primary polygon — solid navy, clearly visible fill */}
       <path
         d={primaryPath}
         fill="var(--color-navy-700)"
-        fillOpacity={hoveredAxis !== null ? 0.12 : 0.25}
+        fillOpacity={hoveredAxis !== null ? 0.18 : 0.35}
         stroke="var(--color-navy-700)"
-        strokeWidth={1.8}
+        strokeWidth={2}
         strokeLinejoin="round"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
-        style={{ transition: `d ${PATH_TRANSITION}, fill-opacity ${PATH_TRANSITION}` }}
       />
 
       {/* Hovered axis edge highlight */}
@@ -467,7 +467,6 @@ export const RadarChart = memo(function RadarChart({
           strokeOpacity={0.45}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          style={{ transition: `opacity ${PATH_TRANSITION}` }}
         />
       )}
 
@@ -486,7 +485,6 @@ export const RadarChart = memo(function RadarChart({
             stroke="var(--color-surface-primary)"
             strokeWidth={isHovered ? 1.5 : 1}
             vectorEffect="non-scaling-stroke"
-            style={{ transition: `r ${PATH_TRANSITION}, stroke-width ${PATH_TRANSITION}` }}
           />
         );
       })}
@@ -521,7 +519,6 @@ export const RadarChart = memo(function RadarChart({
             fontFamily="var(--font-sans)"
             fontWeight="500"
             opacity={dimmed ? 0.4 : 1}
-            style={{ transition: `opacity ${PATH_TRANSITION}` }}
           >
             {lines.map((line, li) => (
               <tspan
