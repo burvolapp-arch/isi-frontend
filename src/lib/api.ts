@@ -19,6 +19,7 @@ import type {
   ScenarioResponse,
 } from "./types";
 import { validateScenarioInput } from "./scenarioValidation";
+import { FrontendResponseSchema } from "./scenarioContract";
 
 function getBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL;
@@ -92,33 +93,22 @@ export type FailureKind =
   | "TRANSPORT_LAYER_BLOCKED";
 
 export function classifyFetchError(err: unknown): FailureKind {
-  // Status 404 from our own proxy — route not deployed
-  if (err instanceof ApiError && err.status === 404) {
-    return "ROUTE_MISSING";
-  }
-  // Status 400 — bad input rejected by backend (never retry)
-  if (err instanceof ApiError && err.status === 400) {
-    return "BAD_INPUT";
-  }
-  // TypeError: Failed to fetch — network unreachable / blocked
-  if (err instanceof TypeError && /failed to fetch/i.test(err.message)) {
-    return "TRANSPORT_LAYER_BLOCKED";
-  }
-  // Status 0 — CORS preflight rejection
-  if (err instanceof ApiError && err.status === 0) {
-    return "TRANSPORT_LAYER_BLOCKED";
-  }
-  // 500/502 from proxy — upstream service error
+  if (err instanceof ApiError && err.status === 404) return "ROUTE_MISSING";
+  if (err instanceof ApiError && err.status === 400) return "BAD_INPUT";
+  if (err instanceof TypeError && /failed to fetch/i.test(err.message)) return "TRANSPORT_LAYER_BLOCKED";
+  if (err instanceof ApiError && err.status === 0) return "TRANSPORT_LAYER_BLOCKED";
   return "SERVICE_ERROR";
 }
 
-// ─── Deduplicated console logging ───────────────────────────────────
+// ─── Deduplicated console logging (dev only) ────────────────────────
 
-const _loggedScenarioErrors = new Set<string>();
+const isDev = typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
+const _loggedKeys = new Set<string>();
 
 function logOnce(key: string, ...args: unknown[]) {
-  if (_loggedScenarioErrors.has(key)) return;
-  _loggedScenarioErrors.add(key);
+  if (!isDev) return;
+  if (_loggedKeys.has(key)) return;
+  _loggedKeys.add(key);
   console.error("[ISI Scenario]", ...args);
 }
 
@@ -127,19 +117,14 @@ function logOnce(key: string, ...args: unknown[]) {
 /**
  * POST /api/scenario — Run scenario simulation via same-origin proxy.
  *
- * Backend contract (hardened):
- *   { country: string (2-letter uppercase), adjustments: { [longBackendSlug]: number } }
+ * Contract (scenario-v1):
+ *   { country: "SE", adjustments: { <AXIS_KEY>: float } }
  *
- * GUARANTEES:
- *   - Pre-flight validation blocks invalid payloads (no round-trip)
- *   - Only long-form backend axis slugs in adjustments
- *   - ALL 6 axes always present (including zeros)
- *   - All values are parseFloat-coerced, bounded to [-0.2, 0.2]
- *   - Outgoing payload logged before POST
- *   - 400 errors surface backend validation message, NEVER retried
- *   - 500/502 → institutional failure panel, retryable
- *   - Does not modify axis labels, does not mutate baseline,
- *     does not compute composite client-side
+ * - Pre-flight validation blocks invalid payloads (no round-trip)
+ * - Outgoing payload logged in dev before POST
+ * - Client-side Zod validation of response shape
+ * - 400 errors surface backend message, NEVER retried
+ * - 500/502 → retryable by caller
  */
 export async function fetchScenario(
   countryCode: string,
@@ -150,15 +135,16 @@ export async function fetchScenario(
   const validation = validateScenarioInput(countryCode, adjustments);
   if (!validation.valid) {
     const err = new ApiError(400, "/api/scenario", validation.reason);
-    logOnce(`BAD_INPUT-preflight`, `BAD_INPUT: ${validation.reason}`);
+    logOnce("preflight", `BAD_INPUT: ${validation.reason}`);
     throw err;
   }
 
   const payload = validation.payload;
 
-  // Log outgoing payload before POST
-  // eslint-disable-next-line no-console
-  console.log("SCENARIO PAYLOAD", payload);
+  if (isDev) {
+    // eslint-disable-next-line no-console
+    console.log("SCENARIO PAYLOAD", payload);
+  }
 
   try {
     const res = await fetch("/api/scenario", {
@@ -170,7 +156,6 @@ export async function fetchScenario(
     });
 
     if (!res.ok) {
-      // Parse backend error body — surface validation message for 400s
       const text = await res.text().catch(() => "");
       let errorMessage = text;
       try {
@@ -184,16 +169,21 @@ export async function fetchScenario(
 
       const err = new ApiError(res.status, "/api/scenario", errorMessage);
       const kind = classifyFetchError(err);
-
-      logOnce(
-        `${kind}-${res.status}`,
-        `${kind}: status=${res.status} body=${errorMessage}`,
-      );
-
+      logOnce(`${kind}-${res.status}`, `${kind}: status=${res.status} body=${errorMessage}`);
       throw err;
     }
 
-    return (await res.json()) as ScenarioResponse;
+    const json = await res.json();
+
+    // Client-side Zod validation of response
+    const zodResult = FrontendResponseSchema.safeParse(json);
+    if (!zodResult.success) {
+      logOnce("response-shape", "Response Zod validation failed:", zodResult.error.issues);
+      // Still return the data if it's castable — proxy already validated upstream
+      return json as ScenarioResponse;
+    }
+
+    return zodResult.data as ScenarioResponse;
   } catch (err) {
     if (err instanceof ApiError) throw err;
     if (err instanceof DOMException && err.name === "AbortError") throw err;

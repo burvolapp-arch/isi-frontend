@@ -375,6 +375,16 @@
 			"label": "Verify TopoJSON quality",
 			"type": "shell",
 			"command": "node -e \"const t=JSON.parse(require('fs').readFileSync('public/eu27.topo.json','utf8')); const g=t.objects.countries.geometries; console.log('Countries:',g.length); console.log(g.map(x=>x.properties.ISO_A2).sort().join(', ')); let pts=0; t.arcs.forEach(a=>pts+=a.length); console.log('Total points:',pts.toLocaleString()); console.log('File size:',(JSON.stringify(t).length/1024).toFixed(1),'KB');\""
+		},
+		{
+			"label": "Install Zod",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npm install zod"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "cd /Users/sebastiandrazsky/isi-frontend && npx tsc --noEmit 2>&1 | head -40"
 		}
 	]
 }

@@ -214,10 +214,11 @@ export interface AxisDetail {
 
 /**
  * Request body for scenario simulation endpoint.
- * Hardened backend contract: { country, adjustments }.
+ * Contract: scenario-v1 — { country, adjustments }.
  * country: 2-letter uppercase ISO code.
- * adjustments: long-form backend axis slugs → float in [-0.2, 0.2].
+ * adjustments: long-form backend axis keys → float in [-0.2, 0.2].
  * All 6 axes always present.
+ * Canonical source: scenarioContract.ts
  */
 export interface ScenarioRequest {
   country: string;

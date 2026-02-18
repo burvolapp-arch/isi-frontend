@@ -23,13 +23,13 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.08; // labels slightly offset from axis tips
-const LABEL_FONT_SIZE = 9; // −10% from prior 10
-const LABEL_LINE_HEIGHT = 11; // −10% from prior 12
+const LABEL_OFFSET = 1.22; // labels offset from axis tips — close but no clip
+const LABEL_FONT_SIZE = 9;
+const LABEL_LINE_HEIGHT = 11;
 const LABEL_MAX_CHARS = 22; // break label lines beyond this width
-const VB_SIZE = 460; // square viewBox
-const RADAR_RADIUS = Math.round(VB_SIZE * 0.42); // 193 — dominant, proportional
-const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // 37 — derived, not arbitrary
+const VB_SIZE = 520; // expanded viewBox for label breathing room
+const RADAR_RADIUS = Math.round(VB_SIZE * 0.38); // 198 — larger absolute radius
+const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // 62 — generous label margin
 const LEGEND_HEIGHT = 28; // space below chart for legend
 const DATA_POINT_RADIUS = 2.5;
 const GRID_STROKE = 0.6; // thin, precise grid lines

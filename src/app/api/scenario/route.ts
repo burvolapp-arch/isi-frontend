@@ -4,22 +4,24 @@
 // Same-origin proxy for scenario simulation. The browser only talks to
 // this route; the server-side fetch to the backend has no CORS constraints.
 //
-// HARDENED CONTRACT:
-//   Browser sends:   { country: "SE", adjustments: { "financial_external_supplier_concentration": 0.05 } }
+// CONTRACT (scenario-v1):
+//   Browser sends:   { country: "SE", adjustments: { "financial_external_supplier_concentration": 0.05, … } }
 //   Backend expects:  same — { country, adjustments }
-//   Backend returns:  { composite, rank, classification, axes[], request_id }
-//   Frontend expects: { simulated_axes[], simulated_composite, ... }
+//   Backend returns:  { composite, rank, classification, axes[], request_id? }
+//   Frontend gets:    transformed { simulated_axes[], simulated_composite, … }
 //
-// INVARIANTS:
-//   - Only long-form backend axis slugs in adjustments
-//   - All 6 axes always present (including zeros)
-//   - All values are floats bounded to [-0.2, 0.2]
-//   - 200 responses validated for required fields before returning
-//   - 400 backend message surfaced to client
+// VALIDATION:
+//   - Request validated with Zod (ScenarioRequestSchema)
+//   - Response validated with Zod (BackendResponseSchema)
+//   - Upstream non-2xx errors pass through status + body (no fake wrapping)
 // ============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { validateProxyBody, isValidScenarioResponse } from "@/lib/scenarioValidation";
+import {
+  ScenarioRequestSchema,
+  BackendResponseSchema,
+  transformBackendResponse,
+} from "@/lib/scenarioContract";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,11 +35,15 @@ function getBackendUrl(): string {
   return url.replace(/\/+$/, "");
 }
 
+const isDev = process.env.NODE_ENV !== "production";
+
 function log(...args: unknown[]) {
+  if (!isDev) return;
   // eslint-disable-next-line no-console
   console.log("[scenario proxy]", ...args);
 }
 function logError(...args: unknown[]) {
+  if (!isDev) return;
   console.error("[scenario proxy]", ...args);
 }
 
@@ -53,32 +59,28 @@ export async function POST(request: NextRequest) {
     rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Invalid request body" },
+      { error: "Invalid request body — could not parse JSON" },
       { status: 400 },
     );
   }
 
-  // ── 2. Validate and sanitize ──
+  // ── 2. Validate with Zod ──
 
-  const validated = validateProxyBody(rawBody);
-  if (!validated) {
-    logError("rejected malformed payload:", JSON.stringify(rawBody).slice(0, 500));
+  const parsed = ScenarioRequestSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
+    logError("Zod rejected request:", issues);
     return NextResponse.json(
-      { error: "Invalid scenario input: payload does not match expected schema" },
+      { error: "Invalid scenario input", issues },
       { status: 400 },
     );
   }
 
-  // ── 3. Construct exact backend payload — no extra keys ──
+  const payload = parsed.data;
 
-  const backendPayload = {
-    country: validated.country,
-    adjustments: validated.adjustments,
-  };
+  // ── 3. Forward exact payload to backend ──
 
-  log("→", `${backendUrl}/scenario`, JSON.stringify(backendPayload).slice(0, 500));
-
-  // ── 4. Forward to backend ──
+  log("→", `${backendUrl}/scenario`, JSON.stringify(payload).slice(0, 500));
 
   let upstream: Response;
   try {
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-      body: JSON.stringify(backendPayload),
+      body: JSON.stringify(payload),
     });
   } catch (err) {
     logError("network failure reaching backend:", String(err));
@@ -96,45 +98,47 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // ── 5. Handle upstream errors ──
+  // ── 4. Handle upstream errors — pass through status + body ──
 
   if (!upstream.ok) {
-    const text = await upstream.text().catch(() => "");
-    logError("upstream", upstream.status, text.slice(0, 500));
+    let body: string;
+    try {
+      body = await upstream.text();
+    } catch {
+      body = "";
+    }
 
-    // 400 → surface backend validation message
-    if (upstream.status === 400) {
-      let detail = text;
-      try {
-        const parsed = JSON.parse(text);
-        if (typeof parsed.detail === "string") detail = parsed.detail;
-        else if (typeof parsed.error === "string") detail = parsed.error;
-        else if (typeof parsed.message === "string") detail = parsed.message;
-      } catch {
-        // text is already the detail
-      }
+    logError("upstream", upstream.status, body.slice(0, 500));
+
+    // Try to parse as JSON and pass through; otherwise wrap as text
+    let jsonBody: unknown;
+    try {
+      jsonBody = JSON.parse(body);
+    } catch {
+      jsonBody = null;
+    }
+
+    if (jsonBody && typeof jsonBody === "object") {
+      // Extract human-readable message for client convenience
+      const obj = jsonBody as Record<string, unknown>;
+      const msg =
+        typeof obj.detail === "string" ? obj.detail
+        : typeof obj.error === "string" ? obj.error
+        : typeof obj.message === "string" ? obj.message
+        : body;
       return NextResponse.json(
-        { error: detail },
-        { status: 400 },
+        { error: msg },
+        { status: upstream.status },
       );
     }
 
-    // 404 → country not found
-    if (upstream.status === 404) {
-      return NextResponse.json(
-        { error: "Country not available for simulation" },
-        { status: 404 },
-      );
-    }
-
-    // 500/502 → institutional failure
     return NextResponse.json(
-      { error: "Upstream simulation service error", upstream_status: upstream.status },
-      { status: 502 },
+      { error: body || `Upstream error ${upstream.status}` },
+      { status: upstream.status },
     );
   }
 
-  // ── 6. Parse upstream JSON ──
+  // ── 5. Parse upstream JSON ──
 
   let data: unknown;
   try {
@@ -149,55 +153,23 @@ export async function POST(request: NextRequest) {
 
   log("← raw upstream:", JSON.stringify(data).slice(0, 500));
 
-  // ── 7. Validate response has required fields ──
+  // ── 6. Validate response with Zod ──
 
-  if (!isValidScenarioResponse(data)) {
-    logError("upstream 200 but missing required fields:", JSON.stringify(data).slice(0, 500));
+  const respParsed = BackendResponseSchema.safeParse(data);
+  if (!respParsed.success) {
+    const issues = respParsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
+    logError("Zod rejected upstream response:", issues);
     return NextResponse.json(
-      { error: "Upstream response missing required fields" },
+      { error: "UPSTREAM_INVALID_RESPONSE", issues },
       { status: 502 },
     );
   }
 
-  const resp = data as {
-    composite: number;
-    rank: number;
-    classification: string;
-    axes: { slug: string; value: number; delta: number }[];
-    request_id?: string;
-  };
+  // ── 7. Transform backend → frontend shape ──
 
-  // ── 8. Transform backend → frontend ScenarioResponse ──
+  const transformed = transformBackendResponse(payload.country, respParsed.data);
 
-  const simulatedAxes = resp.axes.map((a) => ({
-    axis_slug: a.slug,
-    baseline: a.value - a.delta,
-    simulated: a.value,
-    delta: a.delta,
-  }));
-
-  const baselineValues = simulatedAxes.map((a) => a.baseline);
-  const baselineComposite =
-    baselineValues.length > 0
-      ? baselineValues.reduce((s, v) => s + v, 0) / baselineValues.length
-      : null;
-
-  const transformed = {
-    country: validated.country,
-    simulated_axes: simulatedAxes,
-    simulated_composite: resp.composite,
-    simulated_rank: resp.rank,
-    simulated_classification: resp.classification,
-    baseline_composite: baselineComposite,
-    baseline_rank: null as number | null,
-    baseline_classification: null as string | null,
-    delta_from_baseline:
-      baselineComposite !== null
-        ? resp.composite - baselineComposite
-        : null,
-  };
-
-  log("← transformed ok, composite:", resp.composite, "rank:", resp.rank);
+  log("← transformed ok, composite:", respParsed.data.composite, "rank:", respParsed.data.rank);
 
   return NextResponse.json(transformed);
 }

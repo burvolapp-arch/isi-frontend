@@ -134,8 +134,10 @@ type ServiceState =
 // ═══════════════════════════════════════════════════════════════════════
 
 const _loggedErrors = new Set<string>();
+const _isDev = typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
 
 function logOnce(key: string, ...args: unknown[]) {
+  if (!_isDev) return;
   if (_loggedErrors.has(key)) return;
   _loggedErrors.add(key);
   console.error("[ISI Scenario]", ...args);
@@ -1174,7 +1176,7 @@ export default function ScenarioPage() {
                 {activePresetLabel}
               </p>
             )}
-            <div className="mx-auto mt-4 flex w-full max-w-[520px] items-center justify-center">
+            <div className="mx-auto mt-4 flex w-full max-w-lg items-center justify-center">
               {showSimulated && simulatedRadarAxes ? (
                 <RadarChart
                   axes={simulatedRadarAxes}
