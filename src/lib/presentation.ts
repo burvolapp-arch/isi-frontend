@@ -154,6 +154,72 @@ export function formatSeverity(severity: string): string {
   return formatEnum(severity);
 }
 
+// ─── H) formatDataset ──────────────────────────────────────────────
+
+/**
+ * Clean dataset source strings for institutional display.
+ * Strips raw dataset codes, normalizes institutional names.
+ *
+ * "Eurostat nrg_ti_sff" → "Eurostat Energy Trade"
+ * "Eurostat Comext ds-045409" → "Eurostat Comext Trade Statistics"
+ * "SIPRI Arms Transfers Database v2.1" → "SIPRI Arms Transfers Database"
+ * "UN Comtrade HS6 rev4" → "UN Comtrade Trade Statistics"
+ */
+const DATASET_RULES: [RegExp, string][] = [
+  // Eurostat dataset codes: nrg_*, ds-*, nama_*, etc.
+  [/Eurostat\s+nrg_\w+/i, "Eurostat Energy Trade"],
+  [/Eurostat\s+Comext\s+ds-\d+/i, "Eurostat Comext Trade Statistics"],
+  [/Eurostat\s+ds-\d+/i, "Eurostat Trade Statistics"],
+  [/Eurostat\s+nama_\w+/i, "Eurostat National Accounts"],
+  [/Eurostat\s+bop_\w+/i, "Eurostat Balance of Payments"],
+  [/Eurostat\s+\w{2,4}_\w+/i, "Eurostat Trade Statistics"],
+  // UN Comtrade with code suffixes
+  [/UN\s+Comtrade\s+HS\d+\s*\w*/i, "UN Comtrade Trade Statistics"],
+  [/UN\s+Comtrade\s+\w+/i, "UN Comtrade Trade Statistics"],
+  // SIPRI with version suffixes
+  [/(SIPRI\s+Arms\s+Transfers\s+Database)\s+v[\d.]+/i, "$1"],
+  // Generic: strip trailing version/code patterns like "v2.1", "rev4", dataset IDs
+  [/\s+v\d+[\d.]*/g, ""],
+  [/\s+rev\d+/gi, ""],
+];
+
+export function formatDataset(source: string): string {
+  if (typeof source !== "string") return String(source);
+  let result = source.trim();
+  for (const [pattern, replacement] of DATASET_RULES) {
+    if (pattern.test(result)) {
+      result = result.replace(pattern, replacement);
+      break; // Apply first matching rule only
+    }
+  }
+  return result;
+}
+
+// ─── I) formatCategory ─────────────────────────────────────────────
+
+/**
+ * Format a backend category or subcategory value.
+ * Delegates to formatEnum for snake_case/UPPER conversion,
+ * then applies domain-specific substitutions.
+ *
+ * "rare_earths" → "Rare Earths"
+ * "integrated_circuits" → "Integrated Circuits"
+ * "legacy_discrete" → "Legacy Discrete"
+ */
+export function formatCategory(value: string): string {
+  return formatEnum(value);
+}
+
+// ─── J) formatAxisLabel ─────────────────────────────────────────────
+
+/**
+ * Universal axis label formatter — alias for formatAxisShort.
+ * Re-exported from the presentation layer for consistent import paths.
+ */
+export function formatAxisLabel(key: string): string {
+  return formatAxisShort(key);
+}
+
 // ─── Development Guard ──────────────────────────────────────────────
 
 /**

@@ -15,11 +15,11 @@ import {
   classificationLabel,
 } from "@/lib/format";
 import {
-  formatAxisLabel,
   normalizeAxisKey,
   ALL_AXIS_SLUGS,
   type AxisSlug,
 } from "@/lib/axisRegistry";
+import { formatAxisLabel } from "@/lib/presentation";
 import type {
   CountryDetail,
   ScenarioResponse,

@@ -6,7 +6,7 @@ import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
 import { formatScore, countryHref, computeStdDev } from "@/lib/format";
-import { formatAxisFull, formatSeverity } from "@/lib/presentation";
+import { formatAxisFull, formatSeverity, formatDataset, formatEnum } from "@/lib/presentation";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
@@ -138,9 +138,9 @@ export default async function AxisPage({ params }: PageProps) {
             {axis.description}
           </p>
           <div className="mt-3 flex flex-wrap gap-3 text-[12px] text-text-quaternary">
-            <span>Version: {axis.version}</span>
-            <span>Status: {axis.status}</span>
-            <span>Unit: {axis.unit}</span>
+            <span>Version {axis.version}</span>
+            <span>Status: {formatEnum(axis.status)}</span>
+            <span>Unit: {formatEnum(axis.unit)}</span>
             <span>
               Materialized:{" "}
               {axis.materialized ? (
@@ -231,7 +231,7 @@ export default async function AxisPage({ params }: PageProps) {
                 <p className="text-[14px] font-medium text-text-secondary">
                   Ch. {ch.id}: {ch.name}
                 </p>
-                <p className="mt-0.5 text-[11px] text-text-quaternary">{ch.source}</p>
+                <p className="mt-0.5 text-[11px] text-text-quaternary">Source: {formatDataset(ch.source)}</p>
               </div>
             ))}
           </div>

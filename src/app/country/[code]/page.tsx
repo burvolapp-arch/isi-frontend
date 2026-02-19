@@ -12,7 +12,7 @@ import {
   formatCompactVolume,
   computeRank,
 } from "@/lib/format";
-import { formatAxisFull, formatEnum, formatSeverity } from "@/lib/presentation";
+import { formatAxisFull, formatEnum, formatSeverity, formatDataset } from "@/lib/presentation";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -272,7 +272,7 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
           </span>
         )}
       </div>
-      <p className="text-[11px] text-text-quaternary">{channel.source}</p>
+      <p className="text-[11px] text-text-quaternary">Source: {formatDataset(channel.source)}</p>
 
       {/* Top partners */}
       {(() => {

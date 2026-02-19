@@ -10,7 +10,8 @@ import type {
   ISICompositeCountry,
   AxisRegistryEntry,
 } from "./types";
-import { getCanonicalAxisName, FIELD_TO_SLUG } from "./axisRegistry";
+import { FIELD_TO_SLUG } from "./axisRegistry";
+import { formatAxisFull } from "./presentation";
 
 // ─── Score Formatting ───────────────────────────────────────────────
 
@@ -176,7 +177,7 @@ export function deriveAxisColumns(
     return {
       fieldKey: key,
       axisId: axisNum,
-      label: getCanonicalAxisName(slug),
+      label: formatAxisFull(slug),
       slug,
       tooltip: entry
         ? `${entry.description} (${entry.unit})`
@@ -197,7 +198,7 @@ export function getAxisScores(
     const slug = FIELD_TO_SLUG[key] ?? key.replace(/^axis_\d+_/, "");
     return {
       key,
-      label: getCanonicalAxisName(slug),
+      label: formatAxisFull(slug),
       value: (c as unknown as Record<string, unknown>)[key] as number | null,
     };
   });
