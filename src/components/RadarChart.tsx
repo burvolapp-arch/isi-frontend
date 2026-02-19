@@ -3,10 +3,9 @@
 import { memo, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getCanonicalAxisName,
-  getAxisShortName,
-  assertCanonicalLabel,
-} from "@/lib/axisRegistry";
+  formatAxisShort,
+  formatAxisFull,
+} from "@/lib/presentation";
 
 /**
  * SVG-based radar chart for multi-axis country profiles.
@@ -24,12 +23,12 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────
 
 const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
-const LABEL_OFFSET = 1.28; // labels offset from axis tips
+const LABEL_OFFSET = 1.22; // pull labels inward — prevent clipping
 const LABEL_FONT_SIZE = 10.5;
 const LABEL_LINE_HEIGHT = 13;
 const LABEL_MAX_CHARS = 18; // break label lines — keep them compact
 const VB_SIZE = 460; // compact viewBox — chart fills more of the card
-const RADAR_RADIUS = Math.round(VB_SIZE * 0.32); // 147 — leaves room for labels
+const RADAR_RADIUS = Math.round(VB_SIZE * 0.28); // ~129 — 78% fill, ample label margin
 const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // margin for labels
 const LEGEND_HEIGHT = 28; // space below chart for legend
 const DATA_POINT_RADIUS = 3.5;
@@ -231,16 +230,14 @@ export const RadarChart = memo(function RadarChart({
   const resolvedAxes = useMemo(
     () =>
       safeAxes.map((a) => {
-        const canonicalLabel = getCanonicalAxisName(a.slug);
-        assertCanonicalLabel(canonicalLabel, "RadarChart");
-        // Use short name for compact radar display
-        const shortLabel = getAxisShortName(a.slug);
+        const shortLabel = formatAxisShort(a.slug);
+        const fullLabel = formatAxisFull(a.slug);
         // Clamp value to [0, 1] and replace NaN/Infinity with null
         const safeValue =
           a.value === null || a.value === undefined || !Number.isFinite(a.value)
             ? null
             : Math.max(0, Math.min(1, a.value));
-        return { slug: a.slug, label: shortLabel, fullLabel: canonicalLabel, value: safeValue };
+        return { slug: a.slug, label: shortLabel, fullLabel, value: safeValue };
       }),
     [safeAxes],
   );
@@ -352,6 +349,7 @@ export const RadarChart = memo(function RadarChart({
       viewBox={`0 0 ${VB_SIZE} ${totalHeight}`}
       preserveAspectRatio="xMidYMid meet"
       className="mx-auto w-full"
+      style={{ overflow: "visible" }}
       shapeRendering="geometricPrecision"
       textRendering="optimizeLegibility"
       strokeLinejoin="round"

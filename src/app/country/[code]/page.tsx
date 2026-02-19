@@ -11,9 +11,8 @@ import {
   isAggregatePartner,
   formatCompactVolume,
   computeRank,
-  humanizeKey,
 } from "@/lib/format";
-import { getCanonicalAxisName } from "@/lib/axisRegistry";
+import { formatAxisFull, formatEnum, formatSeverity } from "@/lib/presentation";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -139,7 +138,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                 href={axisHref(axis.axis_slug)}
                 className="hover:text-navy-700"
               >
-                {getCanonicalAxisName(axis.axis_slug)}
+                {formatAxisFull(axis.axis_slug)}
               </Link>
             </h3>
           </div>
@@ -174,7 +173,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                     className="rounded-md border border-border-primary bg-surface-tertiary p-3"
                   >
                     <p className="text-[11px] text-text-quaternary">
-                      {humanizeKey(key)}
+                      {formatEnum(key)}
                     </p>
                     <p className="font-mono text-sm font-medium text-text-secondary">
                       {typeof val === "number" ? val.toFixed(4) : String(val)}
@@ -213,7 +212,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                   className="rounded-md border border-border-primary bg-surface-tertiary p-3"
                 >
                   <p className="text-[11px] text-text-quaternary">
-                    {humanizeKey(fuel)}
+                    {formatEnum(fuel)}
                   </p>
                   <p className="font-mono text-sm font-medium text-text-secondary">
                     {hhi.toFixed(4)}
@@ -245,7 +244,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                           : "text-text-quaternary"
                     }`}
                   >
-                    [{w.id}]
+                    [{formatSeverity(w.severity)}]
                   </span>
                   {w.text}
                 </li>
@@ -330,7 +329,7 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                     key={`${s.category}-${i}`}
                     className="text-text-tertiary"
                   >
-                    <td className="pr-3 py-0.5">{s.category}</td>
+                    <td className="pr-3 py-0.5">{formatEnum(s.category)}</td>
                     <td className="pr-3 py-0.5 text-right font-mono">
                       {s.concentration.toFixed(4)}
                     </td>

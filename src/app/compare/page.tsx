@@ -10,7 +10,8 @@ import {
   deviationFromMean,
   countryHref,
 } from "@/lib/format";
-import { getCanonicalAxisName, FIELD_TO_SLUG } from "@/lib/axisRegistry";
+import { FIELD_TO_SLUG } from "@/lib/axisRegistry";
+import { formatAxisFull } from "@/lib/presentation";
 import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -109,7 +110,7 @@ export default function ComparePage() {
     c: ISICompositeCountry,
     prefix: string,
   ): string {
-    return getCanonicalAxisName(getAxisSlug(c, prefix));
+    return formatAxisFull(getAxisSlug(c, prefix));
   }
 
   // Build radar axes from discovered keys — slug-based, labels resolved by RadarChart

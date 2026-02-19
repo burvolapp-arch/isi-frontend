@@ -11,7 +11,7 @@ import {
   classificationLabel,
   computeRank,
 } from "./format";
-import { getCanonicalAxisName } from "./axisRegistry";
+import { formatAxisFull } from "./presentation";
 
 /**
  * Generate a human-readable structural summary for a country.
@@ -60,12 +60,12 @@ export function generateStructuralSummary(
   summary += ". ";
 
   // Concentration drivers
-  summary += `Structural exposure is led by ${getCanonicalAxisName(top1.name)} (${formatScore(top1.score)})`;
-  summary += ` and ${getCanonicalAxisName(top2.name)} (${formatScore(top2.score)})`;
+  summary += `Structural exposure is led by ${formatAxisFull(top1.name)} (${formatScore(top1.score)})`;
+  summary += ` and ${formatAxisFull(top2.name)} (${formatScore(top2.score)})`;
   summary += ", which together represent the primary concentration vectors. ";
 
   // Structural strength
-  summary += `The lowest axis score is ${getCanonicalAxisName(lowest.name)} at ${formatScore(lowest.score)}`;
+  summary += `The lowest axis score is ${formatAxisFull(lowest.name)} at ${formatScore(lowest.score)}`;
   summary += `, indicating relative diversification in this domain`;
 
   // EU mean comparison for lowest axis

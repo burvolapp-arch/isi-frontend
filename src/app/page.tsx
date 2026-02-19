@@ -15,8 +15,8 @@ import {
   computeMedian,
   computeStdDev,
   axisHref,
-  humanizeKey,
 } from "@/lib/format";
+import { formatEnum } from "@/lib/presentation";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
 
@@ -226,7 +226,7 @@ export default async function ExecutiveOverviewPage() {
               />
               <KPICard
                 label="Aggregation"
-                value={humanizeKey(isi.aggregation_rule)}
+                value={formatEnum(isi.aggregation_rule)}
                 subtitle={isi.formula}
               />
             </div>

@@ -15,7 +15,7 @@ import {
   axisHref,
   computeRank,
 } from "@/lib/format";
-import { getCanonicalAxisName } from "@/lib/axisRegistry";
+import { formatAxisFull, formatAxisShort } from "@/lib/presentation";
 import { generateStructuralSummary } from "@/lib/summary";
 import type { CountryDetail, ISIComposite } from "@/lib/types";
 
@@ -69,7 +69,7 @@ export function CountryView({
     : undefined;
 
   const deviationItems = country.axes.map((a) => ({
-    label: getCanonicalAxisName(a.axis_slug),
+    label: formatAxisFull(a.axis_slug),
     score: a.score,
     href: axisHref(a.axis_slug),
   }));
@@ -264,7 +264,7 @@ export function CountryView({
                         href={axisHref(a.axis_slug)}
                         className="text-[13px] font-medium text-text-secondary hover:text-navy-700"
                       >
-                        {getCanonicalAxisName(a.axis_slug)}
+                        {formatAxisFull(a.axis_slug)}
                       </Link>
                       <span className="font-mono text-[13px] text-deviation-negative">
                         {formatScore(a.score)}
@@ -284,7 +284,7 @@ export function CountryView({
                         href={axisHref(a.axis_slug)}
                         className="text-[13px] font-medium text-text-secondary hover:text-navy-700"
                       >
-                        {getCanonicalAxisName(a.axis_slug)}
+                        {formatAxisFull(a.axis_slug)}
                       </Link>
                       <span className="font-mono text-[13px] text-deviation-positive">
                         {formatScore(a.score)}

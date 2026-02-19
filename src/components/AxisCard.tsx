@@ -1,5 +1,5 @@
 import type { AxisRegistryEntry } from "@/lib/types";
-import { getCanonicalAxisName } from "@/lib/axisRegistry";
+import { formatAxisFull, formatSeverity } from "@/lib/presentation";
 
 interface AxisCardProps {
   axis: AxisRegistryEntry;
@@ -14,7 +14,7 @@ export function AxisCard({ axis }: AxisCardProps) {
             Axis {axis.id}
           </p>
           <h3 className="mt-1 font-serif text-[17px] font-semibold text-text-primary">
-            {getCanonicalAxisName(axis.slug)}
+            {formatAxisFull(axis.slug)}
           </h3>
         </div>
         <span
@@ -54,7 +54,7 @@ export function AxisCard({ axis }: AxisCardProps) {
                       : "text-text-quaternary"
                 }`}
               >
-                [{w.severity}]
+                [{formatSeverity(w.severity)}]
               </span>
               {w.text}
             </p>

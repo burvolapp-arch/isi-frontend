@@ -1,5 +1,6 @@
 import type { ISICompositeCountry } from "@/lib/types";
-import { AXIS_CANONICAL_NAMES, AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
+import { AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
+import { formatAxisShort } from "@/lib/presentation";
 
 // ─── Axis definitions (derived from canonical registry) ─────────────
 
@@ -8,13 +9,9 @@ interface AxisDef {
   field: keyof ISICompositeCountry;
 }
 
-// Short uppercase labels for compact matrix display — derived from canonical names
+// Short uppercase labels for compact matrix display — via presentation layer
 function matrixLabel(slug: AxisSlug): string {
-  const canonical = AXIS_CANONICAL_NAMES[slug];
-  // Extract domain portion: everything before " External Supplier Concentration"
-  return canonical
-    .replace(/ External Supplier Concentration$/, "")
-    .toUpperCase();
+  return formatAxisShort(slug).toUpperCase();
 }
 
 const AXES: AxisDef[] = [

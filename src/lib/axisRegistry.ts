@@ -20,10 +20,10 @@
 export const AXIS_CANONICAL_NAMES = {
   financial: "Financial External Supplier Concentration",
   energy: "Energy External Supplier Concentration",
-  technology: "Technology / Semiconductor External Supplier Concentration",
+  technology: "Technology External Supplier Concentration",
   defense: "Defense External Supplier Concentration",
-  critical_inputs: "Critical Inputs / Raw Materials External Supplier Concentration",
-  logistics: "Logistics / Freight External Supplier Concentration",
+  critical_inputs: "Critical Inputs External Supplier Concentration",
+  logistics: "Logistics External Supplier Concentration",
 } as const;
 
 export type AxisSlug = keyof typeof AXIS_CANONICAL_NAMES;
@@ -38,10 +38,10 @@ export const ALL_AXIS_SLUGS = Object.keys(AXIS_CANONICAL_NAMES) as AxisSlug[];
 export const AXIS_SHORT_NAMES: Record<AxisSlug, string> = {
   financial: "Financial",
   energy: "Energy",
-  technology: "Technology / Semiconductor",
+  technology: "Technology",
   defense: "Defense",
   critical_inputs: "Critical Inputs",
-  logistics: "Logistics / Freight",
+  logistics: "Logistics",
 } as const;
 
 /** Return a compact axis label suitable for constrained UI contexts. */
