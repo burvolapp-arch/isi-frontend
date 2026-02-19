@@ -242,13 +242,13 @@ export default async function ExecutiveOverviewPage() {
               Distribution of ISI composite scores across EU-27 member states.
               Vertical bands indicate HHI classification thresholds.
             </p>
-            <div className="mt-6 rounded-md border border-border-primary p-3 sm:p-6">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
               <DistributionHistogram
                 scores={compositeScores}
                 mean={isi.statistics.mean}
                 median={median}
                 binCount={20}
-                height={240}
+                height={260}
               />
               {/* Classification counts */}
               <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">

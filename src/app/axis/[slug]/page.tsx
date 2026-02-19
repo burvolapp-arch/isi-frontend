@@ -201,11 +201,11 @@ export default async function AxisPage({ params }: PageProps) {
             <p className="mt-1.5 text-[14px] text-text-tertiary">
               Distribution of HHI scores across all scored EU member states for this axis.
             </p>
-            <div className="mt-6 rounded-md border border-border-primary p-6">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
               scores={axisScores}
               mean={meanVal}
-              height={180}
+              height={210}
               binCount={14}
             />
             </div>

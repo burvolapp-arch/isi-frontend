@@ -193,13 +193,13 @@ export function CountryView({
               <p className="mt-1.5 text-[12px] text-text-tertiary">
                 {country.country_name}&apos;s composite score relative to all EU-27 member states.
               </p>
-              <div className="mt-3 rounded-md border border-border-primary p-3 sm:p-5">
+              <div className="mt-3 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-5">
                 <DistributionHistogram
                   scores={allScores}
                   mean={compositeMean}
                   highlight={country.isi_composite}
                   highlightLabel={country.country}
-                  height={150}
+                  height={170}
                   binCount={16}
                 />
               </div>

@@ -5,9 +5,31 @@ import { formatScore } from "@/lib/presentation";
 
 /**
  * SVG-based histogram for composite score distribution.
- * Visual reference: OECD Economic Outlook statistical annexes.
- * Neutral gray bars, no background banding, thin gridlines.
+ * Visual reference: ECB Statistical Bulletin × IMF Working Paper charts.
+ *
+ * Features:
+ * - Soft classification band background shading
+ * - Gradient-fill bars with subtle rounded top caps
+ * - Refined statistical markers (mean ◆, median, highlight ▼)
+ * - Three-row bottom axis with collision avoidance
+ * - Professional horizontal gridlines with count labels
+ * - N-count badge
  */
+
+/* ── Band colours (fill tints for background zones) ────────────────── */
+const BAND_TINTS = {
+  unconcentrated: "#e8f5e9",  // muted green tint
+  mild:          "#fff8e1",   // muted amber tint
+  moderate:      "#fff3e0",   // muted orange tint
+  high:          "#ffebee",   // muted red tint
+};
+
+const BAND_ACCENTS = {
+  unconcentrated: "#065f46",
+  mild:          "#a16207",
+  moderate:      "#b45309",
+  high:          "#b91c1c",
+};
 
 interface DistributionHistogramProps {
   scores: number[];
@@ -53,11 +75,12 @@ export const DistributionHistogram = memo(function DistributionHistogram({
   const maxCount = Math.max(...bins.map((b) => b.count), 1);
 
   // SVG dimensions
-  const padding = { top: 20, right: 16, bottom: 52, left: 40 };
+  const padding = { top: 28, right: 18, bottom: 56, left: 42 };
   const svgWidth = 640;
   const chartWidth = svgWidth - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
   const barW = chartWidth / binCount;
+  const barGap = Math.max(1, barW * 0.08);
 
   const xScale = (val: number) =>
     padding.left + ((val - min) / (max - min)) * chartWidth;
@@ -70,14 +93,62 @@ export const DistributionHistogram = memo(function DistributionHistogram({
       ? Math.min(Math.floor((highlight - min) / binWidth), binCount - 1)
       : -1;
 
+  // Nice count ticks for left axis
+  const yTicks: number[] = [];
+  if (maxCount <= 4) {
+    for (let i = 1; i <= maxCount; i++) yTicks.push(i);
+  } else {
+    const step = maxCount <= 10 ? 2 : maxCount <= 20 ? 5 : 10;
+    for (let i = step; i <= maxCount; i += step) yTicks.push(i);
+  }
+
+  // Unique gradient IDs
+  const uid = `dh-${binCount}-${height}`;
+
   return (
     <svg
       viewBox={`0 0 ${svgWidth} ${height}`}
-      className="w-full"
+      className="w-full select-none"
       role="img"
       aria-label="Composite score distribution histogram"
     >
-      {/* Vertical gridlines at classification thresholds */}
+      <defs>
+        {/* Bar gradient — default (stone/slate) */}
+        <linearGradient id={`${uid}-bar`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#6b7280" stopOpacity={0.62} />
+          <stop offset="100%" stopColor="#9ca3af" stopOpacity={0.35} />
+        </linearGradient>
+        {/* Bar gradient — highlighted bin (navy) */}
+        <linearGradient id={`${uid}-bar-hl`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0b2545" stopOpacity={0.92} />
+          <stop offset="100%" stopColor="#245694" stopOpacity={0.72} />
+        </linearGradient>
+        {/* Mean marker gradient */}
+        <linearGradient id={`${uid}-mean`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0b2545" />
+          <stop offset="100%" stopColor="#245694" />
+        </linearGradient>
+      </defs>
+
+      {/* ── Classification band background zones ───────────────── */}
+      {[
+        { from: 0, to: 0.15, band: "unconcentrated" as const },
+        { from: 0.15, to: 0.25, band: "mild" as const },
+        { from: 0.25, to: 0.50, band: "moderate" as const },
+        { from: 0.50, to: 1.0, band: "high" as const },
+      ].map(({ from, to, band }) => (
+        <rect
+          key={band}
+          x={xScale(from)}
+          y={padding.top}
+          width={xScale(to) - xScale(from)}
+          height={chartHeight}
+          fill={BAND_TINTS[band]}
+          opacity={0.35}
+        />
+      ))}
+
+      {/* ── Threshold lines (vertical, at band boundaries) ─────── */}
       {[0.15, 0.25, 0.5].map((v) => (
         <line
           key={v}
@@ -85,18 +156,17 @@ export const DistributionHistogram = memo(function DistributionHistogram({
           y1={padding.top}
           x2={xScale(v)}
           y2={padding.top + chartHeight}
-          stroke="#e5e7eb"
-          strokeWidth={0.5}
-          strokeDasharray="3,3"
+          stroke="#d1d5db"
+          strokeWidth={0.75}
+          strokeDasharray="4,3"
         />
       ))}
 
-      {/* Horizontal gridlines */}
-      {[0.25, 0.5, 0.75, 1].map((frac) => {
-        const count = Math.round(maxCount * frac);
+      {/* ── Horizontal gridlines + left-axis count labels ──────── */}
+      {yTicks.map((count) => {
         const y = yScale(count);
         return (
-          <g key={frac}>
+          <g key={`g-${count}`}>
             <line
               x1={padding.left}
               y1={y}
@@ -106,7 +176,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
               strokeWidth={0.5}
             />
             <text
-              x={padding.left - 6}
+              x={padding.left - 7}
               y={y + 3}
               textAnchor="end"
               fill="#9ca3af"
@@ -119,87 +189,134 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         );
       })}
 
-      {/* Histogram bars — neutral gray default, navy highlight */}
+      {/* Zero baseline label */}
+      <text
+        x={padding.left - 7}
+        y={padding.top + chartHeight + 3}
+        textAnchor="end"
+        fill="#d1d5db"
+        fontSize="9"
+        fontFamily="var(--font-mono)"
+      >
+        0
+      </text>
+
+      {/* ── Histogram bars ─────────────────────────────────────── */}
       {bins.map((bin, i) => {
+        if (bin.count === 0) return null;
         const isHighlighted = i === highlightBinIdx;
-        const barFill = isHighlighted ? "#0b2545" : "#9ca3af";
-        const barOpacity = bin.count > 0 ? (isHighlighted ? 0.85 : 0.45) : 0.05;
+        const barHeight = chartHeight - (yScale(bin.count) - padding.top);
+        const bx = padding.left + i * barW + barGap;
+        const bw = Math.max(barW - barGap * 2, 1);
+        const by = yScale(bin.count);
+        const r = Math.min(2.5, bw / 3); // subtle rounded top
+
         return (
-          <rect
-            key={i}
-            x={padding.left + i * barW + 1}
-            y={yScale(bin.count)}
-            width={Math.max(barW - 2, 1)}
-            height={chartHeight - (yScale(bin.count) - padding.top)}
-            fill={barFill}
-            opacity={barOpacity}
-          />
+          <g key={i}>
+            {/* Rounded-top bar via path */}
+            <path
+              d={`
+                M ${bx},${by + r}
+                Q ${bx},${by} ${bx + r},${by}
+                L ${bx + bw - r},${by}
+                Q ${bx + bw},${by} ${bx + bw},${by + r}
+                L ${bx + bw},${padding.top + chartHeight}
+                L ${bx},${padding.top + chartHeight}
+                Z
+              `}
+              fill={isHighlighted ? `url(#${uid}-bar-hl)` : `url(#${uid}-bar)`}
+            />
+            {/* Count label above bar if there's room */}
+            {bin.count > 0 && barHeight > 8 && (
+              <text
+                x={bx + bw / 2}
+                y={by - 4}
+                textAnchor="middle"
+                fill={isHighlighted ? "#0b2545" : "#9ca3af"}
+                fontSize="8"
+                fontWeight={isHighlighted ? "600" : "400"}
+                fontFamily="var(--font-mono)"
+              >
+                {bin.count}
+              </text>
+            )}
+          </g>
         );
       })}
 
-      {/* Mean marker — thin dashed line */}
+      {/* ── Mean marker ────────────────────────────────────────── */}
       {mean != null && (
         <g>
           <line
             x1={xScale(mean)}
-            y1={padding.top - 2}
+            y1={padding.top + 2}
             x2={xScale(mean)}
             y2={padding.top + chartHeight}
             stroke="#0b2545"
-            strokeWidth={1}
-            strokeDasharray="4,3"
+            strokeWidth={1.25}
+            strokeDasharray="5,3"
+            opacity={0.7}
           />
-          {/* Nudge mean label away from highlight if they overlap at top */}
+          {/* Diamond marker at top */}
+          <polygon
+            points={`
+              ${xScale(mean)},${padding.top - 2}
+              ${xScale(mean) + 4},${padding.top + 3}
+              ${xScale(mean)},${padding.top + 8}
+              ${xScale(mean) - 4},${padding.top + 3}
+            `}
+            fill={`url(#${uid}-mean)`}
+            opacity={0.85}
+          />
+          {/* Mean label with collision avoidance */}
           {(() => {
             const mx = xScale(mean);
             const hx = highlight != null ? xScale(highlight) : null;
-            const tooClose = hx != null && Math.abs(mx - hx) < 40;
-            // Shift label left or right if highlight overlaps
+            const tooClose = hx != null && Math.abs(mx - hx) < 44;
             const anchor = tooClose ? (mx < hx! ? "end" : "start") : "middle";
-            const dx = tooClose ? (mx < hx! ? -6 : 6) : 0;
+            const dx = tooClose ? (mx < hx! ? -7 : 7) : 0;
             return (
               <text
                 x={mx + dx}
-                y={padding.top - 6}
+                y={padding.top - 7}
                 textAnchor={anchor}
                 fill="#0b2545"
-                fontSize="9"
+                fontSize="8.5"
                 fontFamily="var(--font-mono)"
-                fontWeight="500"
+                fontWeight="600"
+                letterSpacing="0.02em"
               >
-                Mean {formatScore(mean)}
+                μ {formatScore(mean)}
               </text>
             );
           })()}
         </g>
       )}
 
-      {/* Median marker — thin subtle line */}
+      {/* ── Median marker ──────────────────────────────────────── */}
       {median != null && (
         <g>
           <line
             x1={xScale(median)}
-            y1={padding.top - 2}
+            y1={padding.top + 6}
             x2={xScale(median)}
             y2={padding.top + chartHeight}
             stroke="#6b7280"
             strokeWidth={0.75}
             strokeDasharray="2,3"
+            opacity={0.6}
           />
           {/* Nudge median label to avoid both mean and highlight */}
           {(() => {
             const mdx = xScale(median);
             const mx = mean != null ? xScale(mean) : null;
             const hx = highlight != null ? xScale(highlight) : null;
-            // Default: right of line
             let nudgeX = 5;
             let anchor: "start" | "end" = "start";
-            // If mean is to the right and close, flip median label to the left
             if (mx != null && mx > mdx && Math.abs(mx - mdx) < 45) {
               nudgeX = -5;
               anchor = "end";
             }
-            // If highlight is to the right and close, also flip
             if (hx != null && hx > mdx && Math.abs(hx - mdx) < 30) {
               nudgeX = -5;
               anchor = "end";
@@ -207,11 +324,12 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             return (
               <text
                 x={mdx + nudgeX}
-                y={padding.top + 10}
+                y={padding.top + 16}
                 textAnchor={anchor}
                 fill="#6b7280"
                 fontSize="8"
                 fontFamily="var(--font-mono)"
+                opacity={0.75}
               >
                 Mdn {formatScore(median)}
               </text>
@@ -220,7 +338,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         </g>
       )}
 
-      {/* Highlight marker (for specific country) */}
+      {/* ── Highlight marker (country) ─────────────────────────── */}
       {highlight != null && (
         <g>
           <line
@@ -229,18 +347,22 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             x2={xScale(highlight)}
             y2={padding.top + chartHeight}
             stroke="#0b2545"
-            strokeWidth={1.5}
+            strokeWidth={1.75}
+            opacity={0.9}
           />
-          <circle
-            cx={xScale(highlight)}
-            cy={padding.top - 2}
-            r={2.5}
+          {/* Downward-pointing triangle at top */}
+          <polygon
+            points={`
+              ${xScale(highlight)},${padding.top + 6}
+              ${xScale(highlight) - 4},${padding.top - 1}
+              ${xScale(highlight) + 4},${padding.top - 1}
+            `}
             fill="#0b2545"
           />
         </g>
       )}
 
-      {/* X-axis baseline */}
+      {/* ── X-axis baseline ────────────────────────────────────── */}
       <line
         x1={padding.left}
         y1={padding.top + chartHeight}
@@ -250,58 +372,68 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         strokeWidth={1}
       />
 
+      {/* ── Left axis line ─────────────────────────────────────── */}
+      <line
+        x1={padding.left}
+        y1={padding.top}
+        x2={padding.left}
+        y2={padding.top + chartHeight}
+        stroke="#e5e7eb"
+        strokeWidth={0.5}
+      />
+
+      {/* ── N-count badge (top-right corner) ───────────────────── */}
+      <text
+        x={svgWidth - padding.right}
+        y={padding.top - 10}
+        textAnchor="end"
+        fill="#9ca3af"
+        fontSize="8"
+        fontFamily="var(--font-mono)"
+        letterSpacing="0.04em"
+      >
+        N = {scores.length}
+      </text>
+
       {/* ── Bottom labels with collision avoidance ─────────────── */}
       {(() => {
-        // Row 1: X-axis tick values (y offset +14)
-        // Row 2: Classification band labels (y offset +26)
-        // Row 3: Highlight country label (y offset +40)
-        //
-        // Strategy: compute pixel positions for all labels, then
-        // suppress any tick or band label that would collide with
-        // the highlight label or with each other.
-
         const tickY = padding.top + chartHeight + 14;
         const bandY = padding.top + chartHeight + 28;
-        const highlightY = padding.top + chartHeight + 42;
+        const highlightY = padding.top + chartHeight + 44;
 
-        // Highlight label pixel position + approximate width
         const hlX = highlight != null ? xScale(highlight) : null;
-        const hlHalfW = highlightLabel ? highlightLabel.length * 3.2 + 8 : 0;
+        const hlHalfW = highlightLabel ? highlightLabel.length * 3.2 + 10 : 0;
 
-        // Classification band definitions
-        const bands = [
-          { cx: 0.075, label: "Unconc." },
-          { cx: 0.2, label: "Mild" },
-          { cx: 0.375, label: "Mod." },
-          { cx: 0.75, label: "High" },
+        // Classification band definitions — positioned at band midpoints
+        const bands: { cx: number; label: string; color: string }[] = [
+          { cx: 0.075, label: "Unconcentrated", color: BAND_ACCENTS.unconcentrated },
+          { cx: 0.2, label: "Mild", color: BAND_ACCENTS.mild },
+          { cx: 0.375, label: "Moderate", color: BAND_ACCENTS.moderate },
+          { cx: 0.75, label: "High", color: BAND_ACCENTS.high },
         ];
 
-        // Tick definitions
         const ticks = [0, 0.15, 0.25, 0.5, 0.75, 1.0];
 
-        // Helper: do two horizontal ranges overlap?
         const overlaps = (ax: number, ahw: number, bx: number, bhw: number) =>
           Math.abs(ax - bx) < ahw + bhw;
 
-        // Approximate half-widths (char count × avg char width)
         const tickHW = (v: number) => v.toFixed(2).length * 2.8 + 2;
-        const bandHW = (label: string) => label.length * 2.2 + 2;
+        const bandHW = (label: string) => label.length * 2.1 + 3;
 
         return (
           <>
-            {/* Tick marks + values — suppress if colliding with highlight */}
+            {/* Tick marks + values */}
             {ticks.map((v) => {
               const tx = xScale(v);
               const hide =
-                hlX != null &&
-                overlaps(tx, tickHW(v), hlX, hlHalfW);
+                hlX != null && overlaps(tx, tickHW(v), hlX, hlHalfW);
               return (
                 <g key={`t-${v}`}>
                   <line
                     x1={tx}
                     y1={padding.top + chartHeight}
                     x2={tx}
-                    y2={padding.top + chartHeight + 3}
+                    y2={padding.top + chartHeight + 4}
                     stroke="#d1d5db"
                     strokeWidth={1}
                   />
@@ -311,7 +443,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                       y={tickY}
                       textAnchor="middle"
                       fill="#9ca3af"
-                      fontSize="9"
+                      fontSize="8.5"
                       fontFamily="var(--font-mono)"
                     >
                       {v.toFixed(2)}
@@ -321,23 +453,23 @@ export const DistributionHistogram = memo(function DistributionHistogram({
               );
             })}
 
-            {/* Classification band labels — suppress if colliding with highlight */}
-            {bands.map(({ cx, label }) => {
+            {/* Classification band labels — color-coded */}
+            {bands.map(({ cx, label, color }) => {
               const bx = xScale(cx);
               const hide =
-                hlX != null &&
-                overlaps(bx, bandHW(label), hlX, hlHalfW);
+                hlX != null && overlaps(bx, bandHW(label), hlX, hlHalfW);
               return (
                 <text
                   key={`b-${label}`}
                   x={bx}
                   y={bandY}
                   textAnchor="middle"
-                  fill="#9ca3af"
+                  fill={color}
                   fontSize="7"
-                  letterSpacing="0.06em"
+                  fontWeight="500"
+                  letterSpacing="0.05em"
                   style={{ textTransform: "uppercase" }}
-                  opacity={hide ? 0 : 1}
+                  opacity={hide ? 0 : 0.7}
                 >
                   {label}
                 </text>
@@ -346,18 +478,30 @@ export const DistributionHistogram = memo(function DistributionHistogram({
 
             {/* Highlight country label — always visible, on its own row */}
             {highlight != null && highlightLabel && (
-              <text
-                x={xScale(highlight)}
-                y={highlightY}
-                textAnchor="middle"
-                fill="#0b2545"
-                fontSize="9"
-                fontWeight="700"
-                fontFamily="var(--font-sans)"
-                letterSpacing="0.04em"
-              >
-                {highlightLabel}
-              </text>
+              <g>
+                {/* Subtle pill background behind label */}
+                <rect
+                  x={xScale(highlight) - hlHalfW}
+                  y={highlightY - 9}
+                  width={hlHalfW * 2}
+                  height={13}
+                  rx={3}
+                  fill="#0b2545"
+                  opacity={0.07}
+                />
+                <text
+                  x={xScale(highlight)}
+                  y={highlightY}
+                  textAnchor="middle"
+                  fill="#0b2545"
+                  fontSize="9"
+                  fontWeight="700"
+                  fontFamily="var(--font-sans)"
+                  letterSpacing="0.04em"
+                >
+                  {highlightLabel}
+                </text>
+              </g>
             )}
           </>
         );
