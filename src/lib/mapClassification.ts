@@ -113,11 +113,11 @@ export function formatMapScore(score: number | null | undefined): string {
   return score.toFixed(4);
 }
 
-/** Format delta with +/- prefix, or em-dash for null. */
+/** Format delta with +/− prefix (typographic minus), or em-dash for null. */
 export function formatDelta(delta: number | null | undefined): string {
   if (delta === null || delta === undefined || !Number.isFinite(delta)) {
     return "\u2014";
   }
-  const prefix = delta > 0 ? "+" : "";
-  return `${prefix}${delta.toFixed(4)}`;
+  if (delta >= 0) return `+${delta.toFixed(4)}`;
+  return `\u2212${Math.abs(delta).toFixed(4)}`;
 }

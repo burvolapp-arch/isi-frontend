@@ -8,12 +8,12 @@
 import Link from "next/link";
 import type { ISICompositeCountry } from "@/lib/types";
 import {
-  formatScore,
   getAxisScores,
   computeAxisVariance,
   countryHref,
   deviationFromMean,
 } from "@/lib/format";
+import { formatScore } from "@/lib/presentation";
 
 interface OutliersPanelProps {
   countries: ISICompositeCountry[];

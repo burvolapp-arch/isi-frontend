@@ -104,15 +104,32 @@ export function formatEnum(value: string): string {
 // ─── D) formatPercentage ────────────────────────────────────────────
 
 /**
- * Format a decimal ratio as a percentage with sign.
- * Uses typographic minus (−) not hyphen (-).
- * 0 decimals for control pills.
+ * Format a decimal ratio as a percentage.
  *
- * -0.15 → "−15%"
- *  0.10 → "+10%"
- *  0    → "Base"
+ * type = "control" (default): shift-pill format, 0 decimals, signed.
+ *   -0.15 → "−15%"
+ *    0.10 → "+10%"
+ *    0    → "Base"
+ *
+ * type = "share": display format, 1 decimal, unsigned.
+ *   0.4312 → "43.1%"
+ *
+ * type = "delta": signed, 4 decimal places.
+ *   -0.0023 → "−0.0023"
+ *    0.0150 → "+0.0150"
  */
-export function formatPercentage(value: number): string {
+export function formatPercentage(
+  value: number,
+  type: "control" | "share" | "delta" = "control",
+): string {
+  if (type === "share") {
+    return `${(value * 100).toFixed(1)}%`;
+  }
+  if (type === "delta") {
+    if (value >= 0) return `+${value.toFixed(4)}`;
+    return `−${Math.abs(value).toFixed(4)}`;
+  }
+  // control (default)
   if (value === 0) return "Base";
   const pct = Math.round(value * 100);
   if (pct < 0) return `−${Math.abs(pct)}%`;
@@ -233,6 +250,72 @@ export function guardUnderscore(value: string, context?: string): void {
       `[ISI Presentation] Underscore leak in rendered text: "${value}"` +
         (context ? ` (context: ${context})` : "") +
         `. All backend keys must pass through the presentation layer.`
+    );
+  }
+}
+
+// ─── K) formatVolume ────────────────────────────────────────────────
+
+/**
+ * Format a large volume number in compact abbreviated notation.
+ * Max 2 significant decimals, trailing zeros stripped.
+ *
+ * 2448506954.27 → "2.45B"
+ * 15000000      → "15M"
+ * 1000000       → "1M"
+ * 1500          → "1.5K"
+ * 123.456       → "123.46"
+ */
+export function formatVolume(value: number): string {
+  const abs = Math.abs(value);
+  let num: string;
+  if (abs >= 1e12) {
+    num = stripTrailingZeros((value / 1e12).toFixed(2)) + "T";
+  } else if (abs >= 1e9) {
+    num = stripTrailingZeros((value / 1e9).toFixed(2)) + "B";
+  } else if (abs >= 1e6) {
+    num = stripTrailingZeros((value / 1e6).toFixed(2)) + "M";
+  } else if (abs >= 1e3) {
+    num = stripTrailingZeros((value / 1e3).toFixed(2)) + "K";
+  } else {
+    num = stripTrailingZeros(value.toFixed(2));
+  }
+  return num;
+}
+
+/** Strip trailing zeros after decimal point, and the dot itself if unneeded. */
+function stripTrailingZeros(s: string): string {
+  if (!s.includes(".")) return s;
+  return s.replace(/\.?0+$/, "");
+}
+
+// ─── L) guardNumericLeak ────────────────────────────────────────────
+
+/**
+ * Development-only guard: detect unformatted numeric strings in rendered output.
+ * Flags:
+ *   - 9+ digit raw integers (e.g. "2448506954")
+ *   - Trailing ".0000" (likely raw toFixed(4) on a volume)
+ *   - Scientific notation (e.g. "1.23e+10")
+ */
+export function guardNumericLeak(value: string, context?: string): void {
+  if (process.env.NODE_ENV !== "development") return;
+  if (typeof value !== "string") return;
+  const trimmed = value.trim();
+  // 9+ consecutive digits (raw long integer)
+  if (/\d{9,}/.test(trimmed)) {
+    console.error(
+      `[ISI Numeric] Raw long integer leak: "${trimmed}"` +
+        (context ? ` (context: ${context})` : "") +
+        `. Use formatVolume() or formatScore().`
+    );
+  }
+  // Scientific notation
+  if (/\d+[eE][+-]?\d+/.test(trimmed)) {
+    console.error(
+      `[ISI Numeric] Scientific notation leak: "${trimmed}"` +
+        (context ? ` (context: ${context})` : "") +
+        `. Use formatVolume() or formatScore().`
     );
   }
 }

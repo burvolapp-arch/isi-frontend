@@ -9,13 +9,12 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ScenarioLaboratory } from "@/components/ScenarioLaboratory";
 import {
-  formatScore,
   computePercentile,
   deviationFromMean,
   axisHref,
   computeRank,
 } from "@/lib/format";
-import { formatAxisFull, formatAxisShort } from "@/lib/presentation";
+import { formatAxisFull, formatAxisShort, formatScore } from "@/lib/presentation";
 import { generateStructuralSummary } from "@/lib/summary";
 import type { CountryDetail, ISIComposite } from "@/lib/types";
 

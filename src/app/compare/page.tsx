@@ -6,12 +6,11 @@ import { RadarChart } from "@/components/RadarChart";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import {
-  formatScore,
   deviationFromMean,
   countryHref,
 } from "@/lib/format";
 import { FIELD_TO_SLUG } from "@/lib/axisRegistry";
-import { formatAxisFull } from "@/lib/presentation";
+import { formatAxisFull, formatScore, formatDelta } from "@/lib/presentation";
 import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -265,7 +264,7 @@ export default function ComparePage() {
                       >
                         {countryA.isi_composite !== null &&
                         countryB.isi_composite !== null
-                          ? `${countryA.isi_composite - countryB.isi_composite >= 0 ? "+" : ""}${(countryA.isi_composite - countryB.isi_composite).toFixed(4)}`
+                          ? formatDelta(countryA.isi_composite - countryB.isi_composite)
                           : "—"}
                       </td>
                     </tr>
@@ -305,7 +304,7 @@ export default function ComparePage() {
                             meanComposite,
                           );
                           return d !== null
-                            ? `${d >= 0 ? "+" : ""}${d.toFixed(4)}`
+                            ? formatDelta(d)
                             : "—";
                         })()}
                       </td>
@@ -325,7 +324,7 @@ export default function ComparePage() {
                             meanComposite,
                           );
                           return d !== null
-                            ? `${d >= 0 ? "+" : ""}${d.toFixed(4)}`
+                            ? formatDelta(d)
                             : "—";
                         })()}
                       </td>
@@ -419,7 +418,7 @@ export default function ComparePage() {
                             }`}
                           >
                             {delta !== null
-                              ? `${delta >= 0 ? "+" : ""}${delta.toFixed(4)}`
+                              ? formatDelta(delta)
                               : "—"}
                           </td>
                           <td className="px-4 py-2.5 text-center text-[11px] font-semibold">

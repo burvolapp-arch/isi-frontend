@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   formatAxisShort,
   formatAxisFull,
+  formatScore,
+  formatDelta,
 } from "@/lib/presentation";
 
 /**
@@ -99,8 +101,7 @@ function wrapLabel(text: string): string[] {
 // ─── Tooltip ────────────────────────────────────────────────────────
 
 function fmtScore(v: number | null | undefined): string {
-  if (v == null) return "—";
-  return v.toFixed(2);
+  return formatScore(v ?? null);
 }
 
 interface TooltipData {
@@ -159,7 +160,7 @@ function RadarTooltip({
         <span className="text-stone-500">Deviation</span>
         <span className="font-mono text-stone-800 dark:text-stone-200">
           {data.deviation != null
-            ? `${data.deviation >= 0 ? "+" : ""}${data.deviation.toFixed(2)}`
+            ? formatDelta(data.deviation)
             : "—"}
         </span>
         {data.rank != null && data.totalRanked != null && (

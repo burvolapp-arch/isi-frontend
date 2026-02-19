@@ -413,7 +413,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   >
                     <title>
                       {c.name} ({c.iso || "?"})
-                      {c.score !== null ? ` — ${c.score.toFixed(4)}` : ""}
+                      {c.score !== null ? ` — ${formatMapScore(c.score)}` : ""}
                     </title>
                   </path>
                 ))}

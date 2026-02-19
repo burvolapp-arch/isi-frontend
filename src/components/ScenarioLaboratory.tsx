@@ -11,7 +11,6 @@ import {
   type FailureKind,
 } from "@/lib/api";
 import {
-  formatScore,
   classificationLabel,
 } from "@/lib/format";
 import {
@@ -19,7 +18,7 @@ import {
   ALL_AXIS_SLUGS,
   type AxisSlug,
 } from "@/lib/axisRegistry";
-import { formatAxisLabel } from "@/lib/presentation";
+import { formatAxisLabel, formatScore, formatDelta } from "@/lib/presentation";
 import type {
   CountryDetail,
   ScenarioResponse,
@@ -545,8 +544,7 @@ export function ScenarioLaboratory({
                     : "text-text-primary"
               }`}
             >
-              {scenario.delta.composite >= 0 ? "+" : ""}
-              {scenario.delta.composite.toFixed(4)}
+              {formatDelta(scenario.delta.composite)}
             </p>
           ) : (
             <p className="mt-1 font-mono text-[20px] font-medium leading-none tracking-tight text-text-quaternary">—</p>
@@ -633,7 +631,7 @@ export function ScenarioLaboratory({
                     <span className="text-text-primary">{formatScore(simScore)}</span>
                     {axisDelta != null && axisDelta !== 0 && (
                       <span className={axisDelta > 0 ? "text-deviation-positive" : "text-deviation-negative"}>
-                        {axisDelta >= 0 ? "+" : ""}{axisDelta.toFixed(4)}
+                        {formatDelta(axisDelta)}
                       </span>
                     )}
                   </div>
@@ -870,8 +868,7 @@ export function ScenarioLaboratory({
                       ? "text-deviation-negative"
                       : ""
                 }>
-                  {scenario.delta.composite >= 0 ? "+" : ""}
-                  {scenario.delta.composite.toFixed(4)}
+                  {formatDelta(scenario.delta.composite)}
                 </span>
               </p>
             )}
@@ -879,11 +876,11 @@ export function ScenarioLaboratory({
             {mainDriver && (
               <p className="mt-1 text-[11px] text-text-tertiary">
                 Main driver: <span className="font-medium text-text-secondary">{mainDriver.label}</span>
-                {" "}({mainDriver.delta >= 0 ? "+" : ""}{mainDriver.delta.toFixed(4)})
+                {" "}({formatDelta(mainDriver.delta)})
                 {offsetting && (
                   <>
                     {" · "}Offsetting: <span className="font-medium text-text-secondary">{offsetting.label}</span>
-                    {" "}({offsetting.delta >= 0 ? "+" : ""}{offsetting.delta.toFixed(4)})
+                    {" "}({formatDelta(offsetting.delta)})
                   </>
                 )}
               </p>
@@ -907,7 +904,7 @@ export function ScenarioLaboratory({
                     <span className={`w-16 shrink-0 text-right font-mono text-[10px] font-medium ${
                       isPositive ? "text-deviation-positive" : "text-deviation-negative"
                     }`}>
-                      {item.delta >= 0 ? "+" : ""}{item.delta.toFixed(4)}
+                      {formatDelta(item.delta)}
                     </span>
                   </div>
                 );

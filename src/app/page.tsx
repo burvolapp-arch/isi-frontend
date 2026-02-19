@@ -9,14 +9,13 @@ import OutliersPanel from "@/components/OutliersPanel";
 import EUMap from "@/components/EUMap";
 import SovereigntyMatrix from "@/components/SovereigntyMatrix";
 import {
-  formatScore,
   classificationLabel,
   extractCompositeScores,
   computeMedian,
   computeStdDev,
   axisHref,
 } from "@/lib/format";
-import { formatEnum } from "@/lib/presentation";
+import { formatEnum, formatScore } from "@/lib/presentation";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
 
@@ -59,7 +58,7 @@ export default async function ExecutiveOverviewPage() {
     isi !== null &&
     isi.statistics.max !== null &&
     isi.statistics.min !== null
-      ? (isi.statistics.max - isi.statistics.min).toFixed(4)
+      ? isi.statistics.max - isi.statistics.min
       : null;
 
   // Distribution buckets
@@ -211,17 +210,17 @@ export default async function ExecutiveOverviewPage() {
               />
               <KPICard
                 label="Composite Median"
-                value={median !== null ? median.toFixed(4) : "—"}
+                value={median !== null ? formatScore(median) : "—"}
                 subtitle="EU-27 midpoint"
               />
               <KPICard
                 label="Std Deviation"
-                value={stdDev !== null ? stdDev.toFixed(4) : "—"}
+                value={stdDev !== null ? formatScore(stdDev) : "—"}
                 subtitle="Cross-EU dispersion"
               />
               <KPICard
                 label="Range"
-                value={spread ?? "—"}
+                value={spread !== null ? formatScore(spread) : "—"}
                 subtitle={`${formatScore(isi.statistics.min)} → ${formatScore(isi.statistics.max)}`}
               />
               <KPICard

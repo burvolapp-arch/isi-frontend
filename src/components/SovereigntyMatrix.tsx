@@ -1,6 +1,6 @@
 import type { ISICompositeCountry } from "@/lib/types";
 import { AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
-import { formatAxisShort } from "@/lib/presentation";
+import { formatAxisShort, formatScore } from "@/lib/presentation";
 
 // ─── Axis definitions (derived from canonical registry) ─────────────
 
@@ -84,7 +84,7 @@ export default function SovereigntyMatrix({
                   </span>
                 </div>
                 <span className="font-mono text-[11px] tabular-nums text-slate-300">
-                  {row.mean !== null ? row.mean.toFixed(4) : "—"}
+                  {row.mean !== null ? formatScore(row.mean) : "—"}
                 </span>
               </div>
 

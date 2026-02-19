@@ -4,15 +4,22 @@ import { ErrorPanel } from "@/components/ErrorPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CountryView } from "@/components/CountryView";
 import {
-  formatScore,
   computePercentile,
   extractCompositeScores,
   axisHref,
   isAggregatePartner,
-  formatCompactVolume,
   computeRank,
 } from "@/lib/format";
-import { formatAxisFull, formatEnum, formatSeverity, formatDataset } from "@/lib/presentation";
+import {
+  formatAxisFull,
+  formatEnum,
+  formatSeverity,
+  formatDataset,
+  formatScore,
+  formatVolume,
+  formatDelta,
+  formatPercentage,
+} from "@/lib/presentation";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -176,7 +183,11 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                       {formatEnum(key)}
                     </p>
                     <p className="font-mono text-sm font-medium text-text-secondary">
-                      {typeof val === "number" ? val.toFixed(4) : String(val)}
+                      {typeof val === "number"
+                        ? /volume|trade_value|import|export/i.test(key) && val > 1000
+                          ? formatVolume(val)
+                          : formatScore(val)
+                        : String(val)}
                     </p>
                   </div>
                 ))}
@@ -215,7 +226,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                     {formatEnum(fuel)}
                   </p>
                   <p className="font-mono text-sm font-medium text-text-secondary">
-                    {hhi.toFixed(4)}
+                    {formatScore(hhi)}
                   </p>
                 </div>
               ))}
@@ -292,15 +303,15 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                   <span className="text-xs text-text-tertiary">
                     {p.partner}
                   </span>
-                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                     <div className="h-1.5 w-24 overflow-hidden bg-stone-200">
                       <div
                         className="h-full bg-navy-700"
-                        style={{ width: `${(p.share * 100).toFixed(1)}%` }}
+                        style={{ width: formatPercentage(p.share, "share") }}
                       />
                     </div>
                     <span className="w-14 text-right font-mono text-[11px] text-text-quaternary">
-                      {(p.share * 100).toFixed(1)}%
+                      {formatPercentage(p.share, "share")}
                     </span>
                   </div>
                 </div>
@@ -331,11 +342,11 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                   >
                     <td className="pr-3 py-0.5">{formatEnum(s.category)}</td>
                     <td className="pr-3 py-0.5 text-right font-mono">
-                      {s.concentration.toFixed(4)}
+                      {formatScore(s.concentration)}
                     </td>
                     <td className="py-0.5 text-right font-mono">
                       {s.volume !== undefined
-                        ? formatCompactVolume(s.volume)
+                        ? formatVolume(s.volume)
                         : "—"}
                     </td>
                   </tr>

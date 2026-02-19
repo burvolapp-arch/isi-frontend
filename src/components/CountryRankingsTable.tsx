@@ -8,7 +8,6 @@ import type {
   ScoreClassification,
 } from "@/lib/types";
 import {
-  formatScore,
   classificationLabel,
   classificationDescription,
   deviationFromMean,
@@ -18,6 +17,7 @@ import {
   countryHref,
   axisHref,
 } from "@/lib/format";
+import { formatScore, formatDelta } from "@/lib/presentation";
 import { StatusBadge } from "./StatusBadge";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -415,7 +415,7 @@ function TableRow({
           className={`whitespace-nowrap px-3 py-2.5 text-right font-mono text-[12px] ${deviationClass(deviation)}`}
         >
           {deviation !== null
-            ? `${deviation >= 0 ? "+" : ""}${deviation.toFixed(4)}`
+            ? formatDelta(deviation)
             : "—"}
         </td>
 
@@ -467,8 +467,7 @@ function TableRow({
                     </p>
                     {axisDev !== null && (
                       <p className="mt-0.5 font-mono text-[11px] text-text-quaternary">
-                        {axisDev >= 0 ? "+" : ""}
-                        {axisDev.toFixed(4)} vs mean
+                        {formatDelta(axisDev)} vs mean
                       </p>
                     )}
                   </Link>

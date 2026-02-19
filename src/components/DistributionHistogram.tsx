@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { formatScore } from "@/lib/presentation";
 
 /**
  * SVG-based histogram for composite score distribution.
@@ -157,7 +158,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             fontFamily="var(--font-mono)"
             fontWeight="500"
           >
-            Mean {mean.toFixed(3)}
+            Mean {formatScore(mean)}
           </text>
         </g>
       )}
@@ -182,7 +183,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             fontSize="8"
             fontFamily="var(--font-mono)"
           >
-            Mdn {median.toFixed(3)}
+            Mdn {formatScore(median)}
           </text>
         </g>
       )}

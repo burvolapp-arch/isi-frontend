@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { formatScore, formatDelta } from "@/lib/presentation";
 
 /**
  * Horizontal deviation bar centered at zero.
@@ -74,15 +75,14 @@ export const DeviationBar = memo(function DeviationBar({
       </div>
       <div className="flex items-center justify-end gap-3 md:contents">
         <span className="w-16 shrink-0 text-right font-mono text-[13px] tabular-nums text-text-secondary">
-          {score.toFixed(4)}
+          {formatScore(score)}
         </span>
         <span
           className={`w-16 shrink-0 text-right font-mono text-[12px] tabular-nums ${
             isAbove ? "text-deviation-positive" : "text-deviation-negative"
           }`}
         >
-          {dev >= 0 ? "+" : ""}
-          {dev.toFixed(4)}
+          {formatDelta(dev)}
         </span>
       </div>
     </div>

@@ -5,8 +5,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
-import { formatScore, countryHref, computeStdDev } from "@/lib/format";
-import { formatAxisFull, formatSeverity, formatDataset, formatEnum } from "@/lib/presentation";
+import { countryHref, computeStdDev } from "@/lib/format";
+import { formatAxisFull, formatSeverity, formatDataset, formatEnum, formatScore, formatDelta } from "@/lib/presentation";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
@@ -181,12 +181,12 @@ export default async function AxisPage({ params }: PageProps) {
             />
             <KPICard
               label="Std Deviation"
-              value={stdDev !== null ? stdDev.toFixed(4) : "—"}
+              value={stdDev !== null ? formatScore(stdDev) : "—"}
               subtitle="Cross-country dispersion"
             />
             <KPICard
               label="Range"
-              value={range !== null ? range.toFixed(4) : "—"}
+              value={range !== null ? formatScore(range) : "—"}
               subtitle="Max − Min spread"
             />
           </div>
@@ -338,7 +338,7 @@ export default async function AxisPage({ params }: PageProps) {
                         }`}
                       >
                         {dev !== null
-                          ? `${dev >= 0 ? "+" : ""}${dev.toFixed(4)}`
+                          ? formatDelta(dev)
                           : "—"}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-center">
@@ -359,7 +359,7 @@ export default async function AxisPage({ params }: PageProps) {
           </div>
           {outlierThreshold !== null && (
             <p className="mt-2 text-[11px] text-text-quaternary">
-              ● Outlier: country score deviates &gt; 1.5σ from mean ({outlierThreshold.toFixed(4)}).
+              ● Outlier: country score deviates &gt; 1.5σ from mean ({formatScore(outlierThreshold)}).
             </p>
           )}
         </section>

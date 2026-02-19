@@ -247,14 +247,17 @@ export function isAggregatePartner(partner: string): boolean {
 
 // ─── Compact Volume Formatting ──────────────────────────────────────
 
-/** Format a large volume number in compact notation (e.g. 15.41B, 2.31M). */
+/** Format a large volume number in compact notation (e.g. 15.41B, 2.31M). Trailing zeros stripped. */
 export function formatCompactVolume(value: number): string {
   const abs = Math.abs(value);
-  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `${(value / 1e3).toFixed(2)}K`;
-  return value.toFixed(2);
+  let raw: string;
+  let suffix: string;
+  if (abs >= 1e12) { raw = (value / 1e12).toFixed(2); suffix = "T"; }
+  else if (abs >= 1e9) { raw = (value / 1e9).toFixed(2); suffix = "B"; }
+  else if (abs >= 1e6) { raw = (value / 1e6).toFixed(2); suffix = "M"; }
+  else if (abs >= 1e3) { raw = (value / 1e3).toFixed(2); suffix = "K"; }
+  else { return value.toFixed(2).replace(/\.?0+$/, ""); }
+  return raw.replace(/\.?0+$/, "") + suffix;
 }
 
 // ─── Rank Computation ───────────────────────────────────────────────
