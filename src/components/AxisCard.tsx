@@ -1,5 +1,5 @@
 import type { AxisRegistryEntry } from "@/lib/types";
-import { formatAxisFull, formatSeverity, formatDataset } from "@/lib/presentation";
+import { formatAxisFull, formatSeverity, formatDataset, formatEnum } from "@/lib/presentation";
 
 interface AxisCardProps {
   axis: AxisRegistryEntry;
@@ -37,7 +37,7 @@ export function AxisCard({ axis }: AxisCardProps) {
             className="inline-flex items-center rounded-md border border-border-primary px-2 py-0.5 text-[10px] text-text-tertiary"
             title={formatDataset(ch.source)}
           >
-            Ch. {ch.id}: {ch.name}
+            Ch. {ch.id}: {formatEnum(ch.name)}
           </span>
         ))}
       </div>

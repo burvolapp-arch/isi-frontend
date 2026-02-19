@@ -226,7 +226,7 @@ export default async function ExecutiveOverviewPage() {
               <KPICard
                 label="Aggregation"
                 value={formatEnum(isi.aggregation_rule)}
-                subtitle={isi.formula}
+                subtitle={formatEnum(isi.formula)}
               />
             </div>
           </section>

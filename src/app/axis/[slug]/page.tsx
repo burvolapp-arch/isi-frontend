@@ -229,7 +229,7 @@ export default async function AxisPage({ params }: PageProps) {
                 className="rounded-md border border-border-primary bg-surface-tertiary p-4"
               >
                 <p className="text-[14px] font-medium text-text-secondary">
-                  Ch. {ch.id}: {ch.name}
+                  Ch. {ch.id}: {formatEnum(ch.name)}
                 </p>
                 <p className="mt-0.5 text-[11px] text-text-quaternary">Source: {formatDataset(ch.source)}</p>
               </div>

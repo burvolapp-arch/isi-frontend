@@ -275,7 +275,7 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
     <div className="rounded-md border border-border-primary bg-surface-tertiary p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-medium text-text-secondary">
-          Ch. {channel.channel_id}: {channel.channel_name}
+          Ch. {channel.channel_id}: {formatEnum(channel.channel_name)}
         </p>
         {channel.total_partners != null && (
           <span className="text-[11px] text-text-quaternary">
