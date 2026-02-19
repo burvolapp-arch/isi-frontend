@@ -187,7 +187,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                         ? /volume|trade_value|import|export/i.test(key) && val > 1000
                           ? formatVolume(val)
                           : formatScore(val)
-                        : String(val)}
+                        : formatEnum(String(val))}
                     </p>
                   </div>
                 ))}
