@@ -25,11 +25,11 @@ const T_HIGH = 0.50;
 // Aligned with the institutional navy design system.
 // Each step has clear perceptual distance from its neighbors.
 
-const C_UNCONCENTRATED = "#dbeafe"; // blue-100 — lightest
-const C_MILD           = "#60a5fa"; // blue-400
+const C_UNCONCENTRATED = "#c7e0f9"; // sky-blue — lightest data
+const C_MILD           = "#5b9cf5"; // blue-400
 const C_MODERATE       = "#2563eb"; // blue-600
-const C_HIGH           = "#1e3a5f"; // navy-800 — darkest
-const C_NO_DATA        = "#f3f4f6"; // stone-100 — neutral grey
+const C_HIGH           = "#14305a"; // navy-850 — darkest
+const C_NO_DATA        = "#eef0f3"; // stone-100 — neutral grey
 
 // ─── Classification Bands ───────────────────────────────────────────
 

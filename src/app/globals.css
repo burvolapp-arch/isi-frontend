@@ -128,6 +128,24 @@ table {
   to   { opacity: 1; transform: translate(-50%, -100%) translateY(0); }
 }
 
+/* ── EUMap GPU-accelerated hover transitions ───────────── */
+.eumap-country {
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 0.12s ease-out;
+  will-change: opacity;
+}
+.eumap-country[data-dimmed] {
+  opacity: 0.40;
+}
+.eumap-country[data-active] {
+  opacity: 1;
+}
+.eumap-label {
+  transition: fill-opacity 0.1s ease-out, font-size 0.1s ease-out;
+  user-select: none;
+}
+
 /* ── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;

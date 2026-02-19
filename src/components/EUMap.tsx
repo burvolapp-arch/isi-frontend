@@ -69,10 +69,11 @@ type EUTopology = Topology<{
   [key: string]: GeometryCollection<CountryProps>;
 }>;
 
-// Country labels — only for countries large enough to display legibly
+// Country labels — show all EU-27 with enough area
 const LABEL_COUNTRIES = new Set([
   "FR", "DE", "ES", "IT", "PL", "RO", "SE", "FI", "BG", "GR",
   "HU", "PT", "AT", "CZ", "IE", "LT", "LV", "HR", "SK",
+  "NL", "BE", "DK", "EE", "SI", "CY", "LU", "MT",
 ]);
 
 const ISO_ALIASES: Record<string, string> = { EL: "GR", GR: "EL" };
@@ -337,8 +338,13 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   const ready = mapData !== null;
 
+  // Pre-compute label font size once (not per label)
+  const lblSize = dims.width > 700 ? 11 : dims.width > 500 ? 9.5 : 8;
+  const lblSizeSmall = dims.width > 700 ? 9 : dims.width > 500 ? 7.5 : 6.5;
+  const SMALL_COUNTRIES = new Set(["LU", "MT", "CY", "SI", "EE", "BE", "NL"]);
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Mismatch warning */}
       {ready && mapData.matchedCount < mapData.featureCount && (
         <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-800">
@@ -351,14 +357,19 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       {/* ── STABLE CONTAINER — always mounted ─── */}
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden rounded-lg border border-stone-200 shadow-sm sm:rounded-xl"
-        style={{ minHeight: "min(560px, 80vw)", aspectRatio: "4 / 3" }}
+        className="eumap-root relative w-full overflow-hidden rounded-xl border border-stone-200/60"
+        style={{
+          minHeight: "min(560px, 80vw)",
+          aspectRatio: "4 / 3",
+          contain: "content",
+          boxShadow: "inset 0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)",
+        }}
       >
-        {/* Subtle water background gradient */}
+        {/* Ocean / water background */}
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(180deg, #f0f5fa 0%, #e8eef5 50%, #f0f5fa 100%)",
+            background: "radial-gradient(ellipse 120% 100% at 50% 40%, #e9f0f8 0%, #dce5ef 55%, #d1dbe8 100%)",
           }}
         />
 
@@ -396,17 +407,36 @@ export default function EUMap({ countries, mean }: EUMapProps) {
               aria-label="EU-27 ISI composite score choropleth map"
               style={{ shapeRendering: "geometricPrecision" }}
             >
-              {/* Country fills — pre-computed path strings, no filter */}
-              <g>
+              <defs>
+                {/* Subtle land shadow for depth */}
+                <filter id="land-shadow" x="-4%" y="-4%" width="108%" height="108%">
+                  <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#0b2545" floodOpacity="0.10" />
+                </filter>
+              </defs>
+
+              {/* Land shadow layer — single composite path for performance */}
+              {mapData.outerPath.length > 0 && (
+                <path
+                  d={mapData.outerPath}
+                  fill="#ccd5de"
+                  stroke="none"
+                  filter="url(#land-shadow)"
+                  pointerEvents="none"
+                  opacity={0.5}
+                />
+              )}
+
+              {/* Country fills — pre-computed path strings */}
+              <g className="eumap-countries">
                 {mapData.countries.map((c, i) => (
                   <path
                     key={c.iso || `f-${i}`}
                     d={c.d}
                     fill={c.fill}
                     stroke="none"
-                    opacity={hoveredIso && hoveredIso !== c.iso ? 0.5 : 1}
-                    className="cursor-pointer"
-                    style={{ willChange: "opacity", transition: "opacity 0.12s ease-out" }}
+                    className="eumap-country"
+                    data-dimmed={hoveredIso && hoveredIso !== c.iso ? "" : undefined}
+                    data-active={hoveredIso === c.iso ? "" : undefined}
                     onMouseMove={(e) => onMove(e, c)}
                     onMouseLeave={onLeave}
                     onClick={() => onClick(c)}
@@ -425,74 +455,108 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   d={mapData.borderPath}
                   fill="none"
                   stroke="#ffffff"
-                  strokeWidth={0.8}
+                  strokeWidth={1}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   pointerEvents="none"
+                  opacity={0.7}
                 />
               )}
 
-              {/* Outer coastline — subtle grey definition */}
+              {/* Outer coastline — subtle dark definition */}
               {mapData.outerPath.length > 0 && (
                 <path
                   d={mapData.outerPath}
                   fill="none"
-                  stroke="#94a3b8"
-                  strokeWidth={0.5}
+                  stroke="#64748b"
+                  strokeWidth={0.7}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   pointerEvents="none"
-                  opacity={0.6}
+                  opacity={0.5}
                 />
               )}
 
-              {/* Hover highlight — O(1) pre-computed path lookup */}
+              {/* Hover highlight — luminous outline */}
               {hoveredIso && mapData.hoverPaths.has(hoveredIso) && (
-                <path
-                  d={mapData.hoverPaths.get(hoveredIso)!}
-                  fill="none"
-                  stroke="#0b2545"
-                  strokeWidth={2}
-                  strokeLinejoin="round"
-                  pointerEvents="none"
-                />
+                <>
+                  {/* Glow */}
+                  <path
+                    d={mapData.hoverPaths.get(hoveredIso)!}
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth={4}
+                    strokeLinejoin="round"
+                    pointerEvents="none"
+                    opacity={0.35}
+                  />
+                  {/* Crisp edge */}
+                  <path
+                    d={mapData.hoverPaths.get(hoveredIso)!}
+                    fill="none"
+                    stroke="#0b2545"
+                    strokeWidth={1.8}
+                    strokeLinejoin="round"
+                    pointerEvents="none"
+                  />
+                </>
               )}
 
-              {/* Country labels */}
+              {/* Country labels — high-contrast with text shadow */}
               <g pointerEvents="none">
-                {mapData.labels.map(({ iso, x, y }) => (
-                  <text
-                    key={`lbl-${iso}`}
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill={hoveredIso === iso ? "#0b2545" : "#374151"}
-                    fillOpacity={hoveredIso && hoveredIso !== iso ? 0.25 : 0.5}
-                    fontSize={dims.width > 700 ? 9 : 7}
-                    fontFamily="var(--font-sans)"
-                    fontWeight={500}
-                    style={{ transition: "fill-opacity 0.12s ease-out", userSelect: "none" }}
-                  >
-                    {iso}
-                  </text>
-                ))}
+                {mapData.labels.map(({ iso, x, y }) => {
+                  const isSmall = SMALL_COUNTRIES.has(iso);
+                  const isHovered = hoveredIso === iso;
+                  const isDimmed = hoveredIso !== null && !isHovered;
+                  const size = isSmall ? lblSizeSmall : lblSize;
+                  // Determine if this country has a dark fill for label color
+                  const countryData = mapData.countries.find((c) => c.iso === iso);
+                  const score = countryData?.score ?? null;
+                  const isDarkFill = score !== null && score >= 0.25;
+                  return (
+                    <text
+                      key={`lbl-${iso}`}
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={isDarkFill ? "#ffffff" : "#1e293b"}
+                      fillOpacity={isDimmed ? 0.2 : isHovered ? 1 : 0.85}
+                      fontSize={isHovered ? size + 1.5 : size}
+                      fontFamily="var(--font-sans)"
+                      fontWeight={isHovered ? 700 : 600}
+                      letterSpacing="0.03em"
+                      className="eumap-label"
+                      style={{
+                        textShadow: isDarkFill
+                          ? "0 0 3px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4)"
+                          : "0 0 3px rgba(255,255,255,0.9), 0 1px 2px rgba(255,255,255,0.7), 0 0 6px rgba(255,255,255,0.5)",
+                        paintOrder: "stroke",
+                        stroke: isDarkFill ? "rgba(0,0,0,0.25)" : "rgba(255,255,255,0.8)",
+                        strokeWidth: isDarkFill ? "2px" : "2.5px",
+                        strokeLinejoin: "round",
+                      }}
+                    >
+                      {iso}
+                    </text>
+                  );
+                })}
               </g>
             </svg>
 
             {/* Tooltip */}
             {tooltip && (
               <div
-                className="pointer-events-none absolute z-20 rounded-lg bg-navy-900/95 px-4 py-3 text-xs text-white shadow-xl ring-1 ring-white/10 backdrop-blur-sm"
+                className="pointer-events-none absolute z-20 rounded-xl border border-white/10 bg-navy-950/95 px-4 py-3 text-xs text-white shadow-2xl backdrop-blur-md"
                 style={{
                   left: tooltip.x,
                   top: tooltip.y,
                   transform: "translate(-50%, -100%)",
-                  maxWidth: "270px",
-                  animation: "fadeIn 0.1s ease-out",
+                  maxWidth: "280px",
+                  animation: "fadeIn 0.08s ease-out",
                 }}
               >
-                <p className="text-[13px] font-semibold leading-tight">
+                <p className="text-[13px] font-semibold leading-tight tracking-tight">
                   {tooltip.name}
                   <span className="ml-1.5 font-mono text-[11px] font-normal text-stone-400">
                     {tooltip.iso2}
@@ -500,18 +564,24 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 </p>
 
                 {tooltip.score !== null && (
-                  <div className="mt-2">
+                  <div className="mt-2.5">
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-mono text-[16px] font-semibold tabular-nums">
+                      <span className="font-mono text-[18px] font-bold tabular-nums tracking-tight">
                         {formatMapScore(tooltip.score)}
                       </span>
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-stone-400">
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
+                        style={{
+                          backgroundColor: classify(tooltip.score),
+                          color: (tooltip.score ?? 0) >= 0.25 ? "#ffffff" : "#1e293b",
+                        }}
+                      >
                         {tooltip.classification}
                       </span>
                     </div>
-                    <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/10">
                       <div
-                        className="h-full rounded-full"
+                        className="h-full rounded-full transition-all duration-150"
                         style={{
                           width: `${Math.min(100, (tooltip.score ?? 0) * 100)}%`,
                           backgroundColor: classify(tooltip.score),
@@ -522,17 +592,17 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 )}
 
                 {tooltip.score === null && (
-                  <p className="mt-1.5 font-mono text-[13px] tabular-nums text-stone-500">
+                  <p className="mt-2 font-mono text-[13px] tabular-nums text-stone-500">
                     No data
                   </p>
                 )}
 
                 {tooltip.delta !== null && (
-                  <p className="mt-1.5 text-[11px] tabular-nums text-stone-400">
+                  <p className="mt-2 text-[11px] tabular-nums text-stone-400">
                     <span className={tooltip.delta > 0 ? "text-red-400" : "text-emerald-400"}>
                       {formatDelta(tooltip.delta)}
                     </span>
-                    {" "}vs EU-27 mean
+                    {" "}vs EU mean
                   </p>
                 )}
               </div>
@@ -541,18 +611,18 @@ export default function EUMap({ countries, mean }: EUMapProps) {
         )}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-text-tertiary">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-text-quaternary">
-          ISI Composite
+      {/* Legend — polished band-style */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
+        <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-text-quaternary">
+          HHI Concentration
         </span>
         {LEGEND_ITEMS.map((item) => (
           <span key={item.label} className="inline-flex items-center gap-1.5">
             <span
-              className="inline-block h-3 w-7 rounded-sm border border-stone-200 shadow-sm"
-              style={{ backgroundColor: item.color }}
+              className="inline-block h-2.5 w-6 rounded-[3px]"
+              style={{ backgroundColor: item.color, boxShadow: "inset 0 1px 2px rgba(0,0,0,0.08)" }}
             />
-            <span className="font-mono tabular-nums">{item.label}</span>
+            <span className="font-mono text-[10px] tabular-nums text-text-tertiary">{item.label}</span>
           </span>
         ))}
       </div>
