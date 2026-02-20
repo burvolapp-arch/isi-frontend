@@ -1,25 +1,33 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { RadarChart } from "@/components/RadarChart";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorPanel } from "@/components/ErrorPanel";
+import { countryHref } from "@/lib/format";
+import { AXIS_FIELD_MAP, type AxisSlug, ALL_AXIS_SLUGS } from "@/lib/axisRegistry";
 import {
-  deviationFromMean,
-  countryHref,
-} from "@/lib/format";
-import { FIELD_TO_SLUG } from "@/lib/axisRegistry";
-import { formatAxisFull, formatScore, formatDelta } from "@/lib/presentation";
+  formatAxisShort,
+  formatScore,
+  formatDelta,
+} from "@/lib/presentation";
+import {
+  computeStructuralDiagnostic,
+  computeCompositePercentile,
+  divergenceLabel,
+  symmetryLabel,
+  profileLabel,
+  buildExportSnapshot,
+  type StructuralDiagnostic,
+} from "@/lib/comparativeAnalysis";
 import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 // ── Client-side fetch dedup ────────────────────────────────────────
-// Prevents duplicate /isi fetches on StrictMode double-mount or
-// rapid re-renders. Cache lives for the page session only.
 let _isiCache: { data: ISIComposite; ts: number } | null = null;
-const ISI_CACHE_TTL = 60_000; // 60 seconds
+const ISI_CACHE_TTL = 60_000;
 
 async function fetchISIOnce(): Promise<ISIComposite> {
   if (_isiCache && Date.now() - _isiCache.ts < ISI_CACHE_TTL) {
@@ -31,6 +39,40 @@ async function fetchISIOnce(): Promise<ISIComposite> {
   _isiCache = { data: d, ts: Date.now() };
   return d;
 }
+
+// ── Helpers ─────────────────────────────────────────────────────────
+
+function getAxisScore(c: ISICompositeCountry, slug: AxisSlug): number | null {
+  const field = AXIS_FIELD_MAP[slug];
+  const val = (c as unknown as Record<string, unknown>)[field];
+  return typeof val === "number" ? val : null;
+}
+
+/** Divergence heatmap cell intensity (0–1) based on absolute delta */
+function heatIntensity(absDelta: number, maxAbsDelta: number): number {
+  if (maxAbsDelta === 0) return 0;
+  return Math.min(absDelta / maxAbsDelta, 1);
+}
+
+/** Divergence heatmap cell background style */
+function heatBg(intensity: number): string {
+  if (intensity < 0.15) return "bg-stone-50";
+  if (intensity < 0.35) return "bg-stone-100";
+  if (intensity < 0.55) return "bg-stone-200";
+  if (intensity < 0.75) return "bg-stone-300";
+  return "bg-stone-400";
+}
+
+/** Ordinal suffix */
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// Page Component
+// ═════════════════════════════════════════════════════════════════════
 
 export default function ComparePage() {
   const [data, setData] = useState<ISIComposite | null>(null);
@@ -54,78 +96,148 @@ export default function ComparePage() {
 
   const countryA = countries.find((c) => c.country === codeA) ?? null;
   const countryB = countries.find((c) => c.country === codeB) ?? null;
-  const meanComposite = data?.statistics.mean ?? null;
+  const ready = countryA !== null && countryB !== null && codeA !== codeB;
 
-  // Discover axis fields dynamically from first country
-  const axisKeys = useMemo(() => {
-    if (!countries.length) return [];
-    const sample = countries[0];
-    const keys: string[] = [];
-    const seen = new Set<string>();
-    for (const key of Object.keys(sample)) {
-      const m = key.match(/^(axis_\d+)_/);
-      if (m && !seen.has(m[1])) {
-        seen.add(m[1]);
-        keys.push(m[1]); // e.g. "axis_1"
-      }
-    }
-    return keys.sort();
+  // ── Diagnostic Computation ──────────────────────────────────────
+  const diagnostic: StructuralDiagnostic | null = useMemo(() => {
+    if (!ready || !countryA || !countryB) return null;
+    return computeStructuralDiagnostic(countryA, countryB, countries);
+  }, [ready, countryA, countryB, countries]);
+
+  const compositePercentileA = useMemo(
+    () => (countryA ? computeCompositePercentile(countryA.isi_composite, countries) : null),
+    [countryA, countries],
+  );
+  const compositePercentileB = useMemo(
+    () => (countryB ? computeCompositePercentile(countryB.isi_composite, countries) : null),
+    [countryB, countries],
+  );
+
+  // ── Composite rank (1-based, descending) ────────────────────────
+  const compositeRanks = useMemo(() => {
+    const sorted = [...countries]
+      .filter((c) => c.isi_composite !== null)
+      .sort((a, b) => (b.isi_composite ?? 0) - (a.isi_composite ?? 0));
+    const map = new Map<string, number>();
+    sorted.forEach((c, i) => map.set(c.country, i + 1));
+    return map;
   }, [countries]);
 
-  function getAxisScore(
-    c: ISICompositeCountry,
-    prefix: string,
-  ): number | null {
-    // ISICompositeCountry has fields like axis_1_financial, axis_2_energy — the field IS the score
-    // Find the field that starts with the prefix
-    const record = c as unknown as Record<string, unknown>;
-    for (const key of Object.keys(record)) {
-      if (key.startsWith(prefix + "_") && key !== prefix + "_name" && key !== prefix + "_slug") {
-        const val = record[key];
-        if (typeof val === "number" || val === null) return val as number | null;
-      }
-    }
-    return null;
-  }
+  const rankA = countryA ? compositeRanks.get(countryA.country) ?? null : null;
+  const rankB = countryB ? compositeRanks.get(countryB.country) ?? null : null;
 
-  function getAxisSlug(
-    c: ISICompositeCountry,
-    prefix: string,
-  ): string {
-    // Resolve slug from field key, e.g. axis_1 → find axis_1_financial → slug "financial"
-    const record = c as unknown as Record<string, unknown>;
-    for (const key of Object.keys(record)) {
-      if (key.startsWith(prefix + "_") && key !== prefix + "_name" && key !== prefix + "_slug") {
-        const slug = FIELD_TO_SLUG[key];
-        if (slug) return slug;
-        // Fallback: extract suffix
-        return key.slice(prefix.length + 1);
-      }
-    }
-    return prefix;
-  }
+  // ── Radar data ──────────────────────────────────────────────────
+  const radarAxesA = useMemo(
+    () =>
+      countryA
+        ? ALL_AXIS_SLUGS.map((slug) => ({
+            slug,
+            value: getAxisScore(countryA, slug),
+          }))
+        : [],
+    [countryA],
+  );
+  const radarAxesB = useMemo(
+    () =>
+      countryB
+        ? ALL_AXIS_SLUGS.map((slug) => ({
+            slug,
+            value: getAxisScore(countryB, slug),
+          }))
+        : [],
+    [countryB],
+  );
 
-  function getAxisName(
-    c: ISICompositeCountry,
-    prefix: string,
-  ): string {
-    return formatAxisFull(getAxisSlug(c, prefix));
-  }
+  // ── Heatmap max delta ───────────────────────────────────────────
+  const maxAbsDelta = useMemo(() => {
+    if (!diagnostic) return 0;
+    return Math.max(...diagnostic.axes.map((a) => a.absDelta), 0.0001);
+  }, [diagnostic]);
 
-  // Build radar axes from discovered keys — slug-based, labels resolved by RadarChart
-  const radarAxesA = countryA
-    ? axisKeys.map((k) => ({
-        slug: getAxisSlug(countryA, k),
-        value: getAxisScore(countryA, k),
-      }))
-    : [];
-  const radarAxesB = countryB
-    ? axisKeys.map((k) => ({
-        slug: getAxisSlug(countryB, k),
-        value: getAxisScore(countryB, k),
-      }))
-    : [];
+  // ── Export ──────────────────────────────────────────────────────
+  const handleExportJSON = useCallback(() => {
+    if (!countryA || !countryB || !diagnostic) return;
+    const snapshot = buildExportSnapshot(
+      countryA,
+      countryB,
+      diagnostic,
+      compositePercentileA,
+      compositePercentileB,
+    );
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `isi-comparison-${countryA.country}-${countryB.country}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [countryA, countryB, diagnostic, compositePercentileA, compositePercentileB]);
 
+  const handleExportCSV = useCallback(() => {
+    if (!countryA || !countryB || !diagnostic) return;
+    const snapshot = buildExportSnapshot(
+      countryA,
+      countryB,
+      diagnostic,
+      compositePercentileA,
+      compositePercentileB,
+    );
+    const header = [
+      "Axis",
+      `${countryA.country_name} Score`,
+      `${countryB.country_name} Score`,
+      "Delta (A − B)",
+      "More Concentrated",
+      `${countryA.country_name} Percentile`,
+      `${countryB.country_name} Percentile`,
+      `${countryA.country_name} Contribution`,
+      `${countryB.country_name} Contribution`,
+    ];
+    const rows = snapshot.axes.map((a) => [
+      a.axis,
+      a.scoreA,
+      a.scoreB,
+      a.delta,
+      a.moreConcentrated,
+      a.percentileA,
+      a.percentileB,
+      a.contributionShareA,
+      a.contributionShareB,
+    ]);
+    const meta = [
+      [""],
+      ["Structural Diagnostic"],
+      ["Distance", snapshot.diagnostic.structuralDistance],
+      ["Normalized Distance", snapshot.diagnostic.normalizedDistance],
+      ["Divergence Level", snapshot.diagnostic.divergenceLevel],
+      ["Dominant Axis", snapshot.diagnostic.dominantDivergenceAxis],
+      ["Symmetry", snapshot.diagnostic.symmetry],
+      [`${countryA.country_name} Profile`, snapshot.countryA.profile],
+      [`${countryB.country_name} Profile`, snapshot.countryB.profile],
+    ];
+    const escape = (v: string) =>
+      v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
+    const csvLines = [
+      header.map(escape).join(","),
+      ...rows.map((r) => r.map((v) => escape(String(v))).join(",")),
+      ...meta.map((r) => r.map((v) => escape(String(v))).join(",")),
+    ];
+    const blob = new Blob([csvLines.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `isi-comparison-${countryA.country}-${countryB.country}-${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [countryA, countryB, diagnostic, compositePercentileA, compositePercentileB]);
+
+  // ── Error / Loading ─────────────────────────────────────────────
   if (error) {
     return (
       <div className="min-h-screen bg-white">
@@ -146,26 +258,29 @@ export default function ComparePage() {
         <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
           <div className="animate-pulse space-y-4">
             <div className="h-6 w-48 bg-surface-tertiary" />
-            <div className="h-64 bg-surface-tertiary" />
+            <div className="h-64 bg-surface-tertiary rounded" />
           </div>
         </main>
       </div>
     );
   }
 
-  const ready = countryA && countryB && codeA !== codeB;
+  // ═════════════════════════════════════════════════════════════════
+  // RENDER
+  // ═════════════════════════════════════════════════════════════════
 
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
-        {/* ── Header ─────────────────────────────────────────── */}
+        {/* ── Header ───────────────────────────────────────── */}
         <section className="pt-10">
           <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
-            Comparative Analysis
+            Comparative Structural Analysis
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
-            Select two EU member states to compare their ISI profiles
-            side-by-side.
+            Bilateral structural comparison of ISI concentration profiles.
+            Select two EU member states to analyse divergence, contribution
+            structure, and bloc-relative positioning.
           </p>
         </section>
 
@@ -213,134 +328,458 @@ export default function ComparePage() {
           </p>
         )}
 
-        {ready && countryA && countryB && (
+        {/* ── Empty State ──────────────────────────────────── */}
+        {!ready && codeA === "" && codeB === "" && (
+          <section className="mt-12 mb-16 rounded-md border border-border-primary bg-surface-tertiary p-10 text-center">
+            <p className="text-[14px] text-text-tertiary">
+              Select two countries above to begin the structural comparison.
+            </p>
+          </section>
+        )}
+
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* DIAGNOSTIC OUTPUT                                    */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {ready && countryA && countryB && diagnostic && (
           <>
-            {/* ── Composite Comparison KPIs ──────────────────── */}
-            <section className="mt-12 rounded-md border border-border-primary">
-              <div className="px-5 py-4">
-                <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
-                  Composite Comparison
-                </h2>
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 1: Executive Structural Snapshot          */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                Executive Structural Snapshot
+              </h2>
+
+              {/* Top-level KPI row */}
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {/* Structural Distance */}
+                <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                    Structural Distance
+                  </p>
+                  <p className="mt-1 font-mono text-[22px] font-medium leading-none tracking-tight text-text-primary">
+                    {diagnostic.structuralDistance.toFixed(4)}
+                  </p>
+                  <p className="mt-1.5 text-[11px] font-medium text-text-tertiary">
+                    {divergenceLabel(diagnostic.divergenceLevel)}
+                  </p>
+                </div>
+
+                {/* Relationship Type */}
+                <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                    Relationship Type
+                  </p>
+                  <p className="mt-1 text-[15px] font-semibold leading-snug text-text-primary">
+                    {symmetryLabel(diagnostic.symmetry)}
+                  </p>
+                  <p className="mt-1 text-[11px] text-text-quaternary">
+                    {diagnostic.symmetry === "symmetric"
+                      ? "Parallel vulnerability"
+                      : diagnostic.symmetry === "complementary"
+                        ? "Inverse concentration"
+                        : "Divergent profiles"}
+                  </p>
+                </div>
+
+                {/* Dominant Divergence */}
+                <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                    Dominant Divergence Axis
+                  </p>
+                  <p className="mt-1 text-[15px] font-semibold leading-snug text-text-primary">
+                    {diagnostic.dominantDivergenceAxis
+                      ? formatAxisShort(diagnostic.dominantDivergenceAxis)
+                      : "—"}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] text-text-quaternary">
+                    Δ {diagnostic.dominantDivergenceMagnitude.toFixed(4)} · {(diagnostic.dominantAxisDivergenceShare * 100).toFixed(0)}% of total
+                  </p>
+                </div>
+
+                {/* Divergence Pattern */}
+                <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                    Divergence Pattern
+                  </p>
+                  <p className="mt-1 text-[15px] font-semibold leading-snug text-text-primary">
+                    {diagnostic.divergenceConcentrated
+                      ? "Concentrated"
+                      : "Distributed"}
+                  </p>
+                  <p className="mt-1 text-[11px] text-text-quaternary">
+                    {diagnostic.divergenceConcentrated
+                      ? "Gap driven by single axis"
+                      : "Gap spread across axes"}
+                  </p>
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-[14px]">
-                  <thead>
-                    <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
-                      <th className="px-4 py-3 text-left font-medium">
-                        Metric
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium">
+
+              {/* Bilateral composite row */}
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {/* Country A */}
+                <div className="rounded border border-border-primary px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                         {countryA.country_name}
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium">
+                      </p>
+                      <p className="mt-1 font-mono text-[22px] font-medium leading-none tracking-tight text-text-primary">
+                        {formatScore(countryA.isi_composite)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <StatusBadge classification={countryA.classification} />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-quaternary">
+                    <span>
+                      Rank: <span className="font-mono text-text-tertiary">{rankA ?? "—"} / {countries.length}</span>
+                    </span>
+                    <span>
+                      Percentile: <span className="font-mono text-text-tertiary">{compositePercentileA !== null ? ordinal(compositePercentileA) : "—"}</span>
+                    </span>
+                    <span className="text-text-quaternary">
+                      {profileLabel(diagnostic.profileA)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Country B */}
+                <div className="rounded border border-border-primary px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                         {countryB.country_name}
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium">
-                        Delta (A − B)
-                      </th>
+                      </p>
+                      <p className="mt-1 font-mono text-[22px] font-medium leading-none tracking-tight text-text-primary">
+                        {formatScore(countryB.isi_composite)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <StatusBadge classification={countryB.classification} />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-quaternary">
+                    <span>
+                      Rank: <span className="font-mono text-text-tertiary">{rankB ?? "—"} / {countries.length}</span>
+                    </span>
+                    <span>
+                      Percentile: <span className="font-mono text-text-tertiary">{compositePercentileB !== null ? ordinal(compositePercentileB) : "—"}</span>
+                    </span>
+                    <span className="text-text-quaternary">
+                      {profileLabel(diagnostic.profileB)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Institutional insight */}
+              <div className="mt-4 rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+                <p className="text-[12px] leading-relaxed text-text-secondary">
+                  {countryA.country_name} and {countryB.country_name} exhibit{" "}
+                  <span className="font-medium">{divergenceLabel(diagnostic.divergenceLevel).toLowerCase()}</span>
+                  {" "}(distance: {diagnostic.structuralDistance.toFixed(4)}).
+                  {diagnostic.dominantDivergenceAxis && (
+                    <>
+                      {" "}The largest gap is in{" "}
+                      <span className="font-medium">{formatAxisShort(diagnostic.dominantDivergenceAxis)}</span>
+                      {" "}({(diagnostic.dominantAxisDivergenceShare * 100).toFixed(0)}% of total divergence).
+                    </>
+                  )}
+                  {" "}The bilateral relationship is classified as{" "}
+                  <span className="font-medium">{symmetryLabel(diagnostic.symmetry).toLowerCase()}</span>.
+                </p>
+              </div>
+            </section>
+
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 2: Contribution Structure                 */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                Axis Contribution Structure
+              </h2>
+              <p className="mt-1 text-[12px] text-text-quaternary">
+                Share of each axis in the composite score. Reveals structural dependence hierarchy.
+              </p>
+
+              <div className="mt-4 space-y-2">
+                {diagnostic.axes.map((axis) => {
+                  const shareA = axis.contributionShareA ?? 0;
+                  const shareB = axis.contributionShareB ?? 0;
+                  return (
+                    <div key={axis.slug} className="rounded border border-border-primary px-4 py-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-medium text-text-secondary">
+                          {axis.label}
+                        </span>
+                        <div className="flex items-center gap-4 text-[11px]">
+                          <span className="font-mono text-text-tertiary">
+                            {countryA.country}: {(shareA * 100).toFixed(1)}%
+                          </span>
+                          <span className="font-mono text-text-tertiary">
+                            {countryB.country}: {(shareB * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                      {/* Dual bar */}
+                      <div className="mt-1.5 flex gap-1">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100">
+                          <div
+                            className="h-full rounded bg-navy-700 transition-all"
+                            style={{ width: `${Math.max(shareA * 100, 0.5)}%` }}
+                          />
+                        </div>
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100">
+                          <div
+                            className="h-full rounded bg-stone-400 transition-all"
+                            style={{ width: `${Math.max(shareB * 100, 0.5)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex items-center gap-4 text-[10px] text-text-quaternary">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2 w-3 rounded bg-navy-700" />
+                  {countryA.country_name}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2 w-3 rounded bg-stone-400" />
+                  {countryB.country_name}
+                </span>
+              </div>
+            </section>
+
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 3: EU Positional Context                  */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                EU-27 Positional Context
+              </h2>
+              <p className="mt-1 text-[12px] text-text-quaternary">
+                Percentile rank per axis within the EU-27 distribution. Higher percentile = more concentrated relative to bloc.
+              </p>
+
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full text-[13px]">
+                  <thead>
+                    <tr className="border-b-2 border-navy-900 text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
+                      <th className="px-3 py-2.5 text-left font-medium">Axis</th>
+                      <th className="px-3 py-2.5 text-right font-medium">{countryA.country_name}</th>
+                      <th className="px-3 py-2.5 text-right font-medium">{countryB.country_name}</th>
+                      <th className="px-3 py-2.5 text-right font-medium">Gap</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-border-subtle">
-                      <td className="px-4 py-2.5 text-text-secondary">
-                        ISI Composite
-                      </td>
-                      <td className="px-4 py-2.5 text-right font-mono font-semibold text-text-primary">
-                        {formatScore(countryA.isi_composite)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right font-mono font-semibold text-text-primary">
-                        {formatScore(countryB.isi_composite)}
-                      </td>
-                      <td
-                        className={`px-4 py-2.5 text-right font-mono ${
-                          countryA.isi_composite !== null &&
-                          countryB.isi_composite !== null
-                            ? countryA.isi_composite - countryB.isi_composite >
-                              0
+                    {diagnostic.axes.map((axis) => {
+                      const pA = axis.percentileA;
+                      const pB = axis.percentileB;
+                      const gap = pA !== null && pB !== null ? pA - pB : null;
+                      return (
+                        <tr key={axis.slug} className="border-b border-border-subtle">
+                          <td className="px-3 py-2 text-text-secondary">{axis.label}</td>
+                          <td className="px-3 py-2 text-right font-mono text-text-primary">
+                            {pA !== null ? ordinal(pA) : "—"}
+                          </td>
+                          <td className="px-3 py-2 text-right font-mono text-text-primary">
+                            {pB !== null ? ordinal(pB) : "—"}
+                          </td>
+                          <td className={`px-3 py-2 text-right font-mono text-[12px] ${
+                            gap !== null && gap > 0
                               ? "text-deviation-positive"
-                              : "text-deviation-negative"
-                            : "text-text-quaternary"
-                        }`}
-                      >
-                        {countryA.isi_composite !== null &&
-                        countryB.isi_composite !== null
-                          ? formatDelta(countryA.isi_composite - countryB.isi_composite)
+                              : gap !== null && gap < 0
+                                ? "text-deviation-negative"
+                                : "text-text-quaternary"
+                          }`}>
+                            {gap !== null
+                              ? `${gap > 0 ? "+" : ""}${gap} pp`
+                              : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {/* Composite row */}
+                    <tr className="border-t-2 border-navy-900">
+                      <td className="px-3 py-2 font-medium text-text-primary">Composite</td>
+                      <td className="px-3 py-2 text-right font-mono font-medium text-text-primary">
+                        {compositePercentileA !== null ? ordinal(compositePercentileA) : "—"}
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono font-medium text-text-primary">
+                        {compositePercentileB !== null ? ordinal(compositePercentileB) : "—"}
+                      </td>
+                      <td className={`px-3 py-2 text-right font-mono text-[12px] font-medium ${
+                        compositePercentileA !== null && compositePercentileB !== null
+                          ? compositePercentileA - compositePercentileB > 0
+                            ? "text-deviation-positive"
+                            : compositePercentileA - compositePercentileB < 0
+                              ? "text-deviation-negative"
+                              : "text-text-quaternary"
+                          : "text-text-quaternary"
+                      }`}>
+                        {compositePercentileA !== null && compositePercentileB !== null
+                          ? `${compositePercentileA - compositePercentileB > 0 ? "+" : ""}${compositePercentileA - compositePercentileB} pp`
                           : "—"}
                       </td>
-                    </tr>
-                    <tr className="border-b border-border-subtle">
-                      <td className="px-4 py-2.5 text-text-secondary">
-                        Classification
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <StatusBadge
-                          classification={countryA.classification}
-                        />
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <StatusBadge
-                          classification={countryB.classification}
-                        />
-                      </td>
-                      <td className="px-4 py-2.5" />
-                    </tr>
-                    <tr className="border-b border-border-subtle">
-                      <td className="px-4 py-2.5 text-text-secondary">
-                        Δ EU Mean
-                      </td>
-                      <td
-                        className={`px-4 py-2.5 text-right font-mono ${
-                          (deviationFromMean(
-                            countryA.isi_composite,
-                            meanComposite,
-                          ) ?? 0) > 0
-                            ? "text-deviation-positive"
-                            : "text-deviation-negative"
-                        }`}
-                      >
-                        {(() => {
-                          const d = deviationFromMean(
-                            countryA.isi_composite,
-                            meanComposite,
-                          );
-                          return d !== null
-                            ? formatDelta(d)
-                            : "—";
-                        })()}
-                      </td>
-                      <td
-                        className={`px-4 py-2.5 text-right font-mono ${
-                          (deviationFromMean(
-                            countryB.isi_composite,
-                            meanComposite,
-                          ) ?? 0) > 0
-                            ? "text-deviation-positive"
-                            : "text-deviation-negative"
-                        }`}
-                      >
-                        {(() => {
-                          const d = deviationFromMean(
-                            countryB.isi_composite,
-                            meanComposite,
-                          );
-                          return d !== null
-                            ? formatDelta(d)
-                            : "—";
-                        })()}
-                      </td>
-                      <td className="px-4 py-2.5" />
                     </tr>
                   </tbody>
                 </table>
               </div>
             </section>
 
-            {/* ── Radar Overlay ──────────────────────────────── */}
-            <section className="mt-12 rounded-md border border-border-primary p-4 sm:p-6">
-              <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 4: Axis Diagnostic Table + Heatmap        */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                Axis-Level Diagnostic
+              </h2>
+
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full text-[13px]">
+                  <thead>
+                    <tr className="border-b-2 border-navy-900 text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
+                      <th className="px-3 py-2.5 text-left font-medium">Axis</th>
+                      <th className="px-3 py-2.5 text-right font-medium">{countryA.country_name}</th>
+                      <th className="px-3 py-2.5 text-right font-medium">{countryB.country_name}</th>
+                      <th className="px-3 py-2.5 text-right font-medium">Delta (A − B)</th>
+                      <th className="px-3 py-2.5 text-center font-medium">Divergence</th>
+                      <th className="px-3 py-2.5 text-center font-medium">More Concentrated</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {diagnostic.axes.map((axis) => {
+                      const intensity = heatIntensity(axis.absDelta, maxAbsDelta);
+                      return (
+                        <tr key={axis.slug} className="border-b border-border-subtle transition-colors hover:bg-surface-tertiary">
+                          <td className="px-3 py-2.5 text-text-secondary">{axis.label}</td>
+                          <td className="px-3 py-2.5 text-right font-mono text-text-primary">
+                            {formatScore(axis.scoreA)}
+                          </td>
+                          <td className="px-3 py-2.5 text-right font-mono text-text-primary">
+                            {formatScore(axis.scoreB)}
+                          </td>
+                          <td className={`px-3 py-2.5 text-right font-mono ${
+                            axis.delta !== null && axis.delta > 0
+                              ? "text-deviation-positive"
+                              : axis.delta !== null && axis.delta < 0
+                                ? "text-deviation-negative"
+                                : "text-text-quaternary"
+                          }`}>
+                            {axis.delta !== null ? formatDelta(axis.delta) : "—"}
+                          </td>
+                          {/* Heat cell */}
+                          <td className="px-3 py-2.5 text-center">
+                            <span className={`inline-block rounded px-2 py-0.5 font-mono text-[11px] ${heatBg(intensity)} text-text-secondary`}>
+                              {axis.absDelta.toFixed(4)}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-[11px] font-semibold">
+                            {axis.moreConcentrated === "A" ? (
+                              <span className="text-text-secondary">{countryA.country}</span>
+                            ) : axis.moreConcentrated === "B" ? (
+                              <span className="text-text-secondary">{countryB.country}</span>
+                            ) : axis.moreConcentrated === "equal" ? (
+                              <span className="text-text-quaternary">Equal</span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {/* Composite summary row */}
+                    <tr className="border-t-2 border-navy-900">
+                      <td className="px-3 py-2.5 font-medium text-text-primary">Composite</td>
+                      <td className="px-3 py-2.5 text-right font-mono font-semibold text-text-primary">
+                        {formatScore(countryA.isi_composite)}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono font-semibold text-text-primary">
+                        {formatScore(countryB.isi_composite)}
+                      </td>
+                      <td className={`px-3 py-2.5 text-right font-mono font-semibold ${
+                        countryA.isi_composite !== null && countryB.isi_composite !== null
+                          ? countryA.isi_composite - countryB.isi_composite > 0
+                            ? "text-deviation-positive"
+                            : countryA.isi_composite - countryB.isi_composite < 0
+                              ? "text-deviation-negative"
+                              : "text-text-quaternary"
+                          : "text-text-quaternary"
+                      }`}>
+                        {countryA.isi_composite !== null && countryB.isi_composite !== null
+                          ? formatDelta(countryA.isi_composite - countryB.isi_composite)
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className="inline-block rounded bg-stone-100 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+                          Σ {diagnostic.structuralDistance.toFixed(4)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-[11px] font-semibold">
+                        {countryA.isi_composite !== null && countryB.isi_composite !== null
+                          ? countryA.isi_composite > countryB.isi_composite
+                            ? <span className="text-text-secondary">{countryA.country}</span>
+                            : countryA.isi_composite < countryB.isi_composite
+                              ? <span className="text-text-secondary">{countryB.country}</span>
+                              : <span className="text-text-quaternary">Equal</span>
+                          : "—"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 5: Divergence Heatmap                     */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                Divergence Heatmap
+              </h2>
+              <p className="mt-1 text-[12px] text-text-quaternary">
+                Absolute axis-level differences. Darker cells indicate larger divergence.
+              </p>
+
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {diagnostic.axes.map((axis) => {
+                  const intensity = heatIntensity(axis.absDelta, maxAbsDelta);
+                  return (
+                    <div
+                      key={axis.slug}
+                      className={`flex flex-col items-center justify-center rounded border border-border-primary px-2 py-3 ${heatBg(intensity)}`}
+                    >
+                      <span className="text-[10px] font-medium text-text-secondary">
+                        {axis.label}
+                      </span>
+                      <span className="mt-1 font-mono text-[13px] font-medium text-text-primary">
+                        {axis.absDelta.toFixed(4)}
+                      </span>
+                      <span className="mt-0.5 text-[10px] text-text-quaternary">
+                        {axis.moreConcentrated === "A"
+                          ? `${countryA.country} ↑`
+                          : axis.moreConcentrated === "B"
+                            ? `${countryB.country} ↑`
+                            : "="}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 6: Radar Overlay                          */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12 rounded border border-border-primary p-4 sm:p-6">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
                 Multi-Axis Profile Overlay
               </h2>
-              <div className="mt-6 flex w-full items-center justify-center">
+              <div className="mt-4 flex w-full items-center justify-center">
                 <RadarChart
                   axes={radarAxesA}
                   compareAxes={radarAxesB}
@@ -350,129 +789,43 @@ export default function ComparePage() {
               </div>
             </section>
 
-            {/* ── Per-Axis Delta Table ───────────────────────── */}
-            <section className="mt-12 rounded-md border border-border-primary">
-              <div className="px-5 py-4">
-                <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
-                  Axis-by-Axis Comparison
-                </h2>
+            {/* ──────────────────────────────────────────────── */}
+            {/* SECTION 7: Export + Navigation                    */}
+            {/* ──────────────────────────────────────────────── */}
+            <section className="mt-12 mb-16">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                Export & Navigation
+              </h2>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportJSON}
+                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+                >
+                  Export JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+                >
+                  Export CSV
+                </button>
+                <Link
+                  href={countryHref(countryA.country)}
+                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50"
+                >
+                  {countryA.country_name} Profile →
+                </Link>
+                <Link
+                  href={countryHref(countryB.country)}
+                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50"
+                >
+                  {countryB.country_name} Profile →
+                </Link>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-[14px]">
-                  <thead>
-                    <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
-                      <th className="px-4 py-3 text-left font-medium">
-                        Axis
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium">
-                        {countryA.country_name}
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium">
-                        {countryB.country_name}
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium">
-                        Delta
-                      </th>
-                      <th className="px-4 py-3 text-center font-medium">
-                        More Concentrated
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {axisKeys.map((k) => {
-                      const sA = getAxisScore(countryA, k);
-                      const sB = getAxisScore(countryB, k);
-                      const name = getAxisName(countryA, k);
-                      const delta =
-                        sA !== null && sB !== null ? sA - sB : null;
-                      const moreConcentrated =
-                        delta !== null
-                          ? delta > 0
-                            ? "A"
-                            : delta < 0
-                              ? "B"
-                              : "="
-                          : null;
-
-                      return (
-                        <tr
-                          key={k}
-                          className="border-b border-border-subtle transition-colors hover:bg-surface-tertiary"
-                        >
-                          <td className="px-4 py-2.5 text-text-secondary">
-                            {name}
-                          </td>
-                          <td className="px-4 py-2.5 text-right font-mono text-text-primary">
-                            {formatScore(sA)}
-                          </td>
-                          <td className="px-4 py-2.5 text-right font-mono text-text-primary">
-                            {formatScore(sB)}
-                          </td>
-                          <td
-                            className={`px-4 py-2.5 text-right font-mono ${
-                              delta !== null && delta > 0
-                                ? "text-deviation-positive"
-                                : delta !== null && delta < 0
-                                  ? "text-deviation-negative"
-                                  : "text-text-quaternary"
-                            }`}
-                          >
-                            {delta !== null
-                              ? formatDelta(delta)
-                              : "—"}
-                          </td>
-                          <td className="px-4 py-2.5 text-center text-[11px] font-semibold">
-                            {moreConcentrated === "A" ? (
-                              <span className="text-deviation-positive">
-                                {countryA.country}
-                              </span>
-                            ) : moreConcentrated === "B" ? (
-                              <span className="text-deviation-positive">
-                                {countryB.country}
-                              </span>
-                            ) : moreConcentrated === "=" ? (
-                              <span className="text-text-quaternary">
-                                Equal
-                              </span>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            {/* ── Deep Dive Links ────────────────────────────── */}
-            <section className="mt-12 mb-16 flex gap-3">
-              <Link
-                href={countryHref(countryA.country)}
-                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-stone-100">
-                View {countryA.country_name} Profile →
-              </Link>
-              <Link
-                href={countryHref(countryB.country)}
-                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-stone-100">
-                View {countryB.country_name} Profile →
-              </Link>
             </section>
           </>
-        )}
-
-        {!ready && codeA === "" && codeB === "" && (
-          <section className="mt-12 mb-16 rounded-md border border-border-primary bg-surface-tertiary p-10 text-center">
-            <p className="text-[14px] text-text-tertiary">
-              Select two countries above to begin the comparison.
-            </p>
-            <p className="mt-2 text-[12px] text-text-quaternary">
-              The comparative view overlays radar profiles, computes per-axis
-              deltas, and highlights structural divergence between member
-              states.
-            </p>
-          </section>
         )}
       </main>
     </div>
