@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { RadarChart } from "@/components/RadarChart";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
@@ -42,7 +42,7 @@ const SHIFT_LABELS: Record<number, string> = {
   [0.20]: "+20%",
 };
 
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 100;
 const RETRY_DELAYS = [800, 2400] as const;
 const MAX_AUTO_RETRIES = 2;
 const MAX_TIMELINE_ENTRIES = 10;
@@ -205,7 +205,6 @@ export function ScenarioLaboratory({
   baselineRank,
   totalRanked,
 }: ScenarioLaboratoryProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const code = country.country;
 
@@ -283,16 +282,21 @@ export function ScenarioLaboratory({
     serviceState === "RETRYING" ||
     serviceState === "COMPUTING";
 
-  // ── URL sync ──
+  // ── URL sync (lightweight — bypasses Next.js router) ──
+  const urlRafRef = useRef(0);
   useEffect(() => {
-    const qp = new URLSearchParams();
-    for (const [slug, val] of Object.entries(adjustments)) {
-      if (val !== 0) qp.set(slug, val.toFixed(2));
-    }
-    const qs = qp.toString();
-    const newPath = `/country/${code.toLowerCase()}${qs ? `?${qs}` : ""}`;
-    router.replace(newPath, { scroll: false });
-  }, [adjustments, code, router]);
+    cancelAnimationFrame(urlRafRef.current);
+    urlRafRef.current = requestAnimationFrame(() => {
+      const qp = new URLSearchParams();
+      for (const [slug, val] of Object.entries(adjustments)) {
+        if (val !== 0) qp.set(slug, val.toFixed(2));
+      }
+      const qs = qp.toString();
+      const newPath = `/country/${code.toLowerCase()}${qs ? `?${qs}` : ""}`;
+      window.history.replaceState(null, "", newPath);
+    });
+    return () => cancelAnimationFrame(urlRafRef.current);
+  }, [adjustments, code]);
 
   // ── Core fetch with retry ──
   const executeScenarioRequest = useCallback(
@@ -317,11 +321,12 @@ export function ScenarioLaboratory({
         }
 
         lastSuccessRef.current = result;
+        retryCountRef.current = 0;
+        // Batch all state updates together
         setScenarioState({ status: "SUCCESS", data: result });
         setFailureTimestamp(null);
         setFailureStatus(null);
         setFailureMessage(null);
-        retryCountRef.current = 0;
 
         setTimeline((prev) => {
           const entry: TimelineEntry = {

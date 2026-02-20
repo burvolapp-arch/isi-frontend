@@ -10,17 +10,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.text();
-
     const upstream = await fetch(BACKEND_URL + "/scenario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body,
+      body: req.body,
+      // @ts-expect-error — Next.js supports duplex streaming
+      duplex: "half",
     });
 
-    const text = await upstream.text();
-
-    return new Response(text, {
+    return new Response(upstream.body, {
       status: upstream.status,
       headers: { "Content-Type": "application/json" },
     });

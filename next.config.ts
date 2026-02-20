@@ -50,6 +50,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   experimental: {
     optimizeCss: true,
+    staleTimes: {
+      dynamic: 60,
+      static: 300,
+    },
   },
   async headers() {
     return [
@@ -67,6 +71,12 @@ const nextConfig: NextConfig = {
         source: "/:path*.json",
         headers: [
           { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=600" },
+        ],
+      },
+      {
+        source: "/:path*.topo.json",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, immutable" },
         ],
       },
     ];

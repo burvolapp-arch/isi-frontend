@@ -107,6 +107,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="dns-prefetch" href="https://isi-backend-production.up.railway.app" />
+        <link rel="preconnect" href="https://isi-backend-production.up.railway.app" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} min-h-screen antialiased`}
       >
