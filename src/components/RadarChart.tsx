@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useId, useMemo, useState, useCallback, useRef } from "react";
+import { memo, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   formatAxisShort,
@@ -11,8 +11,8 @@ import {
 
 /**
  * SVG-based radar chart for multi-axis country profiles.
- * Visual reference: NATO Strategic Foresight Analysis × ESA Mission Control HUD.
- * Dark-field institutional. Luminous grid hierarchy. Subtle glow depth.
+ * Visual reference: NATO Strategic Foresight Analysis diagrams.
+ * Muted, institutional. No neon fills. Subtle grid hierarchy.
  *
  * ARCHITECTURAL INVARIANT:
  * This component resolves ALL display labels internally via
@@ -24,36 +24,19 @@ import {
 
 // ─── Constants ──────────────────────────────────────────────────────
 
-const GRID_RINGS = [0.2, 0.4, 0.6, 0.8, 1.0] as const;
-const LABEL_OFFSET = 1.28; // push labels out slightly for dark background
-const LABEL_FONT_SIZE = 10;
+const GRID_RINGS = [0.25, 0.5, 0.75, 1.0] as const;
+const LABEL_OFFSET = 1.22; // pull labels inward — prevent clipping
+const LABEL_FONT_SIZE = 10.5;
 const LABEL_LINE_HEIGHT = 13;
 const LABEL_MAX_CHARS = 18; // break label lines — keep them compact
 const VB_SIZE = 460; // compact viewBox — chart fills more of the card
-const RADAR_RADIUS = Math.round(VB_SIZE * 0.28); // ~129
-const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2;
-const LEGEND_HEIGHT = 32; // space below chart for legend
-const DATA_POINT_RADIUS = 3;
-const GRID_STROKE = 0.6;
-const GRID_OPACITY = 0.22;
-const OUTER_RING_OPACITY = 0.55;
-
-// ─── Palette (institutional) ─────────────────────────────
-const GRID_COLOR = "#2a4a72";     // muted blue-grey grid
-const GRID_OUTER = "#3a6a9a";     // brighter outer ring
-const SPOKE_COLOR = "#1e3a5c";    // subtle spokes
-const PRIMARY_FILL = "#3b82f6";   // blue-500 primary polygon fill
-const PRIMARY_STROKE = "#60a5fa"; // blue-400 primary polygon stroke
-const PRIMARY_GLOW = "#3b82f6";   // glow colour
-const EU_MEAN_STROKE = "#64748b"; // slate-500 dashed EU mean
-const EU_MEAN_FILL = "#64748b";
-const COMPARE_STROKE = "#f59e0b"; // amber-500 comparison overlay
-const COMPARE_FILL = "#f59e0b";
-const LABEL_COLOR = "#94a3b8";    // slate-400 axis labels
-const LABEL_ACTIVE = "#e2e8f0";   // slate-200 hovered label
-const SCALE_COLOR = "#475569";    // slate-600 ring scale numbers
-const DOT_GLOW = "#60a5fa";       // blue-400 data point glow
-const TICK_COLOR = "#1e3a5c";     // HUD corner tick marks
+const RADAR_RADIUS = Math.round(VB_SIZE * 0.28); // ~129 — 78% fill, ample label margin
+const MARGIN = (VB_SIZE - RADAR_RADIUS * 2) / 2; // margin for labels
+const LEGEND_HEIGHT = 28; // space below chart for legend
+const DATA_POINT_RADIUS = 3.5;
+const GRID_STROKE = 0.8; // clearly visible grid lines
+const GRID_OPACITY = 0.28; // visible grid
+const OUTER_RING_OPACITY = 0.40; // outer ring more prominent
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -160,22 +143,22 @@ function RadarTooltip({
       ref={ref}
       role="tooltip"
       style={style}
-      className="pointer-events-none rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-lg backdrop-blur-sm"
+      className="pointer-events-none rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-lg dark:border-stone-700 dark:bg-stone-900"
     >
-      <p className="mb-2 text-sm font-semibold text-stone-800">
+      <p className="mb-2 text-sm font-semibold text-stone-800 dark:text-stone-100">
         {data.label}
       </p>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
         <span className="text-stone-500">Score</span>
-        <span className="font-mono text-stone-800">
+        <span className="font-mono text-stone-800 dark:text-stone-200">
           {fmtScore(data.score)}
         </span>
         <span className="text-stone-500">EU-27 Mean</span>
-        <span className="font-mono text-stone-800">
+        <span className="font-mono text-stone-800 dark:text-stone-200">
           {fmtScore(data.euMean)}
         </span>
         <span className="text-stone-500">Deviation</span>
-        <span className="font-mono text-stone-800">
+        <span className="font-mono text-stone-800 dark:text-stone-200">
           {data.deviation != null
             ? formatDelta(data.deviation)
             : "—"}
@@ -183,7 +166,7 @@ function RadarTooltip({
         {data.rank != null && data.totalRanked != null && (
           <>
             <span className="text-stone-500">Rank</span>
-            <span className="font-mono text-stone-800">
+            <span className="font-mono text-stone-800 dark:text-stone-200">
               {data.rank} / {data.totalRanked}
             </span>
           </>
@@ -228,7 +211,6 @@ export const RadarChart = memo(function RadarChart({
   axisMeta,
 }: RadarChartProps) {
   const router = useRouter();
-  const uid = useId().replace(/:/g, ""); // unique per-instance, safe for SVG IDs
 
   // ── Interaction state ──
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
@@ -379,122 +361,23 @@ export const RadarChart = memo(function RadarChart({
           : "Radar chart showing multi-axis profile"
       }
     >
-      {/* ── SVG Definitions: gradients, filters, masks ── */}
-      <defs>
-        {/* Dark radial background gradient */}
-        <radialGradient id={`bg-${uid}`} cx="50%" cy="50%" r="55%">
-          <stop offset="0%" stopColor={GRID_OUTER} />
-          <stop offset="75%" stopColor={GRID_COLOR} />
-          <stop offset="100%" stopColor={GRID_COLOR} />
-        </radialGradient>
+      {/* Grid rings — uniform stroke, opacity-based hierarchy */}
+      {GRID_RINGS.map((r) => (
+        <polygon
+          key={r}
+          points={Array.from({ length: n }, (_, i) => {
+            const p = polarToXY(r, i);
+            return `${p.x},${p.y}`;
+          }).join(" ")}
+          fill="none"
+          stroke="var(--color-stone-300)"
+          strokeWidth={GRID_STROKE}
+          strokeOpacity={r === 1.0 ? OUTER_RING_OPACITY : GRID_OPACITY}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
 
-        {/* Primary polygon fill gradient — subtle depth */}
-        <radialGradient id={`fill-${uid}`} cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stopColor={PRIMARY_FILL} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={PRIMARY_FILL} stopOpacity="0.08" />
-        </radialGradient>
-
-        {/* Comparison polygon fill gradient */}
-        <radialGradient id={`cmp-${uid}`} cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stopColor={COMPARE_FILL} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={COMPARE_FILL} stopOpacity="0.04" />
-        </radialGradient>
-
-        {/* Soft glow filter for primary polygon */}
-        <filter id={`gp-${uid}`} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-          <feFlood floodColor={PRIMARY_GLOW} floodOpacity="0.35" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="shadow" />
-          <feMerge>
-            <feMergeNode in="shadow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-
-        {/* Subtle glow for data points */}
-        <filter id={`gd-${uid}`} x="-100%" y="-100%" width="300%" height="300%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
-          <feFlood floodColor={DOT_GLOW} floodOpacity="0.6" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="shadow" />
-          <feMerge>
-            <feMergeNode in="shadow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-
-        {/* Hovered dot intensified glow */}
-        <filter id={`ga-${uid}`} x="-150%" y="-150%" width="400%" height="400%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-          <feFlood floodColor={DOT_GLOW} floodOpacity="0.8" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="shadow" />
-          <feMerge>
-            <feMergeNode in="shadow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-
-        {/* Outer ring glow */}
-        <filter id={`gr-${uid}`} x="-10%" y="-10%" width="120%" height="120%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
-          <feFlood floodColor={GRID_OUTER} floodOpacity="0.3" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="shadow" />
-          <feMerge>
-            <feMergeNode in="shadow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      {/* No dark background field. Institutional white substrate. */}
-
-      {/* ── HUD corner tick marks ── */}
-      {(() => {
-        const inset = radius * 1.36;
-        const tickLen = 14;
-        const ticks = [
-          // top-left
-          `M ${vbCenterX - inset} ${vbCenterY - inset + tickLen} L ${vbCenterX - inset} ${vbCenterY - inset} L ${vbCenterX - inset + tickLen} ${vbCenterY - inset}`,
-          // top-right
-          `M ${vbCenterX + inset - tickLen} ${vbCenterY - inset} L ${vbCenterX + inset} ${vbCenterY - inset} L ${vbCenterX + inset} ${vbCenterY - inset + tickLen}`,
-          // bottom-left
-          `M ${vbCenterX - inset} ${vbCenterY + inset - tickLen} L ${vbCenterX - inset} ${vbCenterY + inset} L ${vbCenterX - inset + tickLen} ${vbCenterY + inset}`,
-          // bottom-right
-          `M ${vbCenterX + inset - tickLen} ${vbCenterY + inset} L ${vbCenterX + inset} ${vbCenterY + inset} L ${vbCenterX + inset} ${vbCenterY + inset - tickLen}`,
-        ];
-        return ticks.map((d, i) => (
-          <path
-            key={`tick-${i}`}
-            d={d}
-            fill="none"
-            stroke={TICK_COLOR}
-            strokeWidth={1}
-            strokeOpacity={0.5}
-            vectorEffect="non-scaling-stroke"
-          />
-        ));
-      })()}
-
-      {/* ── Grid rings — luminous hierarchy ── */}
-      {GRID_RINGS.map((r) => {
-        const isOuter = r === 1.0;
-        return (
-          <polygon
-            key={r}
-            points={Array.from({ length: n }, (_, i) => {
-              const p = polarToXY(r, i);
-              return `${p.x},${p.y}`;
-            }).join(" ")}
-            fill="none"
-            stroke={isOuter ? GRID_OUTER : GRID_COLOR}
-            strokeWidth={isOuter ? 1 : GRID_STROKE}
-            strokeOpacity={isOuter ? OUTER_RING_OPACITY : GRID_OPACITY}
-            vectorEffect="non-scaling-stroke"
-            filter={isOuter ? `url(#gr-${uid})` : undefined}
-          />
-        );
-      })}
-
-      {/* ── Grid spokes ── */}
+      {/* Grid spokes */}
       {resolvedAxes.map((_, i) => {
         const p = polarToXY(1, i);
         return (
@@ -512,202 +395,199 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
-      {/* ── Center dot (origin marker) ── */}
-      <circle
-        cx={vbCenterX}
-        cy={vbCenterY}
-        r={2}
-        fill={GRID_COLOR}
-        fillOpacity={0.5}
-      />
-
-      {/* ── Ring scale labels ── */}
+      {/* Ring scale labels */}
       {GRID_RINGS.map((r) => (
         <text
           key={r}
           x={vbCenterX}
           y={vbCenterY - radius * r}
-          dx={6}
+          dx={5}
           textAnchor="start"
           dominantBaseline="middle"
-          fill={SCALE_COLOR}
-          fontSize="8"
+          fill="var(--color-text-quaternary)"
+          fontSize="9"
           fontFamily="var(--font-mono)"
-          opacity={0.6}
+          opacity={0.7}
         >
-          {r.toFixed(1)}
+          {r.toFixed(2)}
         </text>
       ))}
 
-      {/* ── EU Mean polygon (reference) ── */}
-      {typeof euMeanPath === "string" && (
+      {/* EU Mean polygon (reference) */}
+      {euMeanPath && (
         <path
           d={euMeanPath}
-          fill={EU_MEAN_FILL}
-          fillOpacity={0.06}
-          stroke={EU_MEAN_STROKE}
+          fill="var(--color-stone-300)"
+          fillOpacity={0.14}
+          stroke="var(--color-stone-400)"
           strokeWidth={1}
-          strokeDasharray="4 4"
-          strokeOpacity={0.5}
+          strokeDasharray="3 3"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
         />
       )}
 
-      {/* ── Comparison polygon ── */}
+      {/* Comparison polygon — dashed, clearly visible baseline reference */}
       {comparePath && (
         <path
           d={comparePath}
-          fill={`url(#cmp-${uid})`}
-          stroke={COMPARE_STROKE}
-          strokeWidth={1.3}
-          strokeDasharray="5 3"
-          strokeOpacity={0.7}
+          fill="var(--color-stone-400)"
+          fillOpacity={0.12}
+          stroke="var(--color-stone-500)"
+          strokeWidth={1.4}
+          strokeDasharray="4 3"
           strokeLinejoin="round"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
         />
       )}
 
-      {/* ── Primary polygon — glowing fill ── */}
+      {/* Primary polygon — solid navy, clearly visible fill */}
       <path
         d={primaryPath}
-        fill={`url(#fill-${uid})`}
-        stroke={PRIMARY_STROKE}
-        strokeWidth={1.8}
-        strokeOpacity={hoveredAxis !== null ? 0.9 : 0.75}
+        fill="var(--color-navy-700)"
+        fillOpacity={hoveredAxis !== null ? 0.18 : 0.35}
+        stroke="var(--color-navy-700)"
+        strokeWidth={2}
         strokeLinejoin="round"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
-        filter={`url(#gp-${uid})`}
-        style={{ transition: "stroke-opacity 0.2s ease" }}
       />
 
-      {/* ── Hovered axis edge highlight ── */}
+      {/* Hovered axis edge highlight */}
       {hoveredAxis !== null && resolvedAxes[hoveredAxis]?.value != null && (
         <line
           x1={vbCenterX}
           y1={vbCenterY}
           x2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).x}
           y2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).y}
-          stroke={PRIMARY_STROKE}
-          strokeWidth={2}
-          strokeOpacity={0.6}
+          stroke="var(--color-navy-700)"
+          strokeWidth={2.5}
+          strokeOpacity={0.45}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
         />
       )}
 
-      {/* ── Data points — glowing dots ── */}
+      {/* Data points — enlarge on hover */}
       {resolvedAxes.map((axis, i) => {
-        if (axis.value == null || !Number.isFinite(axis.value)) return null;
-        const { x, y } = polarToXY(axis.value, i);
+        if (axis.value === null) return null;
+        const p = polarToXY(axis.value, i);
+        const isHovered = hoveredAxis === i;
         return (
           <circle
             key={i}
-            cx={x}
-            cy={y}
-            r={DATA_POINT_RADIUS}
-            fill={PRIMARY_FILL}
-            fillOpacity={0.9}
-            stroke={PRIMARY_STROKE}
-            strokeWidth={1.2}
+            cx={p.x}
+            cy={p.y}
+            r={isHovered ? DATA_POINT_RADIUS + 1 : DATA_POINT_RADIUS}
+            fill="var(--color-navy-700)"
+            stroke="var(--color-surface-primary)"
+            strokeWidth={isHovered ? 1.5 : 1}
             vectorEffect="non-scaling-stroke"
-            filter={`url(#gd-${uid})`}
           />
         );
       })}
 
-      {/* ── Hovered data point — intensified glow ── */}
-      {hoveredAxis !== null && resolvedAxes[hoveredAxis]?.value != null && (
-        <circle
-          cx={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).x}
-          cy={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).y}
-          r={DATA_POINT_RADIUS * 1.2}
-          fill={PRIMARY_FILL}
-          fillOpacity={1}
-          stroke={PRIMARY_STROKE}
-          strokeWidth={1.6}
-          vectorEffect="non-scaling-stroke"
-          filter={`url(#ga-${uid})`}
-        />
-      )}
+      {/* Axis labels — dim non-hovered on interaction */}
+      {resolvedAxes.map((axis, i) => {
+        const labelPoint = polarToXY(LABEL_OFFSET, i);
+        const lines = wrapLabel(axis.label);
+        const lineCount = lines.length;
+        const startDy = -((lineCount - 1) * LABEL_LINE_HEIGHT) / 2;
 
-      {/* ── Legend — country & comparison labels ── */}
-      {hasLegend && (
-        <g
-          transform={`translate(0 ${legendY})`}
-          fontFamily="var(--font-sans)"
-          fontSize={LABEL_FONT_SIZE}
-          textAnchor="middle"
-        >
-          {/* Primary country label */}
-          {label && (
-            <text
-              x={VB_SIZE / 2}
-              y={LABEL_OFFSET}
-              fill={LABEL_COLOR}
-              opacity={0.9}
-              style={{ mixBlendMode: "multiply" }}
-            >
-              {label}
-            </text>
-          )}
+        const angle = angleStep * i - Math.PI / 2;
+        const cos = Math.cos(angle);
+        let textAnchor: "start" | "middle" | "end" = "middle";
+        if (cos > 0.1) {
+          textAnchor = "start";
+        } else if (cos < -0.1) {
+          textAnchor = "end";
+        }
 
-          {/* EU mean label */}
-          {euMean && (
-            <text
-              x={VB_SIZE / 2}
-              y={LABEL_OFFSET + 16}
-              fill={LABEL_COLOR}
-              opacity={0.7}
-              style={{ mixBlendMode: "multiply" }}
-            >
-              EU-27 Mean
-            </text>
-          )}
+        const dimmed = hoveredAxis !== null && hoveredAxis !== i;
 
-          {/* Comparison label */}
-          {compareLabel && (
-            <text
-              x={VB_SIZE / 2}
-              y={LABEL_OFFSET + 32}
-              fill={LABEL_COLOR}
-              opacity={0.7}
-              style={{ mixBlendMode: "multiply" }}
-            >
-              {compareLabel}
-            </text>
-          )}
-        </g>
-      )}
-
-      {/* ── Debug: axis value labels (temporary) ── */}
-      {false && (
-        <g
-          transform={`translate(0 ${legendY})`}
-          fontFamily="var(--font-mono)"
-          fontSize={10}
-          textAnchor="middle"
-          fill="var(--color-stone-600)"
-        >
-          {resolvedAxes.map((axis, i) => {
-            const { x, y } = polarToXY(axis.value ?? 0, i);
-            return (
-              <text
-                key={i}
-                x={x}
-                y={y}
-                dy="-0.3em"
-                opacity={0.8}
-                style={{ pointerEvents: "none" }}
+        return (
+          <text
+            key={i}
+            x={labelPoint.x}
+            y={labelPoint.y}
+            textAnchor={textAnchor}
+            dominantBaseline="middle"
+            fill="var(--color-text-secondary)"
+            fontSize={LABEL_FONT_SIZE}
+            fontFamily="var(--font-sans)"
+            fontWeight="500"
+            opacity={dimmed ? 0.4 : 1}
+          >
+            {lines.map((line, li) => (
+              <tspan
+                key={li}
+                x={labelPoint.x}
+                dy={li === 0 ? startDy : LABEL_LINE_HEIGHT}
               >
-                {axis.value != null ? axis.value.toFixed(2) : "—"}
-              </text>
-            );
-          })}
+                {line}
+              </tspan>
+            ))}
+          </text>
+        );
+      })}
+
+      {/* Interactive wedge overlay — transparent pie-slice hit areas per axis */}
+      {resolvedAxes.map((axis, i) => (
+        <path
+          key={`wedge-${i}`}
+          d={buildWedge(i, n, vbCenterX, vbCenterY, wedgeReach)}
+          fill="transparent"
+          cursor={countryCode ? "pointer" : "default"}
+          role="button"
+          tabIndex={0}
+          aria-label={`${axis.label}: ${fmtScore(axis.value)}`}
+          onMouseEnter={() => handleAxisHover(i)}
+          onMouseMove={handleAxisMove}
+          onMouseLeave={handleAxisLeave}
+          onClick={() => handleAxisClick(i)}
+          onKeyDown={(e) => handleAxisKeyDown(e, i)}
+        />
+      ))}
+
+      {/* Legend — positioned below chart */}
+      {hasLegend && (
+        <g>
+          {label && (
+            <g>
+              <line x1={MARGIN} y1={legendY} x2={MARGIN + 14} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 19} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="8" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
+            </g>
+          )}
+          {euMean && (
+            <g>
+              <line x1={MARGIN} y1={legendY + 14} x2={MARGIN + 14} y2={legendY + 14} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 19} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">EU-27 Mean</text>
+            </g>
+          )}
+          {compareLabel && (
+            <g>
+              <line x1={MARGIN + 110} y1={legendY} x2={MARGIN + 124} y2={legendY} stroke="var(--color-stone-400)" strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + 129} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">{compareLabel}</text>
+            </g>
+          )}
         </g>
       )}
     </svg>
   );
+
+  return (
+    <>
+      {svg}
+      {tooltipData && (
+        <RadarTooltip
+          data={tooltipData}
+          mouseX={mousePos.x}
+          mouseY={mousePos.y}
+        />
+      )}
+    </>
+  );
 });
+
+RadarChart.displayName = "RadarChart";
