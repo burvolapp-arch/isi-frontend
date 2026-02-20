@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Transparency",
+  title: "Transparency & Data Governance",
   description:
-    "What the ISI measures, what it does not, and known limitations.",
+    "Data sources, versioning policy, revision procedures, and known limitations of the International Sovereignty Index.",
 };
 
 export default function TransparencyPage() {
@@ -19,121 +19,233 @@ export default function TransparencyPage() {
             ← Back to Overview
           </Link>
           <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
-            Transparency &amp; Scope Disclosure
+            Transparency &amp; Data Governance
           </h1>
           <p className="mt-2 text-[14px] leading-relaxed text-text-tertiary">
-            Understanding what the ISI measures — and what it does not.
+            Data provenance, versioning policy, and governance standards for the International Sovereignty Index.
+            For mathematical construction and computational architecture, see{" "}
+            <Link href="/methodology" className="text-navy-700 underline hover:text-navy-900">
+              Methodology
+            </Link>.
           </p>
         </div>
 
-        <div className="mt-12 max-w-3xl space-y-10">
+        <div className="mt-12 max-w-3xl space-y-12 pb-20">
 
-        {/* What the ISI measures */}
-        <section className="space-y-4">
-          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
-            What the ISI Measures
-          </h2>
-          <ul className="list-inside list-disc space-y-1 text-[14px] text-text-tertiary">
-            <li>
-              <strong className="text-text-secondary">Concentration of external suppliers</strong> — how much
-              a country sources from a small number of external suppliers for
-              strategic inputs.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Structural patterns</strong> — whether supplier concentration is
-              broad or narrow across trade partners.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Cross-axis comparison</strong> — how concentration varies
-              across financial, energy, technology, defense, critical inputs,
-              and logistics domains.
-            </li>
-          </ul>
-        </section>
+          {/* 1. Data Sources & Provenance */}
+          <section className="space-y-4">
+            <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
+              1. Data Sources &amp; Provenance
+            </h2>
+            <p className="text-[14px] leading-[1.75] text-text-tertiary">
+              All ISI scores are derived from publicly accessible datasets maintained by
+              international statistical authorities. No proprietary, paywalled, or classified
+              data is used in any axis computation.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-[14px]">
+                <thead>
+                  <tr className="border-b-2 border-navy-900">
+                    <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
+                      Authority
+                    </th>
+                    <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
+                      Coverage
+                    </th>
+                    <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
+                      Axes
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border-subtle">
+                    <td className="px-4 py-2 font-medium text-text-secondary">Eurostat</td>
+                    <td className="px-4 py-2 text-text-tertiary">EU bilateral trade flows, energy statistics, national accounts, balance of payments</td>
+                    <td className="px-4 py-2 text-text-tertiary">Energy, Financial, Technology, Critical Inputs, Logistics</td>
+                  </tr>
+                  <tr className="border-b border-border-subtle">
+                    <td className="px-4 py-2 font-medium text-text-secondary">UN Comtrade</td>
+                    <td className="px-4 py-2 text-text-tertiary">International merchandise trade at HS commodity level</td>
+                    <td className="px-4 py-2 text-text-tertiary">Technology, Critical Inputs, Logistics</td>
+                  </tr>
+                  <tr className="border-b border-border-subtle">
+                    <td className="px-4 py-2 font-medium text-text-secondary">SIPRI</td>
+                    <td className="px-4 py-2 text-text-tertiary">Arms transfers database — Trend Indicator Values (TIV)</td>
+                    <td className="px-4 py-2 text-text-tertiary">Defense</td>
+                  </tr>
+                  <tr className="border-b border-border-subtle">
+                    <td className="px-4 py-2 font-medium text-text-secondary">BIS</td>
+                    <td className="px-4 py-2 text-text-tertiary">International banking statistics — bilateral financial positions</td>
+                    <td className="px-4 py-2 text-text-tertiary">Financial</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 font-medium text-text-secondary">IEA</td>
+                    <td className="px-4 py-2 text-text-tertiary">World energy statistics and balances</td>
+                    <td className="px-4 py-2 text-text-tertiary">Energy</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-[13px] text-text-quaternary">
+              Specific dataset identifiers and retrieval parameters are documented on each axis
+              detail page under &ldquo;Data Sources &amp; Channels.&rdquo;
+            </p>
+          </section>
 
-        {/* What the ISI does NOT measure */}
-        <section className="rounded-md border border-border-primary py-5 pl-5 pr-6">
-          <h2 className="font-serif text-[20px] font-semibold text-text-primary">
-            What the ISI Does NOT Measure
-          </h2>
-          <ul className="mt-3 space-y-3 text-[14px] text-text-tertiary">
-            <li>
-              <strong className="text-text-secondary">Risk or threat level.</strong> High concentration on a
-              stable, allied partner is structurally different from
-              concentration on an adversarial source. The ISI cannot
-              distinguish between the two.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Policy prescriptions.</strong> A high HHI score does not
-              inherently mean action is needed. Concentration may be
-              economically rational, geographically determined, or
-              historically entrenched.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Quality or resilience of supply chains.</strong> The index
-              quantifies partner distribution, not the robustness, redundancy,
-              or substitutability of those flows.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Non-EU supplier relationships.</strong> Only EU-27 member states are
-              assessed. Non-EU countries, candidate states, and micro-states
-              are outside scope.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Intra-EU supplier flows.</strong> Trade flows between EU
-              member states may or may not be captured depending on the axis
-              definition. Refer to each axis&apos;s inclusion/exclusion
-              documentation.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Geopolitical context.</strong> Scores are purely
-              mathematical (HHI). They do not incorporate diplomatic
-              relationships, alliance structures, or sanctions regimes.
-            </li>
-          </ul>
-        </section>
+          {/* 2. Versioning Policy */}
+          <section className="space-y-4">
+            <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
+              2. Versioning Policy
+            </h2>
+            <p className="text-[14px] leading-[1.75] text-text-tertiary">
+              The ISI framework is versioned to ensure methodological traceability. All published
+              outputs carry a framework version identifier and a reference window.
+            </p>
+            <div className="rounded-md border border-border-primary bg-surface-tertiary p-5 space-y-3">
+              <div className="flex items-baseline gap-3">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">Current Version</span>
+                <span className="font-mono text-[14px] font-semibold text-text-primary">v0.1</span>
+              </div>
+              <ul className="list-inside list-disc space-y-1.5 text-[14px] text-text-tertiary">
+                <li>
+                  <strong className="text-text-secondary">Version immutability.</strong>{" "}
+                  Published versions are frozen. Corrections are issued as errata.
+                </li>
+                <li>
+                  <strong className="text-text-secondary">Breaking changes.</strong>{" "}
+                  Changes to concentration formula, share computation, or classification
+                  thresholds require a major version increment.
+                </li>
+                <li>
+                  <strong className="text-text-secondary">Additive extensions.</strong>{" "}
+                  New axes or channels are added via minor version increments without
+                  retroactively altering existing scores.
+                </li>
+              </ul>
+            </div>
+          </section>
 
-        {/* Known Limitations */}
-        <section className="space-y-4">
-          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
-            Known Limitations
-          </h2>
-          <ul className="list-inside list-disc space-y-2 text-[14px] text-text-tertiary">
-            <li>
-              <strong className="text-text-secondary">Unweighted aggregation.</strong> The composite treats all
-              axes equally. This is a simplification — energy supplier concentration may be
-              more strategically critical than logistics supplier concentration for some
-              states.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Data vintage.</strong> Scores reflect the reference window
-              stated on each page. They do not auto-update and may lag real-world
-              shifts.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Channel coverage.</strong> Not all axes have the same
-              number of data channels. Axes with fewer channels may be less
-              robust.
-            </li>
-            <li>
-              <strong className="text-text-secondary">Missing data.</strong> Some country-axis combinations may
-              be missing due to data unavailability. The composite is then
-              computed over available axes only, which may bias comparisons.
-            </li>
-          </ul>
-        </section>
+          {/* 3. Revision & Correction Procedures */}
+          <section className="space-y-4">
+            <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
+              3. Revision &amp; Correction Procedures
+            </h2>
+            <p className="text-[14px] leading-[1.75] text-text-tertiary">
+              The ISI maintains a strict separation between methodological corrections and
+              data refreshes:
+            </p>
+            <ul className="list-inside list-disc space-y-2 text-[14px] text-text-tertiary">
+              <li>
+                <strong className="text-text-secondary">Data refresh.</strong>{" "}
+                Source data is extracted at defined reference windows. New extraction windows
+                produce new output artifacts but do not alter the methodology.
+              </li>
+              <li>
+                <strong className="text-text-secondary">Errata.</strong>{" "}
+                If a computational error is discovered in a published version, an erratum is
+                issued describing the nature, scope, and impact of the correction.
+              </li>
+              <li>
+                <strong className="text-text-secondary">Restatements.</strong>{" "}
+                Restated scores replace prior outputs only when the original computation
+                contained a demonstrable error. Restatements are documented with full
+                change attribution.
+              </li>
+            </ul>
+          </section>
 
-        {/* Frontend Disclaimer */}
-        <section className="rounded-md border border-border-primary bg-surface-tertiary p-6">
-          <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
-            Frontend Architecture Note
-          </h2>
-          <p className="mt-2 text-[14px] text-text-tertiary">
-            All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation.
-          </p>
-        </section>
+          {/* 4. Known Limitations */}
+          <section className="space-y-4">
+            <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
+              4. Known Limitations
+            </h2>
+            <p className="text-[14px] leading-[1.75] text-text-tertiary">
+              The following limitations apply to the current published version. For structural
+              limitations of the computational model, see the{" "}
+              <Link href="/methodology" className="text-navy-700 underline hover:text-navy-900">
+                Methodology
+              </Link>{" "}
+              page (Section 9).
+            </p>
+            <div className="space-y-3">
+              <div className="rounded-md border border-border-primary p-4">
+                <p className="text-[13px] font-medium text-text-secondary">Data vintage</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
+                  Scores reflect the reference window stated on each page. They do not
+                  auto-update and may lag real-world shifts in supplier structures.
+                </p>
+              </div>
+              <div className="rounded-md border border-border-primary p-4">
+                <p className="text-[13px] font-medium text-text-secondary">Channel coverage heterogeneity</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
+                  Not all axes have the same number of data channels. Axes with fewer
+                  channels may be less robust against individual data quality issues.
+                </p>
+              </div>
+              <div className="rounded-md border border-border-primary p-4">
+                <p className="text-[13px] font-medium text-text-secondary">Missing country-axis combinations</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
+                  Some country-axis pairs are missing due to data unavailability.
+                  The composite is then computed over available axes only, which may
+                  affect cross-country comparability.
+                </p>
+              </div>
+              <div className="rounded-md border border-border-primary p-4">
+                <p className="text-[13px] font-medium text-text-secondary">Source data discrepancies</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
+                  Bilateral trade statistics may differ between reporter-side and partner-side
+                  records. The ISI uses reporter-side data exclusively. Mirror statistics are
+                  not cross-validated in v0.1.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. Frontend Architecture */}
+          <section className="rounded-md border border-border-primary bg-surface-tertiary p-6">
+            <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
+              5. Frontend Architecture Disclosure
+            </h2>
+            <p className="mt-2 text-[14px] leading-[1.75] text-text-tertiary">
+              All scores and classifications are computed server-side from documented data
+              sources. The frontend interface displays published outputs without transformation.
+              Rank orderings, deviation indicators, and EU-27 aggregate statistics displayed
+              in the interface are derived computations from the backend-provided score set
+              and are not independently scored.
+            </p>
+          </section>
+
+          {/* 6. Data Access */}
+          <section className="space-y-4">
+            <h2 className="font-serif text-[20px] font-semibold text-text-secondary">
+              6. Data Access &amp; Export
+            </h2>
+            <p className="text-[14px] leading-[1.75] text-text-tertiary">
+              Published ISI data is available for download in machine-readable formats.
+              No registration or authentication is required.
+            </p>
+            <div className="flex gap-4">
+              <a
+                href="/api/export/csv"
+                download
+                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-stone-100"
+              >
+                Download CSV
+              </a>
+              <a
+                href="/api/export/json"
+                download
+                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-stone-100"
+              >
+                Download JSON
+              </a>
+            </div>
+            <p className="text-[12px] text-text-quaternary">
+              Exported data includes all country composite scores, per-axis scores,
+              and classification labels for the current published version.
+            </p>
+          </section>
         </div>
-        <div className="mb-16" />
       </main>
     </div>
   );

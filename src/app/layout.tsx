@@ -79,16 +79,23 @@ export const metadata: Metadata = {
   },
 };
 
-const FOOTER_NAV = [
+const HEADER_NAV = [
+  { href: "/", label: "Overview" },
+  { href: "/eu-aggregate", label: "EU-27" },
+  { href: "/compare", label: "Comparative" },
+  { href: "/scenario", label: "Scenario Lab" },
   { href: "/methodology", label: "Methodology" },
   { href: "/transparency", label: "Transparency" },
-  { href: "/compare", label: "Comparative" },
   { href: "/faq", label: "FAQ" },
 ] as const;
 
-const HEADER_NAV = [
-  { href: "/", label: "Overview" },
-  ...FOOTER_NAV,
+const FOOTER_NAV = [
+  { href: "/methodology", label: "Methodology" },
+  { href: "/transparency", label: "Transparency" },
+  { href: "/eu-aggregate", label: "EU-27 Aggregate" },
+  { href: "/compare", label: "Comparative" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/accessibility", label: "Accessibility" },
 ] as const;
 
 export default function RootLayout({
@@ -156,7 +163,7 @@ export default function RootLayout({
                   Cite the ISI
                 </h3>
                 <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-3 py-3 font-mono text-[11px] leading-relaxed text-text-tertiary sm:px-4 sm:text-[12px]">
-                  International Sovereignty Index (2025).{" "}
+                  International Sovereignty Index (2026).{" "}
                   <em>
                     External Supplier Concentration in EU-27 Member States.
                   </em>{" "}

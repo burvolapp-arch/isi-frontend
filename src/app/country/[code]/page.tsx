@@ -14,12 +14,12 @@ import {
   formatAxisFull,
   formatEnum,
   formatSeverity,
-  formatDataset,
   formatScore,
   formatVolume,
   formatDelta,
   formatPercentage,
 } from "@/lib/presentation";
+import { resolveSourceCitation } from "@/lib/sourceRegistry";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -271,11 +271,12 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
 // ─── Channel Block Sub-Component ───────────────────────────────────
 
 function ChannelBlock({ channel }: { channel: ChannelDetail }) {
+  const citation = resolveSourceCitation(channel.source);
   return (
     <div className="rounded-md border border-border-primary bg-surface-tertiary p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-medium text-text-secondary">
-          Ch. {channel.channel_id}: {formatEnum(channel.channel_name)}
+          Ch.&thinsp;{channel.channel_id}: {formatEnum(channel.channel_name)}
         </p>
         {channel.total_partners != null && (
           <span className="text-[11px] text-text-quaternary">
@@ -283,7 +284,12 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
           </span>
         )}
       </div>
-      <p className="text-[11px] text-text-quaternary">Source: {formatDataset(channel.source)}</p>
+      <p className="text-[11px] text-text-quaternary">
+        {citation.displayName}
+        {citation.publisher !== "See source documentation" && (
+          <span> · {citation.publisher}</span>
+        )}
+      </p>
 
       {/* Top partners */}
       {(() => {

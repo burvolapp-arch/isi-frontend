@@ -6,7 +6,8 @@ import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
 import { countryHref, computeStdDev } from "@/lib/format";
-import { formatAxisFull, formatSeverity, formatDataset, formatEnum, formatScore, formatDelta } from "@/lib/presentation";
+import { formatAxisFull, formatSeverity, formatEnum, formatScore, formatDelta } from "@/lib/presentation";
+import { resolveSourceCitation, formatSourceInline } from "@/lib/sourceRegistry";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
@@ -222,18 +223,59 @@ export default async function AxisPage({ params }: PageProps) {
             channel(s). Each channel represents a distinct trade-flow or
             supplier concentration dataset.
           </p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {axis.channels.map((ch) => (
-              <div
-                key={ch.id}
-                className="rounded-md border border-border-primary bg-surface-tertiary p-4"
-              >
-                <p className="text-[14px] font-medium text-text-secondary">
-                  Ch. {ch.id}: {formatEnum(ch.name)}
-                </p>
-                <p className="mt-0.5 text-[11px] text-text-quaternary">Source: {formatDataset(ch.source)}</p>
-              </div>
-            ))}
+          <div className="mt-4 space-y-3">
+            {axis.channels.map((ch) => {
+              const citation = resolveSourceCitation(ch.source);
+              return (
+                <div
+                  key={ch.id}
+                  className="rounded-md border border-border-primary bg-surface-tertiary p-4"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-[14px] font-medium text-text-secondary">
+                      Ch.&thinsp;{ch.id}: {formatEnum(ch.name)}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-[13px] text-text-tertiary">
+                    {citation.displayName}
+                  </p>
+                  <div className="mt-2 rounded border border-border-subtle bg-white px-3 py-2 text-[12px] leading-relaxed text-text-quaternary">
+                    <p>
+                      <span className="font-medium text-text-tertiary">Publisher:</span>{" "}
+                      {citation.publisher}
+                    </p>
+                    {citation.datasetId && (
+                      <p>
+                        <span className="font-medium text-text-tertiary">Dataset:</span>{" "}
+                        <code className="font-mono text-[11px]">{citation.datasetId}</code>
+                      </p>
+                    )}
+                    {citation.url && (
+                      <p>
+                        <span className="font-medium text-text-tertiary">Reference:</span>{" "}
+                        <a
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-navy-700 underline hover:text-navy-900"
+                        >
+                          {citation.url.replace(/^https?:\/\//, "").split("/")[0]}
+                        </a>
+                      </p>
+                    )}
+                    <p>
+                      <span className="font-medium text-text-tertiary">Retrieval:</span>{" "}
+                      {citation.retrievalNote}
+                    </p>
+                    {citation.note && (
+                      <p className="mt-1 text-[11px] italic text-text-quaternary">
+                        {citation.note}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 

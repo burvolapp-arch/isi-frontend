@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { RadarChart } from "@/components/RadarChart";
 import { DeviationBarChart } from "@/components/DeviationBar";
@@ -50,6 +50,13 @@ export function CountryView({
   compositeMean,
 }: CountryViewProps) {
   const [mode, setMode] = useState<ViewMode>("baseline");
+
+  // Auto-activate scenario mode if URL has #scenario hash
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#scenario") {
+      setMode("scenario");
+    }
+  }, []);
 
   // ── Derived data ──
   const scoredAxes = country.axes

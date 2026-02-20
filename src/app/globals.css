@@ -160,3 +160,114 @@ table {
   background: var(--color-gray-300);
   border-radius: 3px;
 }
+
+/* ── Print Stylesheet ──────────────────────────────────────────────── */
+/* Institutional print-readiness pass.                                  */
+/* Hide navigation chrome. Preserve charts, tables, citations.          */
+/* Clean white background. No decorative elements.                      */
+
+@media print {
+  /* Reset background to pure white, remove fixed positioning */
+  html, body {
+    background: #fff !important;
+    color: #111827 !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Hide navigation, footer, interactive controls */
+  header,
+  footer,
+  nav,
+  [aria-label="View mode"],
+  button,
+  select,
+  .animate-pulse {
+    display: none !important;
+  }
+
+  /* Remove shadows, ensure borders print cleanly */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure content fills page width */
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Preserve SVG charts at appropriate size */
+  svg {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Keep tables together where possible */
+  table, figure, section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* Ensure links show URLs in print */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #6b7280;
+    word-break: break-all;
+  }
+
+  /* Don't show URL for internal navigation links */
+  a[href^="/"]::after {
+    content: none;
+  }
+
+  /* Citation blocks — preserve with clean borders */
+  .font-mono {
+    font-size: 9pt !important;
+  }
+
+  /* Ensure chart containers have proper print dimensions */
+  [class*="rounded-lg"] {
+    border: 1px solid #d1d5db !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 2cm 1.5cm;
+    size: A4;
+  }
+
+  /* Heading hierarchy for print */
+  h1 {
+    font-size: 18pt !important;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 14pt !important;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt !important;
+    page-break-after: avoid;
+  }
+
+  /* Color band text — ensure print readability */
+  .text-band-highly { color: #b91c1c !important; }
+  .text-band-moderately { color: #b45309 !important; }
+  .text-band-mildly { color: #a16207 !important; }
+  .text-band-unconcentrated { color: #065f46 !important; }
+
+  /* Deviation colors — ensure print readability */
+  .text-deviation-positive { color: #b91c1c !important; }
+  .text-deviation-negative { color: #065f46 !important; }
+}
