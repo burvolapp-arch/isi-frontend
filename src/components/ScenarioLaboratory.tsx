@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import {
   classificationLabel,
+  classifyScore,
 } from "@/lib/format";
 import {
   normalizeAxisKey,
@@ -461,6 +462,22 @@ export function ScenarioLaboratory({
     );
   }, [country, scenario]);
 
+  // Dev-only: warn when backend classification doesn't match composite score
+  useEffect(() => {
+    if (!_isDev || !scenario?.simulated) return;
+    const comp = scenario.simulated.composite;
+    const cls = scenario.simulated.classification;
+    if (comp == null || cls == null) return;
+    const expected = classifyScore(comp);
+    if (expected !== cls) {
+      console.warn(
+        `[ISI Scenario] Backend classification mismatch: composite=${comp.toFixed(4)} ` +
+        `should be "${expected}" but backend returned "${cls}". ` +
+        `This is a backend bug — the frontend displays the backend value faithfully.`
+      );
+    }
+  }, [scenario]);
+
   const decomposition = useMemo(() => {
     if (!scenario?.delta?.axes) return null;
     const items = Object.entries(scenario.delta.axes)
@@ -569,8 +586,10 @@ export function ScenarioLaboratory({
               const sim = scenario.simulated.rank;
               if (base == null || sim == null || base === sim) return null;
               const shift = base - sim;
+              // shift > 0 → sim rank is numerically lower → MORE concentrated → BAD (red)
+              // shift < 0 → sim rank is numerically higher → LESS concentrated → GOOD (green)
               return (
-                <span className={`font-mono text-[13px] font-medium ${shift > 0 ? "text-deviation-negative" : "text-deviation-positive"}`}>
+                <span className={`font-mono text-[13px] font-medium ${shift > 0 ? "text-deviation-positive" : "text-deviation-negative"}`}>
                   {shift > 0 ? "↑" : "↓"}{Math.abs(shift)}
                 </span>
               );
@@ -612,35 +631,41 @@ export function ScenarioLaboratory({
         </div>
       </section>
 
-      {/* Per-axis results (compact) */}
-      {showSimulated && scenario.simulated.axes && (
-        <section className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-            Per-Axis Results
-          </p>
-          <div className="mt-2 space-y-1">
-            {Object.entries(scenario.simulated.axes).map(([slug, simScore]) => {
-              const baseScore = scenario.baseline.axes[slug] ?? null;
-              const axisDelta = scenario.delta.axes[slug] ?? null;
-              return (
-                <div key={slug} className="flex items-center justify-between text-[12px]">
-                  <span className="text-text-secondary">{formatAxisLabel(slug)}</span>
-                  <div className="flex items-center gap-2 font-mono text-[11px]">
-                    <span className="text-text-quaternary">{formatScore(baseScore)}</span>
-                    <span className="text-text-quaternary">→</span>
-                    <span className="text-text-primary">{formatScore(simScore)}</span>
-                    {axisDelta != null && axisDelta !== 0 && (
-                      <span className={axisDelta > 0 ? "text-deviation-positive" : "text-deviation-negative"}>
-                        {formatDelta(axisDelta)}
-                      </span>
-                    )}
+      {/* Per-axis results (compact) — always visible */}
+      <section className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+          {showSimulated ? "Per-Axis Results" : "Baseline Per-Axis Scores"}
+        </p>
+        <div className="mt-2 space-y-1">
+          {showSimulated && scenario.simulated.axes
+            ? Object.entries(scenario.simulated.axes).map(([slug, simScore]) => {
+                const baseScore = scenario.baseline.axes[slug] ?? null;
+                const axisDelta = scenario.delta.axes[slug] ?? null;
+                return (
+                  <div key={slug} className="flex items-center justify-between text-[12px]">
+                    <span className="text-text-secondary">{formatAxisLabel(slug)}</span>
+                    <div className="flex items-center gap-2 font-mono text-[11px]">
+                      <span className="text-text-quaternary">{formatScore(baseScore)}</span>
+                      <span className="text-text-quaternary">→</span>
+                      <span className="text-text-primary">{formatScore(simScore)}</span>
+                      {axisDelta != null && axisDelta !== 0 && (
+                        <span className={axisDelta > 0 ? "text-deviation-positive" : "text-deviation-negative"}>
+                          {formatDelta(axisDelta)}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                );
+              })
+            : country.axes.map((axis) => (
+                <div key={axis.axis_slug} className="flex items-center justify-between text-[12px]">
+                  <span className="text-text-secondary">{formatAxisLabel(axis.axis_slug)}</span>
+                  <span className="font-mono text-[11px] text-text-primary">{formatScore(axis.score)}</span>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+              ))
+          }
+        </div>
+      </section>
 
       {/* ═══ 2. STRUCTURAL SHOCK PRESETS ═══ */}
       <section>
