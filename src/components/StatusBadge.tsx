@@ -6,13 +6,13 @@ interface StatusBadgeProps {
 
 const BADGE_STYLES: Record<ScoreClassification, string> = {
   highly_concentrated:
-    "text-band-highly",
+    "text-band-highly bg-red-50",
   moderately_concentrated:
-    "text-band-moderately",
+    "text-band-moderately bg-amber-50",
   mildly_concentrated:
-    "text-band-mildly",
+    "text-band-mildly bg-yellow-50",
   unconcentrated:
-    "text-band-unconcentrated",
+    "text-band-unconcentrated bg-emerald-50",
 };
 
 const LABELS: Record<ScoreClassification, string> = {

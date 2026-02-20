@@ -81,12 +81,14 @@
 }
 
 /* ── Base ───────────────────────────────────────────────── */
-html,
-body {
+html {
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
 }
 
 body {
+  overflow-x: hidden;
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
@@ -105,10 +107,15 @@ table {
   font-variant-numeric: tabular-nums;
 }
 
+tbody tr {
+  transition: background-color 0.1s ease-out;
+}
+
 /* ── Focus Ring ────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--color-navy-700);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* ── Selection ─────────────────────────────────────────── */
@@ -120,6 +127,33 @@ table {
 /* ── Text Balance ──────────────────────────────────────── */
 .text-balance {
   text-wrap: balance;
+}
+
+/* ── Section Entrance Animation ────────────────────────── */
+@keyframes sectionReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-reveal {
+  animation: sectionReveal 0.4s ease-out both;
+}
+
+/* ── Content Visibility — Performance ──────────────────── */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+/* ── Fade-in utility (JS-controlled) ──────────────────── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease-out, transform 0.35s ease-out;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ── Map Tooltip Animation ─────────────────────────────── */
@@ -146,7 +180,15 @@ table {
   user-select: none;
 }
 
-/* ── Scrollbar ─────────────────────────────────────────── */
+/* ── Scrollbar ───────────────────────────────────────────────── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -157,8 +199,22 @@ table {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gray-300);
+  background: var(--color-stone-300);
   border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-stone-400);
+}
+
+/* ── Reduced Motion ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── Print Stylesheet ──────────────────────────────────────────────── */

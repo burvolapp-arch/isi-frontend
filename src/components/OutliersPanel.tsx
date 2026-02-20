@@ -129,34 +129,34 @@ export default function OutliersPanel({ countries, mean }: OutliersPanelProps) {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 tracking-tight">
+        <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
           Structural Outliers
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1.5 text-[14px] text-text-tertiary">
           Countries exhibiting the most notable structural concentration
           patterns across the EU-27.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {outliers.map((card) => (
           <Link
             key={card.country}
             href={countryHref(card.country)}
-            className="group block rounded-lg border border-gray-200 bg-white p-4 sm:p-5 transition-colors hover:border-gray-300 hover:bg-gray-50/50"
+            className="group block rounded-md border border-border-primary bg-white p-4 sm:p-5 transition-[border-color,box-shadow] duration-150 hover:border-stone-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
           >
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               {card.title}
             </p>
-            <p className="mt-3 text-2xl font-semibold tabular-nums text-gray-900">
+            <p className="mt-3 font-mono text-[22px] font-medium leading-none tabular-nums text-text-primary">
               {card.value}
             </p>
-            <p className="mt-0.5 text-xs text-gray-400">{card.detail}</p>
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+            <p className="mt-1 text-[11px] text-text-quaternary">{card.detail}</p>
+            <div className="mt-3 pt-3 border-t border-border-subtle">
+              <p className="text-[13px] font-medium text-text-secondary transition-colors group-hover:text-navy-700">
                 {card.countryName}
               </p>
-              <p className="mt-0.5 text-xs text-gray-400 line-clamp-2">
+              <p className="mt-0.5 text-[12px] text-text-quaternary line-clamp-2">
                 {card.description}
               </p>
             </div>

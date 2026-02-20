@@ -111,10 +111,10 @@ export default async function ExecutiveOverviewPage() {
             <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:justify-start">
               <a
                 href="#map"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-colors hover:bg-stone-100"
+                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)]"
               >
                 Explore the Map
-                <span aria-hidden="true">↓</span>
+                <span aria-hidden="true" className="transition-transform group-hover/cta:translate-y-0.5">↓</span>
               </a>
               {isi && (
                 <span className="text-[12px] font-mono text-stone-500 sm:text-[13px]">
@@ -232,9 +232,9 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 4: Distribution Histogram ────────────── */}
+        {/* ── Section 4: Distribution Histogram ──────────── */}
         {isi && distribution && (
-          <section className="mt-14">
+          <section className="mt-14 content-auto">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Composite Score Distribution
             </h2>
@@ -326,9 +326,9 @@ export default async function ExecutiveOverviewPage() {
           </div>
         </section>
 
-        {/* ── Section 6: Country Rankings (interactive) ─────── */}
+        {/* ── Section 6: Country Rankings (interactive) ───── */}
         {isi && axes && (
-          <section className="mt-14">
+          <section className="mt-14 content-auto">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Country Rankings
             </h2>
@@ -345,9 +345,9 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 7: Axis Registry ─────────────────────── */}
+        {/* ── Section 7: Axis Registry ───────────────── */}
         {axes && (
-          <section className="mt-14">
+          <section className="mt-14 content-auto">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Axis Registry
             </h2>

@@ -256,9 +256,13 @@ export default function ComparePage() {
     return (
       <div className="min-h-screen bg-white">
         <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
-          <div className="animate-pulse space-y-4">
-            <div className="h-6 w-48 bg-surface-tertiary" />
-            <div className="h-64 bg-surface-tertiary rounded" />
+          <div className="space-y-4">
+            <div className="h-8 w-64 animate-pulse rounded bg-stone-100" />
+            <div className="h-4 w-96 animate-pulse rounded bg-stone-50" />
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="h-12 animate-pulse rounded border border-border-primary bg-surface-tertiary" />
+              <div className="h-12 animate-pulse rounded border border-border-primary bg-surface-tertiary" />
+            </div>
           </div>
         </main>
       </div>
@@ -274,7 +278,10 @@ export default function ComparePage() {
       <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
         {/* ── Header ───────────────────────────────────────── */}
         <section className="pt-10">
-          <h1 className="font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <Link href="/" className="text-[13px] text-text-tertiary transition-colors hover:text-text-primary">
+            ← Back to Overview
+          </Link>
+          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
             Comparative Structural Analysis
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
@@ -496,7 +503,7 @@ export default function ComparePage() {
             {/* ──────────────────────────────────────────────── */}
             {/* SECTION 2: Contribution Structure                 */}
             {/* ──────────────────────────────────────────────── */}
-            <section className="mt-12">
+            <section className="mt-12 content-auto">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
                 Axis Contribution Structure
               </h2>
@@ -557,7 +564,7 @@ export default function ComparePage() {
             {/* ──────────────────────────────────────────────── */}
             {/* SECTION 3: EU Positional Context                  */}
             {/* ──────────────────────────────────────────────── */}
-            <section className="mt-12">
+            <section className="mt-12 content-auto">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
                 EU-27 Positional Context
               </h2>

@@ -8,13 +8,13 @@ interface AxisCardProps {
 
 export function AxisCard({ axis }: AxisCardProps) {
   return (
-    <div className="rounded-md border border-border-primary bg-white p-5">
+    <div className="group rounded-md border border-border-primary bg-white p-5 transition-[border-color,box-shadow] duration-150 hover:border-stone-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
             Axis {axis.id}
           </p>
-          <h3 className="mt-1 font-serif text-[17px] font-semibold text-text-primary">
+          <h3 className="mt-1 font-serif text-[17px] font-semibold text-text-primary transition-colors group-hover:text-navy-700">
             {formatAxisFull(axis.slug)}
           </h3>
         </div>

@@ -258,7 +258,7 @@ export default async function EU27Page() {
         </section>
 
         {/* ── Axis-Level Bloc Aggregates ── */}
-        <section className="mt-14">
+        <section className="mt-14 content-auto">
           <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
             Axis-Level Aggregates
           </h2>
@@ -324,7 +324,7 @@ export default async function EU27Page() {
         </section>
 
         {/* ── Member State Rankings ── */}
-        <section className="mt-14">
+        <section className="mt-14 content-auto">
           <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
             Member State Rankings
           </h2>

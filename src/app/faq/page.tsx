@@ -74,19 +74,30 @@ export default function FAQPage() {
           </p>
         </div>
 
-        <div className="mt-12 max-w-3xl space-y-3">
+        <div className="mt-12 max-w-3xl space-y-2">
           {FAQ_ITEMS.map((item, i) => (
-            <section
+            <details
               key={i}
-              className="rounded-md border border-border-primary bg-surface-tertiary p-5"
+              className="group rounded-md border border-border-primary bg-white transition-[border-color] open:border-stone-300 open:bg-surface-tertiary"
             >
-              <h2 className="text-[14px] font-semibold text-text-secondary">
-                {item.q}
-              </h2>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-text-tertiary">
-                {item.a}
-              </p>
-            </section>
+              <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-[14px] font-semibold text-text-secondary transition-colors hover:text-text-primary [&::-webkit-details-marker]:hidden">
+                <span>{item.q}</span>
+                <svg
+                  className="h-4 w-4 shrink-0 text-text-quaternary transition-transform duration-200 group-open:rotate-45"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </summary>
+              <div className="px-5 pb-4">
+                <p className="text-[14px] leading-relaxed text-text-tertiary">
+                  {item.a}
+                </p>
+              </div>
+            </details>
           ))}
         </div>
         <div className="mb-16" />

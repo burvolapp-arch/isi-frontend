@@ -104,7 +104,7 @@ export default function SovereigntyMatrix({
                 {/* Fill */}
                 {row.mean !== null && (
                   <div
-                    className="absolute inset-y-0 left-0 rounded-[3px] bg-slate-300"
+                    className="absolute inset-y-0 left-0 rounded-[3px] bg-gradient-to-r from-slate-400 to-slate-300 transition-[width] duration-700 ease-out"
                     style={{ width: `${pct}%` }}
                   />
                 )}

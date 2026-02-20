@@ -47,11 +47,27 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  reactStrictMode: true,
+  experimental: {
+    optimizeCss: true,
+  },
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: securityHeaders,
+      },
+      {
+        source: "/api/export/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=600" },
+        ],
+      },
+      {
+        source: "/:path*.json",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=600" },
+        ],
       },
     ];
   },

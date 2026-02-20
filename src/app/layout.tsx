@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import { ClarityAnalytics } from "@/lib/clarity";
+import { HeaderNav } from "@/components/HeaderNav";
 import "./globals.css";
 
 const inter = Inter({
@@ -127,7 +128,7 @@ export default function RootLayout({
 
         <div className="flex min-h-screen flex-col">
           {/* ── Header ─────────────────────────────────────── */}
-          <header className="sticky top-0 z-50 bg-navy-900">
+          <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-navy-900/95 backdrop-blur-md">
             <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-16">
               <Link href="/" className="flex shrink-0 items-baseline gap-2 sm:gap-3">
                 <span className="font-serif text-lg font-bold tracking-tight text-white sm:text-xl">
@@ -137,17 +138,7 @@ export default function RootLayout({
                   International Sovereignty Index
                 </span>
               </Link>
-              <nav className="-mr-2 flex items-center overflow-x-auto sm:mr-0">
-                {HEADER_NAV.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="shrink-0 px-2.5 py-2 text-[13px] text-stone-400 transition-colors hover:text-white sm:px-3 sm:py-1.5"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
+              <HeaderNav items={HEADER_NAV} />
             </div>
           </header>
 
@@ -155,7 +146,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
 
           {/* ── Footer ─────────────────────────────────────── */}
-          <footer className="border-t border-border-primary bg-surface-primary">
+          <footer className="border-t border-border-primary bg-stone-50">
             <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12 lg:px-16">
 
               {/* Block A (top): Citation + Downloads */}
@@ -163,7 +154,7 @@ export default function RootLayout({
                 <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Cite the ISI
                 </h3>
-                <p className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-3 py-3 font-mono text-[11px] leading-relaxed text-text-tertiary sm:px-4 sm:text-[12px]">
+                <p className="mt-3 rounded border border-border-primary bg-white px-4 py-3.5 font-mono text-[11px] leading-relaxed text-text-tertiary sm:text-[12px]">
                   International Sovereignty Index (2026).{" "}
                   <em>
                     External Supplier Concentration in EU-27 Member States.
@@ -180,22 +171,24 @@ export default function RootLayout({
                   <a
                     href="/api/export/csv"
                     download
-                    className="min-h-[44px] flex items-center text-text-tertiary underline hover:text-text-primary"
+                    className="min-h-[44px] flex items-center gap-1.5 text-text-tertiary transition-colors hover:text-text-primary sm:min-h-0"
                   >
-                    Download CSV
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                    CSV
                   </a>
                   <a
                     href="/api/export/json"
                     download
-                    className="min-h-[44px] flex items-center text-text-tertiary underline hover:text-text-primary"
+                    className="min-h-[44px] flex items-center gap-1.5 text-text-tertiary transition-colors hover:text-text-primary sm:min-h-0"
                   >
-                    Download JSON
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                    JSON
                   </a>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="mt-6 border-t border-border-subtle sm:mt-8" />
+              <div className="mt-6 border-t border-border-primary sm:mt-8" />
 
               {/* Block B (bottom): Identity + Nav + Disclaimer */}
               <div className="mt-6 sm:mt-8">
@@ -206,22 +199,22 @@ export default function RootLayout({
                     </p>
                     <p className="mt-1 text-[13px] text-text-quaternary">
                       Measuring external supplier concentration across EU-27
-                      member states &middot; HHI framework
+                      member states · HHI framework
                     </p>
                   </div>
-                  <div className="flex flex-col gap-3 text-[13px] text-text-tertiary sm:flex-row sm:gap-6">
+                  <nav className="flex flex-col gap-3 text-[13px] text-text-tertiary sm:flex-row sm:gap-5">
                     {FOOTER_NAV.map(({ href, label }) => (
                       <Link
                         key={href}
                         href={href}
-                        className="min-h-[44px] flex items-center hover:text-text-primary sm:min-h-0"
+                        className="min-h-[44px] flex items-center transition-colors hover:text-text-primary sm:min-h-0"
                       >
                         {label}
                       </Link>
                     ))}
-                  </div>
+                  </nav>
                 </div>
-                <p className="mt-6 text-[12px] leading-relaxed text-text-quaternary">
+                <p className="mt-6 text-[11px] leading-relaxed text-text-quaternary">
                   All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation.
                 </p>
               </div>
