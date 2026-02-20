@@ -218,8 +218,8 @@ export function CountryView({
 
           {/* Radar + Deviation */}
           <section className="mt-6 grid gap-4 sm:gap-5 lg:grid-cols-[3fr_2fr]">
-            <div className="relative flex flex-col overflow-hidden rounded-lg bg-[#070e1a] px-4 py-4 sm:px-5 sm:py-5 ring-1 ring-white/[0.06]">
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+            <div className="relative flex flex-col rounded-md border border-border-primary px-4 py-4 sm:px-5 sm:py-5">
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                 Multi-Axis Profile
               </h2>
               <div className="mt-2 w-full">

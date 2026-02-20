@@ -862,11 +862,11 @@ export function ScenarioLaboratory({
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         {/* Radar Chart */}
         <div className="relative flex flex-col overflow-hidden rounded-lg bg-[#070e1a] px-4 py-4 sm:px-5 sm:py-5 ring-1 ring-white/[0.06]">
-          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
             {showSimulated ? "Baseline vs. Simulated" : "Baseline Profile"}
           </p>
           {activePresetLabel && showSimulated && (
-            <p className="mt-0.5 text-[10px] text-slate-600">{activePresetLabel}</p>
+            <p className="mt-0.5 text-[10px] text-text-quaternary">{activePresetLabel}</p>
           )}
           <div className="mt-2 w-full">
             {showSimulated && simulatedRadarAxes ? (

@@ -38,9 +38,7 @@ const GRID_STROKE = 0.6;
 const GRID_OPACITY = 0.22;
 const OUTER_RING_OPACITY = 0.55;
 
-// ─── Palette (dark-field institutional) ─────────────────────────────
-const BG_DARK = "#070e1a";        // near-black navy substrate
-const BG_VIGNETTE = "#0b1a30";    // outer vignette tone
+// ─── Palette (institutional) ─────────────────────────────
 const GRID_COLOR = "#2a4a72";     // muted blue-grey grid
 const GRID_OUTER = "#3a6a9a";     // brighter outer ring
 const SPOKE_COLOR = "#1e3a5c";    // subtle spokes
@@ -162,30 +160,30 @@ function RadarTooltip({
       ref={ref}
       role="tooltip"
       style={style}
-      className="pointer-events-none rounded-lg border border-navy-800/60 bg-[#0c1829] px-4 py-3 shadow-xl shadow-black/40 backdrop-blur-sm"
+      className="pointer-events-none rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-lg backdrop-blur-sm"
     >
-      <p className="mb-2 text-sm font-semibold text-slate-100">
+      <p className="mb-2 text-sm font-semibold text-stone-800">
         {data.label}
       </p>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-        <span className="text-slate-400">Score</span>
-        <span className="font-mono text-slate-200">
+        <span className="text-stone-500">Score</span>
+        <span className="font-mono text-stone-800">
           {fmtScore(data.score)}
         </span>
-        <span className="text-slate-400">EU-27 Mean</span>
-        <span className="font-mono text-slate-200">
+        <span className="text-stone-500">EU-27 Mean</span>
+        <span className="font-mono text-stone-800">
           {fmtScore(data.euMean)}
         </span>
-        <span className="text-slate-400">Deviation</span>
-        <span className="font-mono text-slate-200">
+        <span className="text-stone-500">Deviation</span>
+        <span className="font-mono text-stone-800">
           {data.deviation != null
             ? formatDelta(data.deviation)
             : "—"}
         </span>
         {data.rank != null && data.totalRanked != null && (
           <>
-            <span className="text-slate-400">Rank</span>
-            <span className="font-mono text-slate-200">
+            <span className="text-stone-500">Rank</span>
+            <span className="font-mono text-stone-800">
               {data.rank} / {data.totalRanked}
             </span>
           </>
@@ -385,9 +383,9 @@ export const RadarChart = memo(function RadarChart({
       <defs>
         {/* Dark radial background gradient */}
         <radialGradient id={`bg-${uid}`} cx="50%" cy="50%" r="55%">
-          <stop offset="0%" stopColor={BG_VIGNETTE} />
-          <stop offset="75%" stopColor={BG_DARK} />
-          <stop offset="100%" stopColor={BG_DARK} />
+          <stop offset="0%" stopColor={GRID_OUTER} />
+          <stop offset="75%" stopColor={GRID_COLOR} />
+          <stop offset="100%" stopColor={GRID_COLOR} />
         </radialGradient>
 
         {/* Primary polygon fill gradient — subtle depth */}
@@ -447,16 +445,7 @@ export const RadarChart = memo(function RadarChart({
         </filter>
       </defs>
 
-      {/* ── Dark background field ── */}
-      <rect
-        x={vbCenterX - radius * 1.42}
-        y={vbCenterY - radius * 1.42}
-        width={radius * 2.84}
-        height={radius * 2.84}
-        rx={12}
-        ry={12}
-        fill={`url(#bg-${uid})`}
-      />
+      {/* No dark background field. Institutional white substrate. */}
 
       {/* ── HUD corner tick marks ── */}
       {(() => {
@@ -515,7 +504,7 @@ export const RadarChart = memo(function RadarChart({
             y1={vbCenterY}
             x2={p.x}
             y2={p.y}
-            stroke={SPOKE_COLOR}
+            stroke="var(--color-stone-300)"
             strokeWidth={GRID_STROKE}
             strokeOpacity={GRID_OPACITY}
             vectorEffect="non-scaling-stroke"
@@ -551,7 +540,7 @@ export const RadarChart = memo(function RadarChart({
       ))}
 
       {/* ── EU Mean polygon (reference) ── */}
-      {euMeanPath && (
+      {typeof euMeanPath === "string" && (
         <path
           d={euMeanPath}
           fill={EU_MEAN_FILL}
@@ -630,127 +619,95 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
-      {/* ── Comparison data points ── */}
-      {compareAxes && compareAxes.map((axis, i) => {
-        if (axis?.value == null) return null;
-        const p = polarToXY(axis.value, i);
-        return (
-          <circle
-            key={`cmp-${i}`}
-            cx={p.x}
-            cy={p.y}
-            r={2.5}
-            fill={COMPARE_STROKE}
-            fillOpacity={0.8}
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth={0.6}
-            vectorEffect="non-scaling-stroke"
-          />
-        );
-      })}
-
-      {/* ── Axis labels — light on dark ── */}
+      {/* ── Axis labels — compact multi-line ── */}
       {resolvedAxes.map((axis, i) => {
-        const labelPoint = polarToXY(LABEL_OFFSET, i);
-        const lines = wrapLabel(axis.label);
-        const lineCount = lines.length;
-        const startDy = -((lineCount - 1) * LABEL_LINE_HEIGHT) / 2;
-
-        const angle = angleStep * i - Math.PI / 2;
-        const cos = Math.cos(angle);
-        let textAnchor: "start" | "middle" | "end" = "middle";
-        if (cos > 0.1) {
-          textAnchor = "start";
-        } else if (cos < -0.1) {
-          textAnchor = "end";
-        }
-
-        const dimmed = hoveredAxis !== null && hoveredAxis !== i;
-        const active = hoveredAxis === i;
-
+        const p = polarToXY(1.1, i);
+        const isHovered = hoveredAxis === i;
+        const labelLines = wrapLabel(axis.fullLabel);
+        const lineHeight = LABEL_LINE_HEIGHT * 0.75;
         return (
-          <text
+          <g
             key={i}
-            x={labelPoint.x}
-            y={labelPoint.y}
-            textAnchor={textAnchor}
-            dominantBaseline="middle"
-            fill={active ? LABEL_ACTIVE : LABEL_COLOR}
-            fontSize={LABEL_FONT_SIZE}
-            fontFamily="var(--font-sans)"
-            fontWeight={active ? "600" : "500"}
-            opacity={dimmed ? 0.35 : 1}
-            style={{ transition: "opacity 0.15s ease, fill 0.15s ease" }}
+            transform={`translate(${p.x},${p.y})`}
+            opacity={isHovered ? 1 : 0.7}
+            style={{ pointerEvents: "none" }}
           >
-            {lines.map((line, li) => (
-              <tspan
-                key={li}
-                x={labelPoint.x}
-                dy={li === 0 ? startDy : LABEL_LINE_HEIGHT}
+            {labelLines.map((line, j) => (
+              <text
+                key={j}
+                x={0}
+                y={j * lineHeight}
+                dy={LABEL_OFFSET}
+                textAnchor="middle"
+                fill={LABEL_COLOR}
+                fontSize={LABEL_FONT_SIZE}
+                fontFamily="var(--font-sans)"
+                className="origin-center"
               >
                 {line}
-              </tspan>
+              </text>
             ))}
-          </text>
+          </g>
         );
       })}
 
-      {/* ── Interactive wedge overlay — transparent pie-slice hit areas ── */}
-      {resolvedAxes.map((axis, i) => (
-        <path
-          key={`wedge-${i}`}
-          d={buildWedge(i, n, vbCenterX, vbCenterY, wedgeReach)}
-          fill="transparent"
-          cursor={countryCode ? "pointer" : "default"}
-          role="button"
-          tabIndex={0}
-          aria-label={`${axis.label}: ${fmtScore(axis.value)}`}
-          onMouseEnter={() => handleAxisHover(i)}
-          onMouseMove={handleAxisMove}
-          onMouseLeave={handleAxisLeave}
-          onClick={() => handleAxisClick(i)}
-          onKeyDown={(e) => handleAxisKeyDown(e, i)}
-        />
-      ))}
-
-      {/* ── Legend — below chart ── */}
+      {/* ── Legend (below chart) ── */}
       {hasLegend && (
-        <g>
-          {label && (
-            <g>
-              <line x1={MARGIN} y1={legendY + 4} x2={MARGIN + 16} y2={legendY + 4} stroke={PRIMARY_STROKE} strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 22} y={legendY + 7} fill={LABEL_COLOR} fontSize="8.5" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
-            </g>
-          )}
+        <g transform={`translate(0,${legendY})`} fontSize="10" fontFamily="var(--font-sans)">
+          {/* EU Mean reference line */}
           {euMean && (
             <g>
-              <line x1={MARGIN} y1={legendY + 18} x2={MARGIN + 16} y2={legendY + 18} stroke={EU_MEAN_STROKE} strokeWidth={1} strokeDasharray="4 4" strokeOpacity={0.6} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 22} y={legendY + 21} fill={SCALE_COLOR} fontSize="8.5" fontFamily="var(--font-sans)">EU-27 Mean</text>
+              <line
+                x1={MARGIN}
+                y1={0}
+                x2={VB_SIZE - MARGIN}
+                y2={0}
+                stroke={EU_MEAN_STROKE}
+                strokeWidth={1}
+                strokeDasharray="4 4"
+                strokeOpacity={0.7}
+                vectorEffect="non-scaling-stroke"
+              />
+              <text
+                x={VB_SIZE}
+                y={0}
+                dx={6}
+                textAnchor="start"
+                dominantBaseline="middle"
+                fill={LABEL_COLOR}
+                opacity={0.8}
+              >
+                EU-27 Mean
+              </text>
             </g>
           )}
-          {compareLabel && (
-            <g>
-              <line x1={MARGIN + 120} y1={legendY + 4} x2={MARGIN + 136} y2={legendY + 4} stroke={COMPARE_STROKE} strokeWidth={1.2} strokeDasharray="5 3" strokeOpacity={0.7} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 142} y={legendY + 7} fill={LABEL_COLOR} fontSize="8.5" fontFamily="var(--font-sans)">{compareLabel}</text>
+
+          {/* Comparison overlay (if present) */}
+          {comparePath && (
+            <g transform={`translate(0,${LEGEND_HEIGHT / 2})`}>
+              <text
+                x={VB_SIZE}
+                y={0}
+                dx={6}
+                textAnchor="start"
+                dominantBaseline="middle"
+                fill={LABEL_COLOR}
+                opacity={0.8}
+              >
+                {compareLabel}
+              </text>
             </g>
           )}
         </g>
       )}
     </svg>
-  );
-
-  return (
-    <>
-      {svg}
-      {tooltipData && (
-        <RadarTooltip
-          data={tooltipData}
-          mouseX={mousePos.x}
-          mouseY={mousePos.y}
-        />
-      )}
-    </>
+    {/* ─── Tooltip — follows mouse position ─── */}
+    {tooltipData && (
+      <RadarTooltip
+        data={tooltipData}
+        mouseX={mousePos.x}
+        mouseY={mousePos.y}
+      />
+    )}
   );
 });
-
-RadarChart.displayName = "RadarChart";
