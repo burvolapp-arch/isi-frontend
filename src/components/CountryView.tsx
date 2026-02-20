@@ -51,10 +51,13 @@ export function CountryView({
 }: CountryViewProps) {
   const [mode, setMode] = useState<ViewMode>("baseline");
 
-  // Auto-activate scenario mode if URL has #scenario hash
+  // Auto-activate simulation mode if URL has #simulation hash (also support legacy #scenario)
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash === "#scenario") {
-      setMode("scenario");
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      if (hash === "#simulation" || hash === "#scenario") {
+        setMode("scenario");
+      }
     }
   }, []);
 
@@ -305,7 +308,7 @@ export function CountryView({
       )}
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* SCENARIO VIEW                                                  */}
+      {/* SIMULATION VIEW                                                */}
       {/* ═══════════════════════════════════════════════════════════════ */}
       {mode === "scenario" && (
         <Suspense fallback={

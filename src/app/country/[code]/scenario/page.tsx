@@ -5,10 +5,10 @@ interface PageProps {
 }
 
 /**
- * Legacy route — scenario is now integrated into the country page.
- * Redirect to the country page which includes the Scenario Laboratory tab.
+ * Legacy route — simulation is now integrated into the country page.
+ * Redirect to the country page which includes the Simulation Laboratory tab.
  */
 export default async function ScenarioRedirect({ params }: PageProps) {
   const { code } = await params;
-  redirect(`/country/${code.toLowerCase()}`);
+  redirect(`/country/${code.toLowerCase()}#simulation`);
 }

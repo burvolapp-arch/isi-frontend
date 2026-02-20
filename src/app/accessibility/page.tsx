@@ -103,7 +103,7 @@ export default function AccessibilityPage() {
               </li>
               <li>
                 <strong className="text-text-secondary">Dynamic content.</strong>{" "}
-                The Scenario Laboratory and Compare pages use client-side
+                The Simulation Laboratory and Compare pages use client-side
                 rendering which may not announce state changes to all assistive
                 technologies. We are working to improve ARIA live region coverage.
               </li>

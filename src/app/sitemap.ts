@@ -37,7 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${BASE}/scenario`,
+      url: `${BASE}/simulation`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,

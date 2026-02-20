@@ -37,7 +37,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data:",
-      "connect-src 'self' https://isi-backend-production.up.railway.app https://www.clarity.ms https://scripts.clarity.ms https://d.clarity.ms",
+      "connect-src 'self' https://isi-backend-production.up.railway.app https://www.clarity.ms https://scripts.clarity.ms https://d.clarity.ms https://z.clarity.ms",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

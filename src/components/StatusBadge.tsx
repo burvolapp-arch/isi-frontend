@@ -25,7 +25,7 @@ const LABELS: Record<ScoreClassification, string> = {
 export function StatusBadge({ classification }: StatusBadgeProps) {
   if (!classification) {
     return (
-      <span className="inline-flex items-center rounded-sm bg-surface-tertiary px-2.5 py-1 text-[11px] font-medium text-text-quaternary">
+      <span className="inline-flex items-center rounded-sm bg-surface-tertiary px-3 py-1.5 text-[14px] font-semibold text-text-quaternary">
         N/A
       </span>
     );
@@ -33,7 +33,7 @@ export function StatusBadge({ classification }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-sm px-2.5 py-1 text-[11px] font-medium ${BADGE_STYLES[classification]}`}
+      className={`inline-flex items-center rounded-sm px-3 py-1.5 text-[14px] font-semibold ${BADGE_STYLES[classification]}`}
     >
       {LABELS[classification]}
     </span>

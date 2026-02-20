@@ -489,7 +489,7 @@ export function ScenarioLaboratory({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `isi-scenario-${country.country.toLowerCase()}-${Date.now()}.json`;
+    a.download = `isi-simulation-${country.country.toLowerCase()}-${Date.now()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -649,7 +649,7 @@ export function ScenarioLaboratory({
         </h3>
         {activePresetLabel && (
           <p className="mt-1 text-[12px] text-text-tertiary">
-            Active Scenario:{" "}
+            Active Simulation:{" "}
             <span className="font-medium text-text-secondary">{activePresetLabel}</span>
             {(() => {
               const preset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
@@ -934,7 +934,7 @@ export function ScenarioLaboratory({
                   <th className="pb-1.5 pr-3">Composite</th>
                   <th className="pb-1.5 pr-3">Rank</th>
                   <th className="pb-1.5 pr-3">Classification</th>
-                  <th className="pb-1.5 pr-3">Scenario</th>
+                  <th className="pb-1.5 pr-3">Simulation</th>
                   <th className="pb-1.5" />
                 </tr>
               </thead>
@@ -972,7 +972,7 @@ export function ScenarioLaboratory({
 
       {/* ═══ Institutional Note ═══ */}
       <p className="text-[11px] leading-relaxed text-text-quaternary">
-        Scenario results are computed server-side and reflect proportional adjustments
+        Simulation results are computed server-side and reflect proportional adjustments
         to HHI concentration indices.
       </p>
     </div>
