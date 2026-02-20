@@ -600,114 +600,114 @@ export const RadarChart = memo(function RadarChart({
 
       {/* ── Data points — glowing dots ── */}
       {resolvedAxes.map((axis, i) => {
-        if (axis.value === null) return null;
-        const p = polarToXY(axis.value, i);
-        const isHovered = hoveredAxis === i;
+        if (axis.value == null || !Number.isFinite(axis.value)) return null;
+        const { x, y } = polarToXY(axis.value, i);
         return (
           <circle
             key={i}
-            cx={p.x}
-            cy={p.y}
-            r={isHovered ? DATA_POINT_RADIUS + 1.5 : DATA_POINT_RADIUS}
-            fill={isHovered ? "#93c5fd" : PRIMARY_STROKE}
-            stroke={isHovered ? "#ffffff" : "rgba(255,255,255,0.3)"}
-            strokeWidth={isHovered ? 1.5 : 0.8}
+            cx={x}
+            cy={y}
+            r={DATA_POINT_RADIUS}
+            fill={PRIMARY_FILL}
+            fillOpacity={0.9}
+            stroke={PRIMARY_STROKE}
+            strokeWidth={1.2}
             vectorEffect="non-scaling-stroke"
-            filter={isHovered ? `url(#ga-${uid})` : `url(#gd-${uid})`}
-            style={{ transition: "r 0.15s ease, fill 0.15s ease" }}
+            filter={`url(#gd-${uid})`}
           />
         );
       })}
 
-      {/* ── Axis labels — compact multi-line ── */}
-      {resolvedAxes.map((axis, i) => {
-        const p = polarToXY(1.1, i);
-        const isHovered = hoveredAxis === i;
-        const labelLines = wrapLabel(axis.fullLabel);
-        const lineHeight = LABEL_LINE_HEIGHT * 0.75;
-        return (
-          <g
-            key={i}
-            transform={`translate(${p.x},${p.y})`}
-            opacity={isHovered ? 1 : 0.7}
-            style={{ pointerEvents: "none" }}
-          >
-            {labelLines.map((line, j) => (
-              <text
-                key={j}
-                x={0}
-                y={j * lineHeight}
-                dy={LABEL_OFFSET}
-                textAnchor="middle"
-                fill={LABEL_COLOR}
-                fontSize={LABEL_FONT_SIZE}
-                fontFamily="var(--font-sans)"
-                className="origin-center"
-              >
-                {line}
-              </text>
-            ))}
-          </g>
-        );
-      })}
+      {/* ── Hovered data point — intensified glow ── */}
+      {hoveredAxis !== null && resolvedAxes[hoveredAxis]?.value != null && (
+        <circle
+          cx={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).x}
+          cy={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).y}
+          r={DATA_POINT_RADIUS * 1.2}
+          fill={PRIMARY_FILL}
+          fillOpacity={1}
+          stroke={PRIMARY_STROKE}
+          strokeWidth={1.6}
+          vectorEffect="non-scaling-stroke"
+          filter={`url(#ga-${uid})`}
+        />
+      )}
 
-      {/* ── Legend (below chart) ── */}
+      {/* ── Legend — country & comparison labels ── */}
       {hasLegend && (
-        <g transform={`translate(0,${legendY})`} fontSize="10" fontFamily="var(--font-sans)">
-          {/* EU Mean reference line */}
-          {euMean && (
-            <g>
-              <line
-                x1={MARGIN}
-                y1={0}
-                x2={VB_SIZE - MARGIN}
-                y2={0}
-                stroke={EU_MEAN_STROKE}
-                strokeWidth={1}
-                strokeDasharray="4 4"
-                strokeOpacity={0.7}
-                vectorEffect="non-scaling-stroke"
-              />
-              <text
-                x={VB_SIZE}
-                y={0}
-                dx={6}
-                textAnchor="start"
-                dominantBaseline="middle"
-                fill={LABEL_COLOR}
-                opacity={0.8}
-              >
-                EU-27 Mean
-              </text>
-            </g>
+        <g
+          transform={`translate(0 ${legendY})`}
+          fontFamily="var(--font-sans)"
+          fontSize={LABEL_FONT_SIZE}
+          textAnchor="middle"
+        >
+          {/* Primary country label */}
+          {label && (
+            <text
+              x={VB_SIZE / 2}
+              y={LABEL_OFFSET}
+              fill={LABEL_COLOR}
+              opacity={0.9}
+              style={{ mixBlendMode: "multiply" }}
+            >
+              {label}
+            </text>
           )}
 
-          {/* Comparison overlay (if present) */}
-          {comparePath && (
-            <g transform={`translate(0,${LEGEND_HEIGHT / 2})`}>
-              <text
-                x={VB_SIZE}
-                y={0}
-                dx={6}
-                textAnchor="start"
-                dominantBaseline="middle"
-                fill={LABEL_COLOR}
-                opacity={0.8}
-              >
-                {compareLabel}
-              </text>
-            </g>
+          {/* EU mean label */}
+          {euMean && (
+            <text
+              x={VB_SIZE / 2}
+              y={LABEL_OFFSET + 16}
+              fill={LABEL_COLOR}
+              opacity={0.7}
+              style={{ mixBlendMode: "multiply" }}
+            >
+              EU-27 Mean
+            </text>
+          )}
+
+          {/* Comparison label */}
+          {compareLabel && (
+            <text
+              x={VB_SIZE / 2}
+              y={LABEL_OFFSET + 32}
+              fill={LABEL_COLOR}
+              opacity={0.7}
+              style={{ mixBlendMode: "multiply" }}
+            >
+              {compareLabel}
+            </text>
           )}
         </g>
       )}
+
+      {/* ── Debug: axis value labels (temporary) ── */}
+      {false && (
+        <g
+          transform={`translate(0 ${legendY})`}
+          fontFamily="var(--font-mono)"
+          fontSize={10}
+          textAnchor="middle"
+          fill="var(--color-stone-600)"
+        >
+          {resolvedAxes.map((axis, i) => {
+            const { x, y } = polarToXY(axis.value ?? 0, i);
+            return (
+              <text
+                key={i}
+                x={x}
+                y={y}
+                dy="-0.3em"
+                opacity={0.8}
+                style={{ pointerEvents: "none" }}
+              >
+                {axis.value != null ? axis.value.toFixed(2) : "—"}
+              </text>
+            );
+          })}
+        </g>
+      )}
     </svg>
-    {/* ─── Tooltip — follows mouse position ─── */}
-    {tooltipData && (
-      <RadarTooltip
-        data={tooltipData}
-        mouseX={mousePos.x}
-        mouseY={mousePos.y}
-      />
-    )}
   );
 });
