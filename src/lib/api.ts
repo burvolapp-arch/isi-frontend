@@ -14,9 +14,11 @@
 import type {
   ISIComposite,
   CountryDetail,
+  CountryHistory,
   AxisRegistryEntry,
   AxisDetail,
   ScenarioResponse,
+  MethodologyVersionsResponse,
 } from "./types";
 import { validateScenarioInput } from "./scenarioValidation";
 
@@ -81,6 +83,16 @@ export function fetchAxes(): Promise<AxisRegistryEntry[]> {
 /** GET /axis/{axis_id} — Full axis detail across all countries */
 export function fetchAxis(axisId: number): Promise<AxisDetail> {
   return fetchJson<AxisDetail>(`/axis/${axisId}`);
+}
+
+/** GET /country/{code}/history — Year-over-year history for a country */
+export function fetchHistory(code: string): Promise<CountryHistory> {
+  return fetchJson<CountryHistory>(`/country/${encodeURIComponent(code)}/history`);
+}
+
+/** GET /methodology/versions — Methodology version registry */
+export function fetchMethodologyVersions(): Promise<MethodologyVersionsResponse> {
+  return fetchJson<MethodologyVersionsResponse>("/methodology/versions");
 }
 
 // ─── Transport error classification ─────────────────────────────────

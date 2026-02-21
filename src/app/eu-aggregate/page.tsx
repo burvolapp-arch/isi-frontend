@@ -12,7 +12,7 @@ import {
   classifyScore,
   countryHref,
 } from "@/lib/format";
-import { formatScore, formatAxisShort } from "@/lib/presentation";
+import { formatScore, formatAxisShort, formatDelta } from "@/lib/presentation";
 import { AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
 import type { ISICompositeCountry } from "@/lib/types";
 
@@ -24,18 +24,21 @@ export const metadata: Metadata = {
     "Bloc-level summary of external supplier concentration across all EU-27 member states.",
 };
 
-// ─── Client-side EU aggregate computation ───────────────────────────
+// ─── EU aggregate derivation ────────────────────────────────────────
+// Uses backend isi.statistics for mean/min/max. Backend array order
+// is canonical (descending by isi_composite). No defensive re-sort.
+// Only median and stdDev are derived client-side (not provided by backend).
 
-function computeEUAggregate(countries: ISICompositeCountry[]) {
+function computeEUAggregate(
+  countries: ISICompositeCountry[],
+  statistics: { min: number | null; max: number | null; mean: number | null },
+) {
   const scored = countries.filter((c) => c.isi_composite !== null);
-  if (scored.length === 0) return null;
+  if (scored.length === 0 || statistics.mean === null) return null;
 
   const composites = scored.map((c) => c.isi_composite as number);
-  const mean = composites.reduce((a, b) => a + b, 0) / composites.length;
   const median = computeMedian(composites);
   const stdDev = computeStdDev(composites);
-  const min = Math.min(...composites);
-  const max = Math.max(...composites);
 
   // Per-axis aggregates
   const axisMeans: Record<string, { sum: number; count: number; scores: number[] }> = {};
@@ -60,7 +63,7 @@ function computeEUAggregate(countries: ISICompositeCountry[]) {
     stdDev: data.scores.length > 0 ? computeStdDev(data.scores) : null,
   }));
 
-  // Distribution buckets
+  // Distribution buckets — use backend classification directly
   const distribution = {
     highly: scored.filter((c) => c.classification === "highly_concentrated").length,
     moderately: scored.filter((c) => c.classification === "moderately_concentrated").length,
@@ -68,22 +71,18 @@ function computeEUAggregate(countries: ISICompositeCountry[]) {
     unconcentrated: scored.filter((c) => c.classification === "unconcentrated").length,
   };
 
-  // Sorted by composite for table
-  const ranked = [...scored].sort(
-    (a, b) => (b.isi_composite as number) - (a.isi_composite as number)
-  );
-
   return {
     memberStates: scored.length,
-    mean,
+    mean: statistics.mean,
     median,
     stdDev,
-    min,
-    max,
-    classification: classifyScore(mean),
+    min: statistics.min!,
+    max: statistics.max!,
+    classification: classifyScore(statistics.mean),
     axisAggregates,
     distribution,
-    ranked,
+    // Backend order is canonical (descending by composite) — no re-sort
+    ranked: scored,
   };
 }
 
@@ -133,7 +132,7 @@ export default async function EU27Page() {
     );
   }
 
-  const eu = computeEUAggregate(isi.countries);
+  const eu = computeEUAggregate(isi.countries, isi.statistics);
   if (!eu) {
     return (
       <div className="min-h-screen bg-white">
@@ -369,9 +368,9 @@ export default async function EU27Page() {
                         {formatScore(composite)}
                       </td>
                       <td className={`whitespace-nowrap px-4 py-2.5 text-right font-mono ${
-                        delta > 0 ? "text-deviation-positive" : "text-deviation-negative"
+                        delta > 0 ? "text-deviation-positive" : delta < 0 ? "text-deviation-negative" : "text-text-tertiary"
                       }`}>
-                        {delta >= 0 ? "+" : "−"}{formatScore(Math.abs(delta))?.replace("−", "")}
+                        {formatDelta(delta)}
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-center text-[12px]">
                         <span className={

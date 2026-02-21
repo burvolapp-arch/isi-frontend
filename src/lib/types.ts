@@ -263,3 +263,44 @@ export interface ScenarioResponse {
   delta: ScenarioDelta;
   meta?: ScenarioMeta;
 }
+
+// --- GET /country/{code}/history ---
+
+export interface CountryHistoryYear {
+  year: number;
+  composite: number;
+  rank: number;
+  classification: ScoreClassification;
+  axes: Record<string, number>;
+  data_window: string;
+  /** Backend-computed delta from prior year. Null for first year. */
+  delta_vs_previous: number | null;
+  /** Backend-computed classification change string. Null if no change or first year. */
+  classification_change: string | null;
+}
+
+export interface CountryHistory {
+  country: string;
+  country_name: string;
+  methodology_version: string;
+  years_count: number;
+  years: CountryHistoryYear[];
+}
+
+// --- GET /methodology/versions ---
+
+export interface MethodologyVersion {
+  methodology_version: string;
+  label: string;
+  frozen_at: string;
+  years_available: number[];
+  latest_year: number;
+  aggregation_rule: string;
+  axis_count: number;
+}
+
+export interface MethodologyVersionsResponse {
+  latest: string;
+  latest_year: number;
+  versions: MethodologyVersion[];
+}

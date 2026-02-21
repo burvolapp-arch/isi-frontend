@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { fetchMethodologyVersions } from "@/lib/api";
+import { formatEnum } from "@/lib/presentation";
 
 export const metadata: Metadata = {
   title: "Methodological Foundations",
@@ -55,7 +57,12 @@ function Note({ children }: { children: React.ReactNode }) {
    PAGE
    ════════════════════════════════════════════════════════════════════ */
 
-export default function MethodologyPage() {
+export const revalidate = 300;
+
+export default async function MethodologyPage() {
+  const methodologyResult = await fetchMethodologyVersions().catch(() => null);
+  const latest = methodologyResult?.versions?.[0] ?? null;
+
   return (
     <div className="min-h-screen bg-white">
       <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
@@ -629,13 +636,20 @@ export default function MethodologyPage() {
                 Framework Version
               </p>
               <p className="font-serif text-[18px] font-semibold text-text-primary">
-                ISI Methodological Framework v0.1
+                {latest ? latest.label : "ISI Methodological Framework"}
               </p>
               <div className="mt-3 space-y-1 text-[13px] text-text-tertiary">
+                {latest && (
+                  <>
+                    <p><Strong>Version:</Strong> {latest.methodology_version}</p>
+                    <p><Strong>Frozen at:</Strong> {new Date(latest.frozen_at).toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}</p>
+                    <p><Strong>Years available:</Strong> {latest.years_available.join(", ")}</p>
+                    <p><Strong>Axes:</Strong> {latest.axis_count}</p>
+                    <p><Strong>Aggregation:</Strong> {formatEnum(latest.aggregation_rule)}</p>
+                  </>
+                )}
                 <p><Strong>Scope:</Strong> EU-27 member states</p>
-                <p><Strong>Axes:</Strong> Energy · Critical Inputs · Technology · Defense · Financial · Logistics</p>
                 <p><Strong>Concentration measure:</Strong> Herfindahl-Hirschman Index (C&nbsp;=&nbsp;Σ&nbsp;s<sub>i</sub><sup>2</sup>)</p>
-                <p><Strong>Composite aggregation:</Strong> Unweighted arithmetic mean of axis scores</p>
                 <p><Strong>Normalisation:</Strong> None</p>
                 <p><Strong>Classification thresholds:</Strong> 0.15 / 0.25 / 0.50</p>
               </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchCountry, fetchISI, ApiError } from "@/lib/api";
+import { fetchCountry, fetchISI, fetchHistory, ApiError } from "@/lib/api";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CountryView } from "@/components/CountryView";
@@ -9,6 +9,7 @@ import {
   axisHref,
   isAggregatePartner,
   computeRank,
+  classificationLabel,
 } from "@/lib/format";
 import {
   formatAxisFull,
@@ -25,6 +26,7 @@ import type {
   CountryAxisDetail,
   ChannelDetail,
   Warning,
+  CountryHistory,
 } from "@/lib/types";
 
 export const revalidate = 300;
@@ -40,9 +42,10 @@ export default async function CountryPage({ params }: PageProps) {
   let country: CountryDetail | null = null;
   let error: { message: string; endpoint: string; status?: number } | null = null;
 
-  const [countryResult, isiResult] = await Promise.allSettled([
+  const [countryResult, isiResult, historyResult] = await Promise.allSettled([
     fetchCountry(upperCode),
     fetchISI(),
+    fetchHistory(upperCode),
   ]);
 
   if (countryResult.status === "fulfilled") {
@@ -57,6 +60,8 @@ export default async function CountryPage({ params }: PageProps) {
   }
 
   const isi = isiResult.status === "fulfilled" ? isiResult.value : null;
+  const history: CountryHistory | null =
+    historyResult.status === "fulfilled" ? historyResult.value : null;
 
   if (error || !country) {
     return (
@@ -124,6 +129,11 @@ export default async function CountryPage({ params }: PageProps) {
             <AxisSection key={axis.axis_id} axis={axis} />
           ))}
         </div>
+
+        {/* ── Historical Timeline (only when multiple years) ── */}
+        {history && history.years.length > 1 && (
+          <HistorySection history={history} />
+        )}
       </main>
     </div>
   );
@@ -363,5 +373,93 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── History Section Sub-Component ─────────────────────────────────
+
+function HistorySection({ history }: { history: CountryHistory }) {
+  return (
+    <section className="mt-14 mb-16">
+      <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
+        Historical Timeline
+      </h2>
+      <p className="mt-1.5 text-[14px] text-text-tertiary">
+        Year-over-year composite scores across {history.years_count} assessment
+        periods. Deltas and classification changes are computed by the backend.
+      </p>
+      <p className="mt-1 text-[12px] text-text-quaternary">
+        Methodology version: {history.methodology_version}
+      </p>
+      <div className="mt-6 overflow-x-auto">
+        <table className="min-w-full text-[14px]">
+          <thead>
+            <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+              <th className="px-4 py-3 text-left font-medium">Year</th>
+              <th className="px-4 py-3 text-right font-medium">Composite</th>
+              <th className="px-4 py-3 text-right font-medium">Rank</th>
+              <th className="px-4 py-3 text-center font-medium">Classification</th>
+              <th className="px-4 py-3 text-right font-medium">Δ vs Previous</th>
+              <th className="px-4 py-3 text-left font-medium">Change</th>
+              <th className="px-4 py-3 text-left font-medium">Window</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.years.map((yr) => (
+              <tr
+                key={yr.year}
+                className="border-b border-border-subtle transition-colors hover:bg-surface-tertiary"
+              >
+                <td className="whitespace-nowrap px-4 py-2.5 font-mono font-medium text-text-primary">
+                  {yr.year}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono font-semibold text-text-primary">
+                  {formatScore(yr.composite)}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono text-text-tertiary">
+                  {yr.rank}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2.5 text-center text-[12px]">
+                  <span
+                    className={
+                      yr.composite >= 0.5
+                        ? "text-band-highly"
+                        : yr.composite >= 0.25
+                          ? "text-band-moderately"
+                          : yr.composite >= 0.15
+                            ? "text-band-mildly"
+                            : "text-band-unconcentrated"
+                    }
+                  >
+                    {classificationLabel(yr.classification)}
+                  </span>
+                </td>
+                <td
+                  className={`whitespace-nowrap px-4 py-2.5 text-right font-mono ${
+                    yr.delta_vs_previous === null
+                      ? "text-text-quaternary"
+                      : yr.delta_vs_previous > 0
+                        ? "text-deviation-positive"
+                        : yr.delta_vs_previous < 0
+                          ? "text-deviation-negative"
+                          : "text-text-tertiary"
+                  }`}
+                >
+                  {yr.delta_vs_previous !== null
+                    ? formatDelta(yr.delta_vs_previous)
+                    : "—"}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2.5 text-[12px] text-text-tertiary">
+                  {yr.classification_change ?? "—"}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2.5 text-[12px] text-text-quaternary">
+                  {yr.data_window}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
