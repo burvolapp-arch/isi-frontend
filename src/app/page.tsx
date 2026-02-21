@@ -98,7 +98,7 @@ export default async function ExecutiveOverviewPage() {
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-stone-300 sm:text-[17px] lg:mx-0" style={{ textWrap: "balance" }}>
               The International Sovereignty Index quantifies external supplier
-              concentration across EU-27 member states using a{" "}
+              concentration — inaugural release: EU-27 member states — using a{" "}
               Herfindahl-Hirschman framework applied to{" "}
               {axes?.length ?? "all"} strategic axes of external exposure.
             </p>
@@ -200,18 +200,18 @@ export default async function ExecutiveOverviewPage() {
               <KPICard
                 label="Countries Scored"
                 value={`${isi.countries_complete} / ${isi.countries_total}`}
-                subtitle="EU-27 scope"
+                subtitle="Cohort scope (EU-27)"
                 variant="highlight"
               />
               <KPICard
                 label="Composite Mean"
                 value={formatScore(isi.statistics.mean)}
-                subtitle="EU-27 average"
+                subtitle="Cohort average"
               />
               <KPICard
                 label="Composite Median"
                 value={median !== null ? formatScore(median) : "—"}
-                subtitle="EU-27 midpoint"
+                subtitle="Cohort midpoint"
               />
               <KPICard
                 label="Std Deviation"
@@ -239,7 +239,7 @@ export default async function ExecutiveOverviewPage() {
               Composite Score Distribution
             </h2>
             <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary sm:text-[15px]">
-              Distribution of ISI composite scores across EU-27 member states.
+              Distribution of ISI composite scores across the current release cohort (EU-27).
               Vertical bands indicate HHI classification thresholds.
             </p>
             <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
@@ -333,7 +333,7 @@ export default async function ExecutiveOverviewPage() {
               Country Rankings
             </h2>
             <p className="mt-1.5 text-[14px] text-text-tertiary">
-              Sortable rankings across all assessed EU-27 member states.
+              Sortable rankings across the current release cohort (EU-27).
             </p>
             <div className="mt-6">
               <CountryRankingsTable

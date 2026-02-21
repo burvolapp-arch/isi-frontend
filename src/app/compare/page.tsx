@@ -286,8 +286,8 @@ export default function ComparePage() {
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
             Bilateral structural comparison of ISI concentration profiles.
-            Select two EU member states to analyse divergence, contribution
-            structure, and bloc-relative positioning.
+            Select two countries from the current release cohort (EU-27) to analyse divergence, contribution
+            structure, and cohort-relative positioning.
           </p>
         </section>
 
@@ -566,10 +566,10 @@ export default function ComparePage() {
             {/* ──────────────────────────────────────────────── */}
             <section className="mt-12 content-auto">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-                EU-27 Positional Context
+                Cohort Positional Context
               </h2>
               <p className="mt-1 text-[12px] text-text-quaternary">
-                Percentile rank per axis within the EU-27 distribution. Higher percentile = more concentrated relative to bloc.
+                Percentile rank per axis within the EU-27 cohort distribution. Higher percentile = more concentrated relative to cohort.
               </p>
 
               <div className="mt-4 overflow-x-auto">

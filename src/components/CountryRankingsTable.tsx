@@ -308,7 +308,7 @@ export function CountryRankingsTable({
         <span className="text-deviation-negative">Below-mean</span>{" "}
         values indicate less concentration;{" "}
         <span className="text-deviation-positive">above-mean</span> values
-        indicate more. Δ Mean shows deviation from the EU-27 composite average.
+        indicate more. Δ Mean shows deviation from the cohort composite average.
       </p>
     </div>
   );

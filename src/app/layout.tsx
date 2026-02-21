@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s — ISI",
   },
   description:
-    "Measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+    "Measuring external supplier concentration — inaugural release: EU-27 member states — using a Herfindahl-Hirschman (HHI) framework.",
   alternates: {
     canonical: "/",
   },
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "International Sovereignty Index (ISI)",
     description:
-      "Measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+      "Measuring external supplier concentration — inaugural release: EU-27 — using a Herfindahl-Hirschman (HHI) framework.",
     url: "https://isi.internationalsovereignty.org",
     siteName: "International Sovereignty Index",
     images: [
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "International Sovereignty Index (ISI)",
     description:
-      "Measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+      "Measuring external supplier concentration — inaugural release: EU-27 — using a Herfindahl-Hirschman (HHI) framework.",
     images: ["/android-chrome-512x512.png"],
   },
   robots: {
@@ -93,7 +93,7 @@ const HEADER_NAV = [
 const FOOTER_NAV = [
   { href: "/methodology", label: "Methodology" },
   { href: "/transparency", label: "Transparency" },
-  { href: "/eu-aggregate", label: "EU-27 Aggregate" },
+  { href: "/eu-aggregate", label: "EU-27 Cohort" },
   { href: "/simulation", label: "Simulation" },
   { href: "/compare", label: "Comparative" },
   { href: "/faq", label: "FAQ" },
@@ -125,7 +125,7 @@ export default function RootLayout({
               url: "https://isi.internationalsovereignty.org",
               logo: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
               description:
-                "Independent research initiative measuring external supplier concentration across EU-27 member states using a Herfindahl-Hirschman (HHI) framework.",
+                "Independent research initiative measuring external supplier concentration — inaugural release: EU-27 — using a Herfindahl-Hirschman (HHI) framework.",
             }),
           }}
         />
@@ -161,7 +161,7 @@ export default function RootLayout({
                 <p className="mt-3 rounded border border-border-primary bg-white px-4 py-3.5 font-mono text-[11px] leading-relaxed text-text-tertiary sm:text-[12px]">
                   International Sovereignty Index (2026).{" "}
                   <em>
-                    External Supplier Concentration in EU-27 Member States.
+                    External Supplier Concentration — EU-27 Founding Cohort.
                   </em>{" "}
                   internationalsovereignty.org. Retrieved{" "}
                   {new Date().toLocaleDateString("en-US", {
@@ -202,8 +202,7 @@ export default function RootLayout({
                       International Sovereignty Index
                     </p>
                     <p className="mt-1 text-[13px] text-text-quaternary">
-                      Measuring external supplier concentration across EU-27
-                      member states · HHI framework
+                      International Sovereignty Index · Founding cohort: EU-27 · HHI framework
                     </p>
                   </div>
                   <nav className="flex flex-col gap-3 text-[13px] text-text-tertiary sm:flex-row sm:gap-5">
@@ -220,6 +219,9 @@ export default function RootLayout({
                 </div>
                 <p className="mt-6 text-[11px] leading-relaxed text-text-quaternary">
                   All scores and classifications are computed server-side from documented data sources. The interface displays published outputs without transformation.
+                </p>
+                <p className="mt-2 text-[11px] leading-relaxed text-text-quaternary">
+                  The EU-27 constitutes the founding release cohort. Additional sovereign entities will be incorporated in subsequent versions.
                 </p>
               </div>
 

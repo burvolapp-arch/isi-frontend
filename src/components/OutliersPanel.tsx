@@ -1,7 +1,7 @@
 // ============================================================================
 // Structural Outliers Panel — Server Component
 // ============================================================================
-// Surfaces the four most structurally notable EU-27 countries from the
+// Surfaces the four most structurally notable countries from the
 // composite dataset. Each card links to the country's detail page.
 // ============================================================================
 
@@ -50,7 +50,7 @@ function computeOutliers(
     const top = withLogistics[0];
     cards.push({
       title: "Highest Logistics Concentration",
-      description: "Most concentrated logistics supplier structure in the EU-27",
+      description: "Most concentrated logistics supplier structure in the cohort",
       country: top.c.country,
       countryName: top.c.country_name,
       value: formatScore(top.score),
@@ -91,7 +91,7 @@ function computeOutliers(
       const sign = dev !== null && dev > 0 ? "+" : "";
       cards.push({
         title: "Largest Deviation from Mean",
-        description: "Greatest distance from the EU-27 composite average",
+        description: "Greatest distance from the cohort composite average",
         country: top.c.country,
         countryName: top.c.country_name,
         value: `${sign}${formatScore(dev)}`,
@@ -134,7 +134,7 @@ export default function OutliersPanel({ countries, mean }: OutliersPanelProps) {
         </h2>
         <p className="mt-1.5 text-[14px] text-text-tertiary">
           Countries exhibiting the most notable structural concentration
-          patterns across the EU-27.
+          patterns across the EU-27 cohort.
         </p>
       </div>
 

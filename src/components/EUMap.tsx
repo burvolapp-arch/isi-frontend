@@ -404,7 +404,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
               preserveAspectRatio="xMidYMid meet"
               className="absolute inset-0 h-full w-full"
               role="img"
-              aria-label="EU-27 ISI composite score choropleth map"
+              aria-label="ISI composite score choropleth map — EU-27 cohort"
               style={{ shapeRendering: "geometricPrecision" }}
             >
               <defs>

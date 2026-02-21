@@ -19,9 +19,9 @@ import type { ISICompositeCountry } from "@/lib/types";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "EU-27 Aggregate",
+  title: "EU-27 (Founding Cohort)",
   description:
-    "Bloc-level summary of external supplier concentration across all EU-27 member states.",
+    "Cohort-level summary of external supplier concentration across the EU-27 founding release cohort.",
 };
 
 // ─── EU aggregate derivation ────────────────────────────────────────
@@ -163,11 +163,11 @@ export default async function EU27Page() {
             ← Back to Overview
           </Link>
           <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
-            EU-27 Aggregate Profile
+            EU-27 Cohort Profile
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
-            Bloc-level summary of external supplier concentration across all
-            assessed EU-27 member states. Aggregates are computed as arithmetic
+            Cohort-level summary of external supplier concentration across the
+            EU-27 founding release cohort. Aggregates are computed as arithmetic
             means of individual country scores — no additional weighting is applied.
           </p>
         </div>
@@ -179,20 +179,20 @@ export default async function EU27Page() {
           </h2>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             <KPICard
-              label="EU-27 Mean"
+              label="Cohort Mean"
               value={formatScore(eu.mean)}
               subtitle={classificationLabel(eu.classification)}
               variant="highlight"
             />
             <KPICard
-              label="EU-27 Median"
+              label="Cohort Median"
               value={formatScore(eu.median)}
-              subtitle="Midpoint across member states"
+              subtitle="Midpoint across cohort countries"
             />
             <KPICard
               label="Std Deviation"
               value={formatScore(eu.stdDev)}
-              subtitle="Cross-EU dispersion"
+              subtitle="Cross-cohort dispersion"
             />
             <KPICard
               label="Range"
@@ -218,7 +218,7 @@ export default async function EU27Page() {
             Classification Distribution
           </h2>
           <p className="mt-1.5 text-[14px] text-text-tertiary">
-            Distribution of composite ISI scores across EU-27 member states by HHI concentration band.
+            Distribution of composite ISI scores across the EU-27 cohort by HHI concentration band.
           </p>
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {([
@@ -243,7 +243,7 @@ export default async function EU27Page() {
             Composite Score Distribution
           </h2>
           <p className="mt-1.5 text-[14px] text-text-tertiary">
-            Frequency distribution of composite ISI scores. Vertical markers indicate EU-27 mean and median.
+            Frequency distribution of composite ISI scores. Vertical markers indicate cohort mean and median.
           </p>
           <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
@@ -262,14 +262,14 @@ export default async function EU27Page() {
             Axis-Level Aggregates
           </h2>
           <p className="mt-1.5 text-[14px] text-text-tertiary">
-            Mean concentration scores across EU-27 member states for each strategic axis.
+            Mean concentration scores across the EU-27 cohort for each strategic axis.
           </p>
           <div className="mt-6 overflow-x-auto">
             <table className="min-w-full text-[14px]">
               <thead>
                 <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th className="px-4 py-3 text-left font-medium">Axis</th>
-                  <th className="px-4 py-3 text-right font-medium">EU-27 Mean</th>
+                  <th className="px-4 py-3 text-right font-medium">Cohort Mean</th>
                   <th className="px-4 py-3 text-right font-medium">Min</th>
                   <th className="px-4 py-3 text-right font-medium">Max</th>
                   <th className="px-4 py-3 text-right font-medium">Std Dev</th>
@@ -328,7 +328,7 @@ export default async function EU27Page() {
             Member State Rankings
           </h2>
           <p className="mt-1.5 text-[14px] text-text-tertiary">
-            All EU-27 member states ranked by composite ISI score, with deviation from bloc mean.
+            All EU-27 cohort countries ranked by composite ISI score, with deviation from cohort mean.
           </p>
           <div className="mt-6 overflow-x-auto">
             <table className="min-w-full text-[14px]">
@@ -397,13 +397,13 @@ export default async function EU27Page() {
           </h3>
           <div className="mt-3 space-y-2 text-[14px] text-text-tertiary">
             <p>
-              EU-27 aggregate values are computed client-side as unweighted arithmetic
-              means of individual member state scores. They are <strong className="text-text-secondary">not</strong>{" "}
+              EU-27 cohort aggregate values are computed client-side as unweighted arithmetic
+              means of individual country scores. They are <strong className="text-text-secondary">not</strong>{" "}
               independently scored composite entities.
             </p>
             <p>
-              The bloc mean does not represent an EU-level concentration score —
-              it represents the average concentration profile across member states.
+              The cohort mean does not represent an EU-level concentration score —
+              it represents the average concentration profile across cohort countries.
               Individual countries may diverge substantially from this aggregate.
             </p>
             <p className="text-[12px] text-text-quaternary">

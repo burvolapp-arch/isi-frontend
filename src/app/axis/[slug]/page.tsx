@@ -162,7 +162,7 @@ export default async function AxisPage({ params }: PageProps) {
             <KPICard
               label="Countries Scored"
               value={`${axis.countries_scored}`}
-              subtitle="out of EU-27"
+              subtitle="out of cohort (EU-27)"
               variant="highlight"
             />
             <KPICard
@@ -178,7 +178,7 @@ export default async function AxisPage({ params }: PageProps) {
             <KPICard
               label="Mean"
               value={formatScore(axis.statistics.mean)}
-              subtitle="EU-27 average"
+              subtitle="Cohort average"
             />
             <KPICard
               label="Std Deviation"
@@ -200,7 +200,7 @@ export default async function AxisPage({ params }: PageProps) {
               Score Distribution — {formatAxisFull(axis.axis_slug)}
             </h2>
             <p className="mt-1.5 text-[14px] text-text-tertiary">
-              Distribution of HHI scores across all scored EU member states for this axis.
+              Distribution of HHI scores across all scored cohort countries for this axis.
             </p>
             <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram

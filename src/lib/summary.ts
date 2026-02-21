@@ -70,7 +70,7 @@ export function generateStructuralSummary(
 
   // EU mean comparison for lowest axis
   if (euMean !== null && lowest.score < euMean) {
-    summary += " and performance below the EU-27 composite mean";
+    summary += " and performance below the cohort composite mean";
   }
   summary += ". ";
 

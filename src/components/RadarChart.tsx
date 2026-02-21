@@ -153,7 +153,7 @@ function RadarTooltip({
         <span className="font-mono text-stone-800 dark:text-stone-200">
           {fmtScore(data.score)}
         </span>
-        <span className="text-stone-500">EU-27 Mean</span>
+        <span className="text-stone-500">Cohort Mean</span>
         <span className="font-mono text-stone-800 dark:text-stone-200">
           {fmtScore(data.euMean)}
         </span>
@@ -562,7 +562,7 @@ export const RadarChart = memo(function RadarChart({
           {euMean && (
             <g>
               <line x1={MARGIN} y1={legendY + 14} x2={MARGIN + 14} y2={legendY + 14} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              <text x={MARGIN + 19} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">EU-27 Mean</text>
+              <text x={MARGIN + 19} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">Cohort Mean</text>
             </g>
           )}
           {compareLabel && (

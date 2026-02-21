@@ -56,12 +56,12 @@ export default function SovereigntyMatrix({
   }));
 
   return (
-    <div className="w-full" role="figure" aria-label="EU-27 Mean Axis Exposure matrix">
+    <div className="w-full" role="figure" aria-label="Cohort Mean Axis Exposure matrix">
       {/* Title */}
       <p
         className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500"
       >
-        EU-27 Mean Axis Exposure
+        Cohort Mean Axis Exposure
       </p>
 
       {/* Rows */}

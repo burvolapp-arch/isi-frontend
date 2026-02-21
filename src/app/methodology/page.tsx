@@ -93,7 +93,7 @@ export default async function MethodologyPage() {
             <P>
               The International Sovereignty Index (ISI) is a structural measurement framework
               designed to quantify the <Strong>concentration of external supplier relationships</Strong>{" "}
-              across strategic dependency domains for EU-27 member states.
+              across strategic dependency domains. The inaugural release covers the EU-27 as the founding cohort.
             </P>
             <P>
               The ISI functions as a descriptive statistical instrument. It does not advocate
@@ -145,7 +145,7 @@ export default async function MethodologyPage() {
             <ul className="list-inside list-disc space-y-1.5 text-[14px] text-text-tertiary">
               <li>Concentration of external supplier shares within defined dependency channels</li>
               <li>Channel-level and axis-level aggregation of Herfindahl-type concentration indices</li>
-              <li>Cross-country comparison of structural concentration profiles within the EU-27</li>
+              <li>Cross-country comparison of structural concentration profiles within the current release cohort (EU-27)</li>
               <li>Composite concentration across six strategic axes</li>
             </ul>
 
@@ -648,7 +648,7 @@ export default async function MethodologyPage() {
                     <p><Strong>Aggregation:</Strong> {formatEnum(latest.aggregation_rule)}</p>
                   </>
                 )}
-                <p><Strong>Scope:</Strong> EU-27 member states</p>
+                <p><Strong>Scope:</Strong> EU-27 (founding release cohort)</p>
                 <p><Strong>Concentration measure:</Strong> Herfindahl-Hirschman Index (C&nbsp;=&nbsp;Σ&nbsp;s<sub>i</sub><sup>2</sup>)</p>
                 <p><Strong>Normalisation:</Strong> None</p>
                 <p><Strong>Classification thresholds:</Strong> 0.15 / 0.25 / 0.50</p>

@@ -209,7 +209,7 @@ export default function TransparencyPage() {
             <p className="mt-2 text-[14px] leading-[1.75] text-text-tertiary">
               All scores and classifications are computed server-side from documented data
               sources. The frontend interface displays published outputs without transformation.
-              Rank orderings, deviation indicators, and EU-27 aggregate statistics displayed
+              Rank orderings, deviation indicators, and cohort aggregate statistics displayed
               in the interface are derived computations from the backend-provided score set
               and are not independently scored.
             </p>

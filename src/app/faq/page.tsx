@@ -15,7 +15,7 @@ interface FAQItem {
 const FAQ_ITEMS: FAQItem[] = [
   {
     q: "What does the ISI measure?",
-    a: "The ISI measures the concentration of external suppliers for EU-27 member states across strategic axes (financial, energy, technology, defense, critical inputs, logistics). It uses a Herfindahl-Hirschman Index (HHI) framework where 0 = perfectly diversified and 1 = total concentration on a single source.",
+    a: "The ISI measures the concentration of external suppliers across strategic axes (financial, energy, technology, defense, critical inputs, logistics). The inaugural release covers the EU-27 as the founding cohort. It uses a Herfindahl-Hirschman Index (HHI) framework where 0 = perfectly diversified and 1 = total concentration on a single source.",
   },
   {
     q: 'Is a high ISI score "bad"?',

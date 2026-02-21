@@ -163,11 +163,11 @@ export function CountryView({
                 <StatusBadge classification={country.isi_classification} />
               </div>
               <KPICard
-                label="EU-27 Rank"
+                label="Cohort Rank"
                 value={rank !== null ? `${rank} / ${totalRanked}` : "—"}
                 subtitle={
                   percentile !== null
-                    ? `Less concentrated than ${100 - percentile}% of EU-27`
+                    ? `Less concentrated than ${100 - percentile}% of cohort`
                     : "ISI composite data unavailable"
                 }
               />
@@ -183,7 +183,7 @@ export function CountryView({
             </div>
             {compositeMean !== null && country.isi_composite !== null && (
               <p className="mt-2.5 text-[13px] tabular-nums text-text-tertiary">
-                EU-27 Mean: {formatScore(compositeMean)} · Δ{" "}
+                Cohort Mean: {formatScore(compositeMean)} · Δ{" "}
                 {(deviationFromMean(country.isi_composite, compositeMean) ?? 0) > 0
                   ? "+"
                   : ""}
@@ -198,10 +198,10 @@ export function CountryView({
           {allScores.length > 0 && country.isi_composite !== null && (
             <section className="mt-8">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-                Position in EU-27 Distribution
+                Position in Cohort Distribution
               </h2>
               <p className="mt-1.5 text-[12px] text-text-tertiary">
-                {country.country_name}&apos;s composite score relative to all EU-27 member states.
+                {country.country_name}&apos;s composite score relative to the EU-27 cohort.
               </p>
               <div className="mt-3 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-5">
                 <DistributionHistogram
@@ -233,10 +233,10 @@ export function CountryView({
             </div>
             <div className="rounded-md border border-border-primary p-3 sm:p-5">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
-                Deviation from EU-27 Mean
+                Deviation from Cohort Mean
               </h2>
               <p className="mt-1.5 mb-2.5 text-[11px] text-text-quaternary">
-                Bars show deviation from EU-27 composite mean ({formatScore(compositeMean)}).
+                Bars show deviation from cohort composite mean ({formatScore(compositeMean)}).
                 Red = above mean. Green = below mean.
               </p>
               <DeviationBarChart items={deviationItems} mean={compositeMean} />
