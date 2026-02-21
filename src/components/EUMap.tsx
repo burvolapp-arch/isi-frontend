@@ -547,12 +547,12 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             {/* Tooltip */}
             {tooltip && (
               <div
-                className="pointer-events-none absolute z-20 rounded-xl border border-white/10 bg-navy-950/95 px-4 py-3 text-xs text-white shadow-2xl backdrop-blur-md"
+                className="pointer-events-none absolute z-20 rounded-xl border border-stone-200 bg-white/95 px-5 py-4 text-xs text-navy-900 shadow-lg backdrop-blur-md"
                 style={{
                   left: tooltip.x,
                   top: tooltip.y,
                   transform: "translate(-50%, -100%)",
-                  maxWidth: "280px",
+                  maxWidth: "320px",
                   animation: "fadeIn 0.08s ease-out",
                 }}
               >
@@ -570,21 +570,20 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                         {formatMapScore(tooltip.score)}
                       </span>
                       <span
-                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
+                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider border border-stone-200 bg-stone-50 text-navy-900"
                         style={{
-                          backgroundColor: classify(tooltip.score),
-                          color: (tooltip.score ?? 0) >= 0.25 ? "#ffffff" : "#1e293b",
+                          backgroundColor: "#f8fafc",
+                          color: "#0b2545",
                         }}
                       >
                         {tooltip.classification}
                       </span>
                     </div>
-                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/10">
+                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-stone-200">
                       <div
-                        className="h-full rounded-full transition-all duration-150"
+                        className="h-full rounded-full transition-all duration-150 bg-navy-900"
                         style={{
                           width: `${Math.min(100, (tooltip.score ?? 0) * 100)}%`,
-                          backgroundColor: classify(tooltip.score),
                         }}
                       />
                     </div>
