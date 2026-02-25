@@ -20,6 +20,11 @@ export const metadata: Metadata = {
     url: "https://isi.internationalsovereignty.org/research",
     type: "website",
   },
+  other: {
+    "citation_doi": PAPERS
+      .filter((p) => p.doiVersion)
+      .map((p) => p.doiVersion as string),
+  },
 };
 
 interface PdfInfo {
@@ -73,16 +78,21 @@ export default function ResearchPage() {
       })),
       publisher: {
         "@type": "Organization",
-        name: paper.institution,
-        url: baseUrl,
+        name: paper.doiVersion ? "Zenodo" : paper.institution,
+        ...(paper.doiVersion ? { url: "https://zenodo.org" } : { url: baseUrl }),
       },
       datePublished: paper.publicationDate,
       version: paper.version,
-      url: `${baseUrl}/research#${paper.id}`,
+      url: paper.doiVersion
+        ? `https://doi.org/${paper.doiVersion}`
+        : `${baseUrl}/research#${paper.id}`,
       mainEntityOfPage: {
         "@type": "WebPage",
         "@id": `${baseUrl}/research#${paper.id}`,
       },
+      ...(paper.zenodoRecordUrl
+        ? { sameAs: paper.zenodoRecordUrl }
+        : {}),
       ...(pdfInfo.exists
         ? {
             encoding: {
@@ -95,19 +105,18 @@ export default function ResearchPage() {
             },
           }
         : {}),
-      ...(paper.doi
+      ...(paper.doiVersion
         ? {
             identifier: {
               "@type": "PropertyValue",
               propertyID: "DOI",
-              value: paper.doi,
+              value: paper.doiVersion,
             },
           }
         : {}),
       isPartOf: {
         "@type": "CreativeWorkSeries",
         name: "ISI Paper Series",
-        issn: undefined,
       },
       keywords: paper.keywords.join(", "),
       inLanguage: "en",

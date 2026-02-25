@@ -26,8 +26,12 @@ export interface PaperMeta {
   abstract: string;
   /** Filename in /public/research/ */
   filename: string;
-  /** DOI (null if not yet assigned) */
-  doi: string | null;
+  /** Version-specific DOI (e.g. 10.5281/zenodo.18764170) */
+  doiVersion: string | null;
+  /** Concept DOI covering all versions (e.g. 10.5281/zenodo.18764169) */
+  doiConcept: string | null;
+  /** Zenodo record landing page URL */
+  zenodoRecordUrl: string | null;
   /** Keywords for structured data */
   keywords: string[];
   /** Approximate page count (for display) */
@@ -53,7 +57,9 @@ export const PAPERS: PaperMeta[] = [
     abstract:
       "This paper presents the methodological foundations of the International Sovereignty Index (ISI), a structural measurement framework designed to quantify the concentration of external supplier relationships across strategic dependency domains. The ISI applies Herfindahl-Hirschman Index (HHI) logic uniformly across six axes — energy, critical inputs, technology, defense, financial, and logistics — producing cardinal scores on a continuous [0, 1] interval. The paper details the four-layer computational architecture: supplier share computation, channel-level concentration, volume-weighted axis aggregation, and unweighted composite scoring. Classification thresholds, reproducibility standards, and the no-normalisation principle are formally specified. The framework is designed for deterministic reproducibility, institutional neutrality, and forward extensibility.",
     filename: "isi-methodology-v1-0.pdf",
-    doi: null,
+    doiVersion: "10.5281/zenodo.18764227",
+    doiConcept: "10.5281/zenodo.18764226",
+    zenodoRecordUrl: "https://zenodo.org/records/18764227",
     keywords: [
       "sovereignty index",
       "HHI",
@@ -77,7 +83,9 @@ export const PAPERS: PaperMeta[] = [
     abstract:
       "This paper presents the empirical application of the International Sovereignty Index (ISI) to the 27 member states of the European Union, constituting the founding release cohort. Using the methodological framework established in ISI Paper Series No. 1, we compute concentration scores across six strategic dependency axes for each EU-27 country. The paper reports composite rankings, axis-level aggregates, classification distributions, and structural outlier identification. Cross-country comparison reveals substantial heterogeneity in external supplier concentration profiles, with composite scores ranging from unconcentrated to highly concentrated across the cohort. The results establish a baseline measurement for longitudinal tracking and provide a reproducible reference dataset for downstream policy analysis.",
     filename: "isi-eu27-results-2024-v1-0.pdf",
-    doi: null,
+    doiVersion: "10.5281/zenodo.18764170",
+    doiConcept: "10.5281/zenodo.18764169",
+    zenodoRecordUrl: "https://zenodo.org/records/18764170",
     keywords: [
       "EU-27",
       "sovereignty index",
@@ -115,18 +123,20 @@ export function formatFileSize(bytes: number): string {
 export function generateAPA(paper: PaperMeta): string {
   const year = new Date(paper.publicationDate).getFullYear();
   const authorStr = paper.authors.join(", ");
-  const doi = paper.doi ? ` https://doi.org/${paper.doi}` : "";
-  return `${authorStr} (${year}). ${paper.title}. ISI Paper Series, No. ${paper.seriesNumber}.${doi}`;
+  if (paper.doiVersion) {
+    return `${authorStr} (${year}). ${paper.title}. Zenodo. https://doi.org/${paper.doiVersion}`;
+  }
+  return `${authorStr} (${year}). ${paper.title}. ISI Paper Series, No. ${paper.seriesNumber}.`;
 }
 
 /** Generate Chicago 17th edition (author-date) citation */
 export function generateChicago(paper: PaperMeta): string {
   const year = new Date(paper.publicationDate).getFullYear();
   const authorStr = paper.authors.join(", ");
-  const doi = paper.doi
-    ? ` https://doi.org/${paper.doi}.`
-    : ` https://isi.internationalsovereignty.org/research#${paper.id}.`;
-  return `${authorStr}. ${year}. "${paper.title}." ISI Paper Series, no. ${paper.seriesNumber}.${doi}`;
+  if (paper.doiVersion) {
+    return `${authorStr}. ${year}. "${paper.title}." Zenodo. https://doi.org/${paper.doiVersion}.`;
+  }
+  return `${authorStr}. ${year}. "${paper.title}." ISI Paper Series, no. ${paper.seriesNumber}. https://isi.internationalsovereignty.org/research#${paper.id}.`;
 }
 
 /** Generate BibTeX citation */
@@ -143,10 +153,12 @@ export function generateBibTeX(paper: PaperMeta): string {
     `  type        = {ISI Paper Series},`,
     `  number      = {${paper.seriesNumber}},`,
   ];
-  if (paper.doi) {
-    lines.push(`  doi         = {${paper.doi}},`);
+  if (paper.doiVersion) {
+    lines.push(`  doi         = {${paper.doiVersion}},`);
+    lines.push(`  url         = {https://doi.org/${paper.doiVersion}}`);
+  } else {
+    lines.push(`  url         = {https://isi.internationalsovereignty.org/research#${paper.id}}`);
   }
-  lines.push(`  url         = {https://isi.internationalsovereignty.org/research#${paper.id}}`);
   lines.push("}");
   return lines.join("\n");
 }
