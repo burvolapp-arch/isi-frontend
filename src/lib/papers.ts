@@ -61,7 +61,7 @@ export const PAPERS: PaperMeta[] = [
       "supplier dependency",
       "methodology",
     ],
-    pageCount: 34,
+    pageCount: 60,
     badge: "Methodology",
   },
   {
@@ -86,7 +86,7 @@ export const PAPERS: PaperMeta[] = [
       "HHI",
       "trade dependency",
     ],
-    pageCount: 42,
+    pageCount: 111,
     badge: "Empirical Results",
   },
 ];

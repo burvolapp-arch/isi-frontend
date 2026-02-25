@@ -44,7 +44,13 @@ function getPdfInfo(filename: string): PdfInfo {
 }
 
 export default function ResearchPage() {
-  const papersWithInfo = PAPERS.map((paper) => {
+  const sortedPapers = [...PAPERS].sort((a, b) => {
+    const dateDiff = new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime();
+    if (dateDiff !== 0) return dateDiff;
+    return b.seriesNumber - a.seriesNumber;
+  });
+
+  const papersWithInfo = sortedPapers.map((paper) => {
     const pdfInfo = getPdfInfo(paper.filename);
     return { paper, pdfInfo };
   });
