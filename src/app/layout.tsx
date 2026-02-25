@@ -82,10 +82,10 @@ export const metadata: Metadata = {
 
 const HEADER_NAV = [
   { href: "/", label: "Overview" },
+  { href: "/research", label: "Research" },
   { href: "/eu-aggregate", label: "EU-27" },
   { href: "/compare", label: "Comparative" },
   { href: "/simulation", label: "Simulation" },
-  { href: "/research", label: "Research" },
   { href: "/methodology", label: "Methodology" },
   { href: "/transparency", label: "Transparency" },
   { href: "/faq", label: "FAQ" },
