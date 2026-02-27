@@ -241,7 +241,7 @@ export default function ComparePage() {
   if (error) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <ErrorPanel
             title="Data temporarily unavailable"
             message="Backend unreachable. Please try again later."
@@ -255,7 +255,7 @@ export default function ComparePage() {
   if (!data) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <div className="space-y-4">
             <div className="h-8 w-64 animate-pulse rounded bg-stone-100" />
             <div className="h-4 w-96 animate-pulse rounded bg-stone-50" />
@@ -275,10 +275,10 @@ export default function ComparePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Header ───────────────────────────────────────── */}
         <section className="pt-10">
-          <Link href="/" className="text-[13px] text-text-tertiary transition-colors hover:text-text-primary">
+          <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary transition-colors hover:text-text-primary sm:min-h-0">
             ← Back to Overview
           </Link>
           <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
@@ -294,10 +294,11 @@ export default function ComparePage() {
         {/* ── Country Selectors ─────────────────────────────── */}
         <section className="mt-8 grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+            <label htmlFor="compare-country-a" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Country A
             </label>
             <select
+              id="compare-country-a"
               value={codeA}
               onChange={(e) => setCodeA(e.target.value)}
               className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
@@ -311,10 +312,11 @@ export default function ComparePage() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+            <label htmlFor="compare-country-b" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Country B
             </label>
             <select
+              id="compare-country-b"
               value={codeB}
               onChange={(e) => setCodeB(e.target.value)}
               className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
@@ -358,13 +360,13 @@ export default function ComparePage() {
               </h2>
 
               {/* Top-level KPI row */}
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                 {/* Structural Distance */}
                 <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
                   <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                     Structural Distance
                   </p>
-                  <p className="mt-1 font-mono text-[22px] font-medium leading-none tracking-tight text-text-primary">
+                  <p className="mt-1 font-mono text-[18px] font-medium leading-none tracking-tight text-text-primary sm:text-[22px]">
                     {diagnostic.structuralDistance.toFixed(4)}
                   </p>
                   <p className="mt-1.5 text-[11px] font-medium text-text-tertiary">
@@ -431,7 +433,7 @@ export default function ComparePage() {
                       <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                         {countryA.country_name}
                       </p>
-                      <p className="mt-1 font-mono text-[22px] font-medium leading-none tracking-tight text-text-primary">
+                      <p className="mt-1 font-mono text-[18px] font-medium leading-none tracking-tight text-text-primary sm:text-[22px]">
                         {formatScore(countryA.isi_composite)}
                       </p>
                     </div>
@@ -459,7 +461,7 @@ export default function ComparePage() {
                       <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                         {countryB.country_name}
                       </p>
-                      <p className="mt-1 font-mono text-[22px] font-medium leading-none tracking-tight text-text-primary">
+                      <p className="mt-1 font-mono text-[18px] font-medium leading-none tracking-tight text-text-primary sm:text-[22px]">
                         {formatScore(countryB.isi_composite)}
                       </p>
                     </div>
@@ -647,7 +649,50 @@ export default function ComparePage() {
               </h2>
 
               <div className="mt-4 overflow-x-auto">
-                <table className="min-w-full text-[13px]">
+                {/* ── Mobile card list (< md) ── */}
+                <div className="space-y-2 md:hidden">
+                  {diagnostic.axes.map((axis) => {
+                    const intensity = heatIntensity(axis.absDelta, maxAbsDelta);
+                    return (
+                      <div key={axis.slug} className="rounded-md border border-border-primary p-3">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="font-medium text-[13px] text-text-secondary">{axis.label}</span>
+                          <span className={`text-[11px] font-semibold ${
+                            axis.moreConcentrated === "A" || axis.moreConcentrated === "B"
+                              ? "text-text-secondary" : "text-text-quaternary"
+                          }`}>
+                            {axis.moreConcentrated === "A" ? `${countryA.country} ↑`
+                              : axis.moreConcentrated === "B" ? `${countryB.country} ↑`
+                              : axis.moreConcentrated === "equal" ? "Equal" : "—"}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px]">
+                          <span className="text-text-quaternary">{countryA.country}: <span className="font-mono text-text-primary">{formatScore(axis.scoreA)}</span></span>
+                          <span className="text-text-quaternary">{countryB.country}: <span className="font-mono text-text-primary">{formatScore(axis.scoreB)}</span></span>
+                          <span className={`font-mono ${
+                            axis.delta !== null && axis.delta > 0 ? "text-deviation-positive"
+                              : axis.delta !== null && axis.delta < 0 ? "text-deviation-negative"
+                              : "text-text-quaternary"
+                          }`}>Δ {axis.delta !== null ? formatDelta(axis.delta) : "—"}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {/* Composite summary card */}
+                  <div className="rounded-md border-2 border-navy-900 p-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="font-medium text-[13px] text-text-primary">Composite</span>
+                      <span className="font-mono text-[12px] text-text-secondary">Σ {diagnostic.structuralDistance.toFixed(4)}</span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px]">
+                      <span className="text-text-quaternary">{countryA.country}: <span className="font-mono font-semibold text-text-primary">{formatScore(countryA.isi_composite)}</span></span>
+                      <span className="text-text-quaternary">{countryB.country}: <span className="font-mono font-semibold text-text-primary">{formatScore(countryB.isi_composite)}</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Desktop table (≥ md) ── */}
+                <table className="hidden md:table min-w-full text-[13px]">
                   <thead>
                     <tr className="border-b-2 border-navy-900 text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
                       <th className="px-3 py-2.5 text-left font-medium">Axis</th>

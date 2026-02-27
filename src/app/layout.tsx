@@ -135,7 +135,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           {/* ── Header ─────────────────────────────────────── */}
           <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-navy-900/95 backdrop-blur-md">
-            <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-16">
+            <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-2 px-3 py-2 sm:px-6 sm:py-4 lg:px-16">
               <Link href="/" className="flex shrink-0 items-baseline gap-2 sm:gap-3">
                 <span className="font-serif text-lg font-bold tracking-tight text-white sm:text-xl">
                   ISI
@@ -160,7 +160,7 @@ export default function RootLayout({
                 <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Cite the ISI
                 </h3>
-                <p className="mt-3 rounded border border-border-primary bg-white px-4 py-3.5 font-mono text-[11px] leading-relaxed text-text-tertiary sm:text-[12px]">
+                <p className="mt-3 rounded border border-border-primary bg-white px-3 py-3 font-mono text-[10px] leading-relaxed text-text-tertiary sm:px-4 sm:py-3.5 sm:text-[12px]">
                   International Sovereignty Index (2026).{" "}
                   <em>
                     External Supplier Concentration — EU-27 Founding Cohort.

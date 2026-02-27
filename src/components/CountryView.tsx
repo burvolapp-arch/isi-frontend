@@ -153,7 +153,7 @@ export function CountryView({
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Composite Score
             </h2>
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
               <KPICard
                 label="ISI Composite"
                 value={formatScore(country.isi_composite)}

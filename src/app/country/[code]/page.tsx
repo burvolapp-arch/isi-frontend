@@ -69,7 +69,7 @@ export default async function CountryPage({ params }: PageProps) {
         <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-10 lg:px-16">
           <Link
             href="/"
-            className="text-[13px] text-text-tertiary hover:text-text-primary"
+            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
           >
             ← Back to Overview
           </Link>
@@ -105,7 +105,7 @@ export default async function CountryPage({ params }: PageProps) {
         <div className="pt-6 sm:pt-10">
           <Link
             href="/"
-            className="text-[13px] text-text-tertiary hover:text-text-primary"
+            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
           >
             ← Back to Overview
           </Link>

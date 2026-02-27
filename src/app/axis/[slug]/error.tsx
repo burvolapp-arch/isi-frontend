@@ -15,10 +15,10 @@ export default function AxisError({
   }, [error]);
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
+      <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
         <Link
           href="/"
-          className="text-[13px] text-text-tertiary hover:text-text-primary"
+          className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
         >
           ← Back to Overview
         </Link>

@@ -208,42 +208,18 @@ tbody tr {
 }
 
 /* ── Mobile (320–480px) Refinements ────────────────────── */
-/* Tighten spacing, enforce touch-friendly targets, prevent
-   horizontal overflow on narrow viewports.                 */
+/* Scoped, non-destructive mobile fixes. No !important.     */
+/* Touch targets are handled per-component via Tailwind      */
+/* min-h-[44px] sm:min-h-0, not blanket CSS rules.          */
 
 @media (max-width: 480px) {
-  /* Tighter page-level horizontal padding */
-  main {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  /* Ensure all interactive elements meet 44px minimum */
-  button,
-  select,
-  a[role="button"],
-  input[type="text"],
-  input[type="search"] {
-    min-height: 44px;
-  }
-
-  /* Prevent tables from pushing layout */
-  table {
-    font-size: 13px;
-  }
-
-  /* Tighter section spacing on mobile */
-  section + section {
-    margin-top: 2rem;
-  }
-
-  /* Ensure overflow containers are scrollable with momentum */
+  /* Momentum scrolling for overflow containers */
   .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Page titles: ensure they don't overflow at 320px */
-  h1 {
+  /* Page titles & section headings: ensure they don't overflow at 320px */
+  h1, h2 {
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;

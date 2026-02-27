@@ -58,11 +58,11 @@ const FAQ_ITEMS: FAQItem[] = [
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         <div className="max-w-3xl pt-10">
           <Link
             href="/"
-            className="text-[13px] text-text-tertiary hover:text-text-primary"
+            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
           >
             ← Back to Overview
           </Link>
@@ -80,7 +80,7 @@ export default function FAQPage() {
               key={i}
               className="group rounded-md border border-border-primary bg-white transition-[border-color] open:border-stone-300 open:bg-surface-tertiary"
             >
-              <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-[14px] font-semibold text-text-secondary transition-colors hover:text-text-primary [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-[14px] font-semibold text-text-secondary transition-colors hover:text-text-primary [&::-webkit-details-marker]:hidden min-h-[44px] sm:min-h-0">
                 <span>{item.q}</span>
                 <svg
                   className="h-4 w-4 shrink-0 text-text-quaternary transition-transform duration-200 group-open:rotate-45"

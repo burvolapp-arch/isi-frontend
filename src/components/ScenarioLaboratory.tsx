@@ -538,13 +538,13 @@ export function ScenarioLaboratory({
     <div className="mt-6 space-y-6">
 
       {/* ═══ 1. RESULTS SUMMARY ═══ */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
         {/* Composite */}
         <div className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
             {showSimulated ? "Simulated Composite" : "Baseline Composite"}
           </p>
-          <p className="mt-1 font-mono text-[24px] font-medium leading-none tracking-tight text-text-primary">
+          <p className="mt-1 font-mono text-[20px] font-medium leading-none tracking-tight text-text-primary sm:text-[24px]">
             {showSimulated
               ? formatScore(scenario.simulated.composite)
               : formatScore(country.isi_composite)}

@@ -85,7 +85,7 @@ export default async function ExecutiveOverviewPage() {
           HERO — Full-bleed, institutional authority
          ══════════════════════════════════════════════════════ */}
       <section className="bg-navy-900">
-        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-8 px-4 py-10 sm:gap-10 sm:px-6 sm:py-14 lg:flex-row lg:items-center lg:gap-16 lg:px-16 lg:py-20">
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-6 px-4 py-8 sm:gap-10 sm:px-6 sm:py-14 lg:flex-row lg:items-center lg:gap-16 lg:px-16 lg:py-20">
           {/* Left column — text */}
           <div className="min-w-0 flex-1 text-center lg:text-left">
             <h1
@@ -196,7 +196,7 @@ export default async function ExecutiveOverviewPage() {
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Executive Summary
             </h2>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
               <KPICard
                 label="Countries Scored"
                 value={`${isi.countries_complete} / ${isi.countries_total}`}
@@ -242,7 +242,7 @@ export default async function ExecutiveOverviewPage() {
               Distribution of ISI composite scores across the current release cohort (EU-27).
               Vertical bands indicate HHI classification thresholds.
             </p>
-            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
               <DistributionHistogram
                 scores={compositeScores}
                 mean={isi.statistics.mean}
@@ -306,7 +306,7 @@ export default async function ExecutiveOverviewPage() {
               framework. Scores range from 0 (perfectly diversified) to 1
               (total concentration on a single source).
             </p>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {[
                 { threshold: "≥ 0.50", label: "Highly Concentrated", desc: "Critical concentration on one or very few external suppliers.", border: "border-l-band-highly" },
                 { threshold: "0.25–0.49", label: "Moderately Concentrated", desc: "Significant concentration across a small number of sources.", border: "border-l-band-moderately" },

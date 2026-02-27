@@ -115,8 +115,8 @@ export default async function EU27Page() {
   if (!isi || isiError) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
-          <Link href="/" className="text-[13px] text-text-tertiary hover:text-text-primary">
+        <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
+          <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
           </Link>
           <div className="mt-6">
@@ -136,8 +136,8 @@ export default async function EU27Page() {
   if (!eu) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
-          <Link href="/" className="text-[13px] text-text-tertiary hover:text-text-primary">
+        <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
+          <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
           </Link>
           <div className="mt-6">
@@ -156,10 +156,10 @@ export default async function EU27Page() {
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Header ── */}
         <div className="max-w-3xl pt-10">
-          <Link href="/" className="text-[13px] text-text-tertiary hover:text-text-primary">
+          <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
           </Link>
           <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
@@ -177,7 +177,7 @@ export default async function EU27Page() {
           <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Bloc-Level Statistics
           </h2>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
             <KPICard
               label="Cohort Mean"
               value={formatScore(eu.mean)}
@@ -265,7 +265,45 @@ export default async function EU27Page() {
             Mean concentration scores across the EU-27 cohort for each strategic axis.
           </p>
           <div className="mt-6 overflow-x-auto">
-            <table className="min-w-full text-[14px]">
+            {/* ── Mobile card list (< md) ── */}
+            <div className="space-y-2 md:hidden">
+              {eu.axisAggregates
+                .filter((a) => a.mean !== null)
+                .sort((a, b) => (b.mean ?? 0) - (a.mean ?? 0))
+                .map((a) => (
+                  <Link
+                    key={a.slug}
+                    href={`/axis/${a.slug}`}
+                    className="block rounded-md border border-border-primary p-3 transition-colors active:bg-surface-tertiary"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="font-medium text-[14px] text-text-secondary">{formatAxisShort(a.slug)}</span>
+                      <span className="font-mono text-[14px] font-semibold text-text-primary">{formatScore(a.mean)}</span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-quaternary">
+                      <span>Min: <span className="font-mono text-text-tertiary">{formatScore(a.min)}</span></span>
+                      <span>Max: <span className="font-mono text-text-tertiary">{formatScore(a.max)}</span></span>
+                      <span>σ: <span className="font-mono text-text-tertiary">{formatScore(a.stdDev)}</span></span>
+                      <span>N: <span className="font-mono text-text-tertiary">{a.count}</span></span>
+                    </div>
+                    <div className="mt-1">
+                      {a.mean !== null && (
+                        <span className={`text-[12px] ${
+                          a.mean >= 0.5 ? "text-band-highly" :
+                          a.mean >= 0.25 ? "text-band-moderately" :
+                          a.mean >= 0.15 ? "text-band-mildly" :
+                          "text-band-unconcentrated"
+                        }`}>
+                          {classificationLabel(classifyScore(a.mean))}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+            </div>
+
+            {/* ── Desktop table (≥ md) ── */}
+            <table className="hidden md:table min-w-full text-[14px]">
               <thead>
                 <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th className="px-4 py-3 text-left font-medium">Axis</th>
@@ -331,7 +369,49 @@ export default async function EU27Page() {
             All EU-27 cohort countries ranked by composite ISI score, with deviation from cohort mean.
           </p>
           <div className="mt-6 overflow-x-auto">
-            <table className="min-w-full text-[14px]">
+            {/* ── Mobile card list (< md) ── */}
+            <div className="space-y-2 md:hidden">
+              {eu.ranked.map((c, i) => {
+                const composite = c.isi_composite as number;
+                const delta = composite - eu.mean;
+                return (
+                  <Link
+                    key={c.country}
+                    href={countryHref(c.country)}
+                    className="block rounded-md border border-border-primary p-3 transition-colors active:bg-surface-tertiary"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <div className="flex items-baseline gap-2 min-w-0">
+                        <span className="font-mono text-[12px] text-text-quaternary">{i + 1}.</span>
+                        <span className="font-medium text-[14px] text-text-secondary truncate">{c.country_name}</span>
+                        <span className="text-[11px] text-text-quaternary">{c.country}</span>
+                      </div>
+                      <span className="font-mono text-[14px] font-semibold text-text-primary shrink-0">
+                        {formatScore(composite)}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-3 text-[12px]">
+                      <span className={`font-mono ${
+                        delta > 0 ? "text-deviation-positive" : delta < 0 ? "text-deviation-negative" : "text-text-tertiary"
+                      }`}>
+                        Δ {formatDelta(delta)}
+                      </span>
+                      <span className={`text-[12px] ${
+                        composite >= 0.5 ? "text-band-highly" :
+                        composite >= 0.25 ? "text-band-moderately" :
+                        composite >= 0.15 ? "text-band-mildly" :
+                        "text-band-unconcentrated"
+                      }`}>
+                        {classificationLabel(c.classification)}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* ── Desktop table (≥ md) ── */}
+            <table className="hidden md:table min-w-full text-[14px]">
               <thead>
                 <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th className="px-4 py-3 text-left font-medium">#</th>

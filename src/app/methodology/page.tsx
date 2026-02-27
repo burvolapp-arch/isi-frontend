@@ -65,12 +65,12 @@ export default async function MethodologyPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Header ──────────────────────────────────────────── */}
         <div className="max-w-3xl pt-10">
           <Link
             href="/"
-            className="text-[13px] text-text-tertiary hover:text-text-primary"
+            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
           >
             ← Back to Overview
           </Link>

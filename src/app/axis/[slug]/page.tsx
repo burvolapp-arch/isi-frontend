@@ -38,14 +38,14 @@ export default async function AxisPage({ params }: PageProps) {
   if (registryError || axisId === null) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link
             href="/"
-            className="text-[13px] text-text-tertiary hover:text-text-primary"
+            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
           >
             ← Back to Overview
           </Link>
-          <div className="mt-4">
+          <div className="mt-6">
             <ErrorPanel
               title={`Failed to resolve axis "${slug}"`}
               message={registryError ?? "Axis not found in registry"}
@@ -75,10 +75,10 @@ export default async function AxisPage({ params }: PageProps) {
   if (error || !axis) {
     return (
       <div className="min-h-screen bg-white">
-        <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link
             href="/"
-            className="text-[13px] text-text-tertiary hover:text-text-primary"
+            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
           >
             ← Back to Overview
           </Link>
@@ -116,7 +116,7 @@ export default async function AxisPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 lg:px-16">
+        <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* Breadcrumb */}
         <div className="pt-10">
           <Link
@@ -158,7 +158,7 @@ export default async function AxisPage({ params }: PageProps) {
           <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Cross-EU Statistics
           </h2>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-6">
             <KPICard
               label="Countries Scored"
               value={`${axis.countries_scored}`}
@@ -196,7 +196,7 @@ export default async function AxisPage({ params }: PageProps) {
         {/* ── Distribution Histogram ───────────────────────── */}
         {axisScores.length > 0 && (
           <section className="mt-14">
-            <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Score Distribution — {formatAxisFull(axis.axis_slug)}
             </h2>
             <p className="mt-1.5 text-[14px] text-text-tertiary">
@@ -308,10 +308,60 @@ export default async function AxisPage({ params }: PageProps) {
 
         {/* ── Country Rankings Table ────────────────────────── */}
         <section className="mt-14">
-          <h2 className="font-serif text-[26px] font-semibold tracking-tight text-text-primary">
+          <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Country Rankings — {formatAxisFull(axis.axis_slug)}
           </h2>
-          <div className="mt-6 overflow-x-auto">
+
+          {/* ── Mobile card list (< md) ── */}
+          <div className="mt-6 space-y-2 md:hidden">
+            {ranked.map((c, i) => {
+              const dev = meanVal !== null ? c.score - meanVal : null;
+              const isOutlier =
+                outlierThreshold !== null &&
+                meanVal !== null &&
+                Math.abs(c.score - meanVal) > outlierThreshold;
+              return (
+                <Link
+                  key={c.country}
+                  href={countryHref(c.country)}
+                  className={`block rounded-md border p-3 transition-colors active:bg-surface-tertiary ${
+                    isOutlier
+                      ? "border-l-2 border-l-severity-high border-border-primary"
+                      : "border-border-primary"
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="font-mono text-[12px] text-text-quaternary">{i + 1}.</span>
+                      <span className="font-medium text-[14px] text-text-secondary truncate">{c.country_name}</span>
+                      <span className="text-[11px] text-text-quaternary">{c.country}</span>
+                    </div>
+                    <span className="font-mono text-[14px] font-semibold text-text-primary shrink-0">
+                      {formatScore(c.score)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-3 text-[12px]">
+                    <span className={`font-mono ${
+                      dev !== null && dev > 0
+                        ? "text-deviation-positive"
+                        : dev !== null && dev < 0
+                          ? "text-deviation-negative"
+                          : "text-text-quaternary"
+                    }`}>
+                      Δ {dev !== null ? formatDelta(dev) : "—"}
+                    </span>
+                    <StatusBadge classification={c.classification} />
+                    {isOutlier && (
+                      <span className="font-semibold text-severity-high text-[11px]">● Outlier</span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* ── Desktop table (≥ md) ── */}
+          <div className="mt-6 hidden md:block overflow-x-auto">
             <table className="min-w-full">
               <thead>
                 <tr className="border-b-2 border-navy-900">

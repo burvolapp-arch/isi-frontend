@@ -1,7 +1,7 @@
 export default function RootLoading() {
   return (
     <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-[1400px] px-6 py-10 lg:px-16 space-y-10">
+      <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16 space-y-10">
         {/* Header skeleton */}
         <div className="space-y-3">
           <div className="h-8 w-64 animate-pulse rounded bg-stone-100" />
