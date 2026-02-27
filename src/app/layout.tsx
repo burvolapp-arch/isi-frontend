@@ -207,12 +207,12 @@ export default function RootLayout({
                       International Sovereignty Index · Founding cohort: EU-27 · HHI framework
                     </p>
                   </div>
-                  <nav className="flex flex-col gap-3 text-[13px] text-text-tertiary sm:flex-row sm:gap-5">
+                  <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-text-tertiary sm:gap-x-5">
                     {FOOTER_NAV.map(({ href, label }) => (
                       <Link
                         key={href}
                         href={href}
-                        className="min-h-[44px] flex items-center transition-colors hover:text-text-primary sm:min-h-0"
+                        className="py-1.5 transition-colors hover:text-text-primary"
                       >
                         {label}
                       </Link>

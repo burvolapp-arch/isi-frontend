@@ -53,7 +53,7 @@ export function HeaderNav({ items }: HeaderNavProps) {
       />
       <nav
         ref={scrollRef}
-        className="flex items-center overflow-x-auto scrollbar-none"
+        className="flex items-center overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x scrollbar-none"
         aria-label="Main navigation"
       >
         {items.map(({ href, label }) => {
@@ -64,7 +64,7 @@ export function HeaderNav({ items }: HeaderNavProps) {
               href={href}
               aria-current={active ? "page" : undefined}
               className={`
-                relative shrink-0 px-2.5 py-3 text-[13px] transition-colors sm:px-3 sm:py-1.5
+                relative shrink-0 px-2.5 py-2 text-[13px] leading-none transition-colors sm:px-3 sm:py-1.5
                 ${active
                   ? "font-medium text-white"
                   : "text-stone-400 hover:text-white"
@@ -73,7 +73,7 @@ export function HeaderNav({ items }: HeaderNavProps) {
             >
               {label}
               {active && (
-                <span className="absolute inset-x-2.5 -bottom-[9px] h-[2px] rounded-full bg-white sm:inset-x-3 sm:-bottom-[16px]" />
+                <span className="absolute inset-x-2.5 -bottom-[7px] h-[2px] rounded-full bg-white sm:inset-x-3 sm:-bottom-[16px]" />
               )}
             </Link>
           );
