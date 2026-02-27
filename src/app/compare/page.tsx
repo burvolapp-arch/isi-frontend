@@ -281,7 +281,7 @@ export default function ComparePage() {
           <Link href="/" className="text-[13px] text-text-tertiary transition-colors hover:text-text-primary">
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
             Comparative Structural Analysis
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
@@ -300,7 +300,7 @@ export default function ComparePage() {
             <select
               value={codeA}
               onChange={(e) => setCodeA(e.target.value)}
-              className="w-full border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none"
+              className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
             >
               <option value="">— Select —</option>
               {countries.map((c) => (
@@ -317,7 +317,7 @@ export default function ComparePage() {
             <select
               value={codeB}
               onChange={(e) => setCodeB(e.target.value)}
-              className="w-full border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none"
+              className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
             >
               <option value="">— Select —</option>
               {countries.map((c) => (
@@ -423,7 +423,7 @@ export default function ComparePage() {
               </div>
 
               {/* Bilateral composite row */}
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {/* Country A */}
                 <div className="rounded border border-border-primary px-4 py-3">
                   <div className="flex items-baseline justify-between gap-2">
@@ -807,26 +807,26 @@ export default function ComparePage() {
                 <button
                   type="button"
                   onClick={handleExportJSON}
-                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+                  className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
                 >
                   Export JSON
                 </button>
                 <button
                   type="button"
                   onClick={handleExportCSV}
-                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+                  className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
                 >
                   Export CSV
                 </button>
                 <Link
                   href={countryHref(countryA.country)}
-                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50"
+                  className="inline-flex min-h-[44px] items-center rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 sm:min-h-0"
                 >
                   {countryA.country_name} Profile →
                 </Link>
                 <Link
                   href={countryHref(countryB.country)}
-                  className="rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50"
+                  className="inline-flex min-h-[44px] items-center rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 sm:min-h-0"
                 >
                   {countryB.country_name} Profile →
                 </Link>

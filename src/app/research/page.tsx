@@ -156,7 +156,7 @@ export default function ResearchPage() {
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
             Research &amp; Publications
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-text-tertiary">

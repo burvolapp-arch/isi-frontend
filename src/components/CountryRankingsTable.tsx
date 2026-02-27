@@ -205,8 +205,8 @@ export function CountryRankingsTable({
         </p>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Table — desktop only (md+) */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full">
           <thead>
             <tr className="border-b-2 border-navy-900">
@@ -299,6 +299,123 @@ export function CountryRankingsTable({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile card list — visible below md */}
+      <div className="space-y-2 md:hidden">
+        {rows.map((c) => {
+          const rank = rankMap.get(c.country) ?? null;
+          const dev = deviationFromMean(c.isi_composite, mean);
+          const isExpanded = expandedRow === c.country;
+
+          return (
+            <div
+              key={c.country}
+              className="rounded-md border border-border-primary bg-white"
+            >
+              {/* Collapsed row — always visible */}
+              <button
+                type="button"
+                onClick={() => setExpandedRow(isExpanded ? null : c.country)}
+                className="flex w-full items-center gap-3 px-3 py-3 text-left"
+                aria-expanded={isExpanded}
+                aria-label={`${c.country_name} — ${isExpanded ? "collapse" : "expand"} details`}
+              >
+                {/* Rank */}
+                <span className="w-7 shrink-0 text-center font-mono text-[13px] text-text-quaternary">
+                  {rank ?? "—"}
+                </span>
+
+                {/* Country + code */}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-medium text-text-primary">
+                    {c.country_name}
+                  </p>
+                  <p className="font-mono text-[11px] text-text-quaternary">
+                    {c.country}
+                  </p>
+                </div>
+
+                {/* Composite score */}
+                <span
+                  className={`shrink-0 font-mono text-[16px] font-medium tabular-nums ${deviationClass(dev)}`}
+                >
+                  {formatScore(c.isi_composite)}
+                </span>
+
+                {/* Classification badge */}
+                <span className="shrink-0">
+                  <StatusBadge classification={c.classification} />
+                </span>
+
+                {/* Chevron */}
+                <svg
+                  className={`h-4 w-4 shrink-0 text-text-quaternary transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+
+              {/* Expanded detail — axis scores */}
+              {isExpanded && (
+                <div className="border-t border-border-subtle px-3 pb-3 pt-2">
+                  {/* Key metrics row */}
+                  <div className="mb-2 flex items-center gap-4 text-[12px]">
+                    <span className="text-text-quaternary">
+                      Rank: <span className="font-mono text-text-tertiary">{rank ?? "—"}/{countries.length}</span>
+                    </span>
+                    {dev !== null && (
+                      <span className={`font-mono ${deviationClass(dev)}`}>
+                        Δ {formatDelta(dev)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Axis scores grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {axisColumns.map((col) => {
+                      const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
+                      const axisDev = deviationFromMean(score, mean);
+                      return (
+                        <Link
+                          key={col.fieldKey}
+                          href={axisHref(col.slug)}
+                          className="rounded border border-border-primary bg-surface-tertiary px-2.5 py-2 transition-colors hover:bg-stone-100"
+                        >
+                          <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-quaternary">
+                            {col.label}
+                          </p>
+                          <p className={`mt-0.5 font-mono text-[14px] font-medium ${deviationClass(axisDev)}`}>
+                            {formatScore(score)}
+                          </p>
+                        </Link>
+                      );
+                    })}
+                  </div>
+
+                  {/* Country detail link */}
+                  <div className="mt-3">
+                    <Link
+                      href={countryHref(c.country)}
+                      className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-navy-700 hover:underline"
+                    >
+                      View full country analysis →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {rows.length === 0 && (
+          <p className="py-10 text-center text-[14px] text-text-quaternary">
+            No countries match your filters.
+          </p>
+        )}
       </div>
 
       {/* Interpretation note */}

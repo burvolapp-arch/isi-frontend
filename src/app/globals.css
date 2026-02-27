@@ -207,6 +207,49 @@ tbody tr {
   background: var(--color-stone-400);
 }
 
+/* ── Mobile (320–480px) Refinements ────────────────────── */
+/* Tighten spacing, enforce touch-friendly targets, prevent
+   horizontal overflow on narrow viewports.                 */
+
+@media (max-width: 480px) {
+  /* Tighter page-level horizontal padding */
+  main {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Ensure all interactive elements meet 44px minimum */
+  button,
+  select,
+  a[role="button"],
+  input[type="text"],
+  input[type="search"] {
+    min-height: 44px;
+  }
+
+  /* Prevent tables from pushing layout */
+  table {
+    font-size: 13px;
+  }
+
+  /* Tighter section spacing on mobile */
+  section + section {
+    margin-top: 2rem;
+  }
+
+  /* Ensure overflow containers are scrollable with momentum */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Page titles: ensure they don't overflow at 320px */
+  h1 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
 /* ── Reduced Motion ────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

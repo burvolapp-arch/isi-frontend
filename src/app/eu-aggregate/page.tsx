@@ -162,7 +162,7 @@ export default async function EU27Page() {
           <Link href="/" className="text-[13px] text-text-tertiary hover:text-text-primary">
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
             EU-27 Cohort Profile
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
@@ -245,7 +245,7 @@ export default async function EU27Page() {
           <p className="mt-1.5 text-[14px] text-text-tertiary">
             Frequency distribution of composite ISI scores. Vertical markers indicate cohort mean and median.
           </p>
-          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
               scores={compositeScores}
               mean={eu.mean}

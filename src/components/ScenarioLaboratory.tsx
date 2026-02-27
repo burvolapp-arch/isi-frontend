@@ -700,7 +700,7 @@ export function ScenarioLaboratory({
                 onClick={() => applyPreset(preset)}
                 title={preset.description}
                 className={`
-                  rounded border px-2.5 py-1.5 text-[11px] font-medium
+                  min-h-[44px] rounded border px-2.5 py-1.5 text-[11px] font-medium sm:min-h-0
                   focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
                   disabled:opacity-40 disabled:cursor-not-allowed
                   ${isActive
@@ -732,7 +732,7 @@ export function ScenarioLaboratory({
                   controlsLocked ? "bg-stone-50 opacity-70" : "bg-surface-tertiary"
                 }`}
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="min-w-0 shrink-0">
                     <p className="text-[12px] font-medium text-text-secondary">
                       {formatAxisLabel(slug)}
@@ -741,7 +741,7 @@ export function ScenarioLaboratory({
                       Baseline: {formatScore(axis.score)}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-0.5">
+                  <div className="flex shrink-0 flex-wrap items-center gap-0.5">
                     {SHIFT_OPTIONS.map((shift) => {
                       const isActive = currentAdj === shift;
                       const isBase = shift === 0;
@@ -783,7 +783,7 @@ export function ScenarioLaboratory({
           type="button"
           onClick={resetToBaseline}
           disabled={(!hasAdjustments && serviceState === "IDLE") || serviceState === "COMPUTING"}
-          className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-0"
         >
           Reset to Baseline
         </button>
@@ -791,7 +791,7 @@ export function ScenarioLaboratory({
           <button
             type="button"
             onClick={retrySimulation}
-            className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+            className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
           >
             Retry
           </button>
@@ -800,7 +800,7 @@ export function ScenarioLaboratory({
           <button
             type="button"
             onClick={exportSnapshot}
-            className="rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700"
+            className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
           >
             Export JSON
           </button>
@@ -835,14 +835,14 @@ export function ScenarioLaboratory({
             <button
               type="button"
               onClick={retrySimulation}
-              className="rounded border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium text-stone-600 hover:bg-stone-50"
+              className="min-h-[44px] rounded border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium text-stone-600 hover:bg-stone-50 sm:min-h-0"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={resetToBaseline}
-              className="rounded border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium text-stone-600 hover:bg-stone-50"
+              className="min-h-[44px] rounded border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium text-stone-600 hover:bg-stone-50 sm:min-h-0"
             >
               Reset
             </button>

@@ -18,7 +18,7 @@ export default function TransparencyPage() {
           >
             ← Back to Overview
           </Link>
-          <h1 className="mt-6 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
             Transparency &amp; Data Governance
           </h1>
           <p className="mt-2 text-[14px] leading-relaxed text-text-tertiary">

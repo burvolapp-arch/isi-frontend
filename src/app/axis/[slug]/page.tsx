@@ -132,7 +132,7 @@ export default async function AxisPage({ params }: PageProps) {
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Axis {axis.axis_id}
           </p>
-          <h1 className="mt-2 font-serif text-[40px] font-bold leading-[1.15] tracking-tight text-text-primary">
+          <h1 className="mt-2 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
             {formatAxisFull(axis.axis_slug)}
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
@@ -202,7 +202,7 @@ export default async function AxisPage({ params }: PageProps) {
             <p className="mt-1.5 text-[14px] text-text-tertiary">
               Distribution of HHI scores across all scored cohort countries for this axis.
             </p>
-            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
               scores={axisScores}
               mean={meanVal}

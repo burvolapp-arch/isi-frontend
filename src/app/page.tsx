@@ -127,7 +127,7 @@ export default async function ExecutiveOverviewPage() {
 
           {/* Right column — sovereignty decomposition matrix */}
           {isi && (
-            <div className="w-full max-w-[360px] shrink-0">
+            <div className="w-full max-w-full shrink-0 sm:max-w-[360px]">
               <SovereigntyMatrix countries={isi.countries} />
             </div>
           )}

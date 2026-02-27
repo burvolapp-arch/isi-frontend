@@ -115,7 +115,7 @@ export function CountryView({
               type="button"
               onClick={() => setMode("baseline")}
               className={`
-                rounded px-4 py-1.5 text-[12px] font-medium transition-colors
+                min-h-[44px] rounded px-4 py-1.5 text-[12px] font-medium transition-colors sm:min-h-0
                 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
                 ${mode === "baseline"
                   ? "bg-navy-700 text-white shadow-sm"
@@ -129,7 +129,7 @@ export function CountryView({
               type="button"
               onClick={() => setMode("scenario")}
               className={`
-                rounded px-4 py-1.5 text-[12px] font-medium transition-colors
+                min-h-[44px] rounded px-4 py-1.5 text-[12px] font-medium transition-colors sm:min-h-0
                 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
                 ${mode === "scenario"
                   ? "bg-navy-700 text-white shadow-sm"
