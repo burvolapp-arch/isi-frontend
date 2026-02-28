@@ -2,9 +2,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { PAPERS } from "@/lib/papers";
+import { PAPERS, RESEARCH_PATH } from "@/lib/papers";
 import { formatFileSize, paperPdfPath } from "@/lib/papers";
 import { PaperCard } from "@/components/PaperCard";
+import type { PaperMeta } from "@/lib/papers";
 
 export const metadata: Metadata = {
   title: "Research & Publications",
@@ -27,25 +28,35 @@ export const metadata: Metadata = {
   },
 };
 
-interface PdfInfo {
+interface FileInfo {
+  filename: string;
+  lang: string;
+  label: string;
   exists: boolean;
   sizeFormatted?: string;
   sizeBytes?: number;
 }
 
-function getPdfInfo(filename: string): PdfInfo {
-  const filePath = join(process.cwd(), "public", "research", filename);
-  if (!existsSync(filePath)) return { exists: false };
-  try {
-    const stats = statSync(filePath);
-    return {
-      exists: true,
-      sizeFormatted: formatFileSize(stats.size),
-      sizeBytes: stats.size,
-    };
-  } catch {
-    return { exists: true };
-  }
+function getFileInfos(paper: PaperMeta): FileInfo[] {
+  return (paper.files ?? [{ filename: paper.filename, lang: "en", label: "English" }]).map(
+    (f) => {
+      const filePath = join(process.cwd(), "public", "research", f.filename);
+      if (!existsSync(filePath)) {
+        return { ...f, exists: false };
+      }
+      try {
+        const stats = statSync(filePath);
+        return {
+          ...f,
+          exists: true,
+          sizeFormatted: formatFileSize(stats.size),
+          sizeBytes: stats.size,
+        };
+      } catch {
+        return { ...f, exists: true };
+      }
+    },
+  );
 }
 
 export default function ResearchPage() {
@@ -56,14 +67,14 @@ export default function ResearchPage() {
   });
 
   const papersWithInfo = sortedPapers.map((paper) => {
-    const pdfInfo = getPdfInfo(paper.filename);
-    return { paper, pdfInfo };
+    const fileInfos = getFileInfos(paper);
+    return { paper, fileInfos };
   });
 
   const baseUrl = "https://isi.internationalsovereignty.org";
 
   const jsonLd = PAPERS.map((paper) => {
-    const pdfInfo = getPdfInfo(paper.filename);
+    const fileInfos = getFileInfos(paper);
     const pdfUrl = `${baseUrl}${paperPdfPath(paper)}`;
 
     return {
@@ -93,16 +104,17 @@ export default function ResearchPage() {
       ...(paper.zenodoRecordUrl
         ? { sameAs: paper.zenodoRecordUrl }
         : {}),
-      ...(pdfInfo.exists
+      ...(fileInfos.some((f) => f.exists)
         ? {
-            encoding: {
-              "@type": "MediaObject",
-              contentUrl: pdfUrl,
-              encodingFormat: "application/pdf",
-              ...(pdfInfo.sizeBytes
-                ? { contentSize: `${pdfInfo.sizeBytes}` }
-                : {}),
-            },
+            encoding: fileInfos
+              .filter((f) => f.exists)
+              .map((f) => ({
+                "@type": "MediaObject",
+                contentUrl: `${baseUrl}${RESEARCH_PATH}/${f.filename}`,
+                encodingFormat: "application/pdf",
+                inLanguage: f.lang,
+                ...(f.sizeBytes ? { contentSize: `${f.sizeBytes}` } : {}),
+              })),
           }
         : {}),
       ...(paper.doiVersion
@@ -119,7 +131,9 @@ export default function ResearchPage() {
         name: "ISI Paper Series",
       },
       keywords: paper.keywords.join(", "),
-      inLanguage: "en",
+      inLanguage: paper.files && paper.files.length > 1
+        ? paper.files.map((f) => f.lang)
+        : "en",
       ...(paper.pageCount > 0
         ? { numberOfPages: paper.pageCount }
         : {}),
@@ -134,17 +148,19 @@ export default function ResearchPage() {
       />
 
       {/* PDF alternate links for crawlers */}
-      {papersWithInfo.map(
-        ({ paper, pdfInfo }) =>
-          pdfInfo.exists && (
+      {papersWithInfo.flatMap(({ paper, fileInfos }) =>
+        fileInfos
+          .filter((f) => f.exists)
+          .map((f) => (
             <link
-              key={paper.id}
+              key={`${paper.id}-${f.lang}`}
               rel="alternate"
               type="application/pdf"
-              href={`${baseUrl}${paperPdfPath(paper)}`}
-              title={paper.title}
+              hrefLang={f.lang}
+              href={`${baseUrl}${RESEARCH_PATH}/${f.filename}`}
+              title={`${paper.title} (${f.label})`}
             />
-          ),
+          )),
       )}
 
       <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
@@ -207,23 +223,38 @@ export default function ResearchPage() {
                 License
               </p>
               <p className="mt-1 text-[14px] text-text-secondary">
-                All Rights Reserved
+                CC-BY-4.0 (Creative Commons Attribution 4.0 International)
               </p>
             </div>
           </div>
         </section>
 
         {/* ── Paper list ── */}
-        <section className="mt-12 space-y-8 pb-20">
-          {papersWithInfo.map(({ paper, pdfInfo }) => (
+        <section className="mt-12 space-y-8">
+          {papersWithInfo.map(({ paper, fileInfos }) => (
             <PaperCard
               key={paper.id}
               paper={paper}
-              pdfExists={pdfInfo.exists}
-              fileSize={pdfInfo.sizeFormatted}
+              fileInfos={fileInfos}
             />
           ))}
         </section>
+
+        {/* ── Institutional footer ── */}
+        <footer className="mt-8 border-t border-border-primary pb-20 pt-6">
+          <p className="text-center text-[12px] leading-relaxed text-text-quaternary">
+            All publications are archived, versioned, and permanently indexed via{" "}
+            <a
+              href="https://zenodo.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-text-tertiary"
+            >
+              Zenodo
+            </a>{" "}
+            (CERN Open Data Infrastructure).
+          </p>
+        </footer>
       </main>
     </div>
   );
