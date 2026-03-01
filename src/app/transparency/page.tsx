@@ -1,15 +1,27 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Transparency & Data Governance",
   description:
     "Data sources, versioning policy, revision procedures, and known limitations of the International Sovereignty Index.",
+  alternates: {
+    canonical: "/transparency",
+  },
 };
 
 export default function TransparencyPage() {
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateBreadcrumbJsonLd([{ name: "Transparency", href: "/transparency" }])
+          ),
+        }}
+      />
       <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         <div className="max-w-3xl pt-10">
           <Link

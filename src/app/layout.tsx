@@ -120,15 +120,82 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "International Sovereignty Institute",
-              url: "https://isi.internationalsovereignty.org",
-              logo: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
-              description:
-                "Independent research initiative measuring external supplier concentration — inaugural release: EU-27 — using a Herfindahl-Hirschman (HHI) framework.",
-            }),
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "@id": "https://isi.internationalsovereignty.org/#organization",
+                name: "International Sovereignty Institute",
+                url: "https://isi.internationalsovereignty.org",
+                logo: {
+                  "@type": "ImageObject",
+                  url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+                  width: 512,
+                  height: 512,
+                },
+                description:
+                  "Independent research institute measuring external supplier concentration using a Herfindahl-Hirschman (HHI) framework. Publisher of the International Sovereignty Index.",
+                sameAs: [
+                  "https://zenodo.org/communities/international-sovereignty-index/",
+                  "https://internationalsovereignty.org",
+                ],
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "@id": "https://isi.internationalsovereignty.org/#website",
+                name: "International Sovereignty Index (ISI)",
+                url: "https://isi.internationalsovereignty.org",
+                publisher: {
+                  "@id": "https://isi.internationalsovereignty.org/#organization",
+                },
+                description:
+                  "Measuring external supplier concentration — inaugural release: EU-27 — using a Herfindahl-Hirschman (HHI) framework.",
+                inLanguage: "en",
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Dataset",
+                "@id": "https://isi.internationalsovereignty.org/#dataset",
+                name: "International Sovereignty Index (ISI) — EU-27 Founding Cohort",
+                description:
+                  "Cardinal measurement of external supplier concentration across six strategic dependency axes for the 27 EU member states, computed via Herfindahl-Hirschman Index (HHI) methodology.",
+                creator: {
+                  "@id": "https://isi.internationalsovereignty.org/#organization",
+                },
+                license: "https://creativecommons.org/licenses/by/4.0/",
+                temporalCoverage: "2024",
+                spatialCoverage: {
+                  "@type": "Place",
+                  name: "European Union (EU-27)",
+                },
+                variableMeasured: [
+                  "Energy supplier concentration",
+                  "Critical inputs supplier concentration",
+                  "Technology supplier concentration",
+                  "Defense supplier concentration",
+                  "Financial supplier concentration",
+                  "Logistics supplier concentration",
+                  "Composite concentration score",
+                ],
+                measurementTechnique: "Herfindahl-Hirschman Index (HHI)",
+                distribution: [
+                  {
+                    "@type": "DataDownload",
+                    encodingFormat: "text/csv",
+                    contentUrl: "https://isi.internationalsovereignty.org/api/export/csv",
+                  },
+                  {
+                    "@type": "DataDownload",
+                    encodingFormat: "application/json",
+                    contentUrl: "https://isi.internationalsovereignty.org/api/export/json",
+                  },
+                ],
+                isBasedOn: "https://doi.org/10.5281/zenodo.18764170",
+                version: "1.0",
+                datePublished: "2026-02-01",
+              },
+            ]),
           }}
         />
 

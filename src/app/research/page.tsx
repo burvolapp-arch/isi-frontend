@@ -6,6 +6,7 @@ import { PAPERS, RESEARCH_PATH } from "@/lib/papers";
 import { formatFileSize, paperPdfPath } from "@/lib/papers";
 import { PaperCard } from "@/components/PaperCard";
 import type { PaperMeta } from "@/lib/papers";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Research & Publications",
@@ -126,6 +127,7 @@ export default function ResearchPage() {
             },
           }
         : {}),
+      license: "https://creativecommons.org/licenses/by/4.0/",
       isPartOf: {
         "@type": "CreativeWorkSeries",
         name: "ISI Paper Series",
@@ -140,11 +142,19 @@ export default function ResearchPage() {
     };
   });
 
+  const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+    { name: "Research & Publications", href: "/research" },
+  ]);
+
   return (
     <div className="min-h-screen bg-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* PDF alternate links for crawlers */}
@@ -240,15 +250,15 @@ export default function ResearchPage() {
           ))}
         </section>
 
-        {/* ── Institutional footer ── */}
-        <footer className="mt-8 border-t border-border-primary pb-20 pt-6">
-          <p className="text-center text-[12px] leading-relaxed text-text-quaternary">
-            All ISI publications are archived, versioned, and permanently indexed
-            via Zenodo (CERN Open Data Infrastructure) under the International
-            Sovereignty Index (ISI) community.
+        {/* ── Archival Record ── */}
+        <section className="mt-10 rounded-md border border-border-primary bg-surface-tertiary p-5 sm:p-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-quaternary">
+            Archival Record
           </p>
-          <p className="mt-3 text-center text-[12px] text-text-quaternary">
-            Zenodo Community:{" "}
+          <p className="mt-2 text-[13px] leading-relaxed text-text-tertiary">
+            All ISI publications are permanently archived and versioned through Zenodo.
+          </p>
+          <p className="mt-2 text-[12px] text-text-quaternary">
             <a
               href="https://zenodo.org/communities/international-sovereignty-index/"
               target="_blank"
@@ -256,6 +266,21 @@ export default function ResearchPage() {
               className="break-all underline hover:text-text-tertiary"
             >
               https://zenodo.org/communities/international-sovereignty-index/
+            </a>
+          </p>
+        </section>
+
+        {/* ── Institutional footer ── */}
+        <footer className="mt-8 border-t border-border-primary pb-20 pt-6">
+          <p className="text-center text-[12px] leading-relaxed text-text-quaternary">
+            For general background on sovereignty, see:{" "}
+            <a
+              href="https://internationalsovereignty.org/international-sovereignty/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-text-tertiary"
+            >
+              internationalsovereignty.org
             </a>
           </p>
         </footer>

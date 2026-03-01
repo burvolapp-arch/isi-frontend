@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { fetchISI, fetchAxes, ApiError } from "@/lib/api";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { KPICard } from "@/components/KPICard";
@@ -22,6 +23,9 @@ export const metadata: Metadata = {
   title: "EU-27 (Founding Cohort)",
   description:
     "Cohort-level summary of external supplier concentration across the EU-27 founding release cohort.",
+  alternates: {
+    canonical: "/eu-aggregate",
+  },
 };
 
 // ─── EU aggregate derivation ────────────────────────────────────────
@@ -156,6 +160,14 @@ export default async function EU27Page() {
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateBreadcrumbJsonLd([{ name: "EU-27", href: "/eu-aggregate" }])
+          ),
+        }}
+      />
         <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Header ── */}
         <div className="max-w-3xl pt-10">

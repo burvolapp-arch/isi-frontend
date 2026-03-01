@@ -1,15 +1,27 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Accessibility",
   description:
     "Accessibility commitment and conformance statement for the International Sovereignty Index.",
+  alternates: {
+    canonical: "/accessibility",
+  },
 };
 
 export default function AccessibilityPage() {
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateBreadcrumbJsonLd([{ name: "Accessibility", href: "/accessibility" }])
+          ),
+        }}
+      />
       <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         <div className="max-w-3xl pt-10">
           <Link

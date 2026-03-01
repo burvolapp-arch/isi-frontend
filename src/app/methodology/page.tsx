@@ -2,11 +2,15 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { fetchMethodologyVersions } from "@/lib/api";
 import { formatEnum } from "@/lib/presentation";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Methodological Foundations",
   description:
     "Methodological Foundations of the International Sovereignty Index — concentration measurement framework, computational architecture, reproducibility standards, and structural limitations.",
+  alternates: {
+    canonical: "/methodology",
+  },
 };
 
 /* ════════════════════════════════════════════════════════════════════
@@ -65,6 +69,14 @@ export default async function MethodologyPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateBreadcrumbJsonLd([{ name: "Methodology", href: "/methodology" }])
+          ),
+        }}
+      />
       <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Header ──────────────────────────────────────────── */}
         <div className="max-w-3xl pt-10">
