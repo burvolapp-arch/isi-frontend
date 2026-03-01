@@ -253,7 +253,7 @@ export default function ResearchPage() {
               href="https://zenodo.org/communities/international-sovereignty-index/"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-text-tertiary"
+              className="break-all underline hover:text-text-tertiary"
             >
               https://zenodo.org/communities/international-sovereignty-index/
             </a>

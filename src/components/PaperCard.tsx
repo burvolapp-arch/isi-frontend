@@ -97,13 +97,13 @@ export function PaperCard({
         {/* ── DOI ── */}
         {paper.doiVersion ? (
           <div className="mt-4 flex flex-col gap-1">
-            <span className="flex items-center gap-1.5 text-[12px]">
+            <span className="flex flex-wrap items-center gap-1.5 text-[12px]">
               <span className="font-medium text-text-quaternary">DOI:</span>
               <a
                 href={`https://doi.org/${paper.doiVersion}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-navy-700 underline hover:text-navy-900"
+                className="break-all text-navy-700 underline hover:text-navy-900"
                 aria-label={`DOI for ${paper.title}`}
               >
                 https://doi.org/{paper.doiVersion}
@@ -113,13 +113,13 @@ export function PaperCard({
               </a>
             </span>
             {paper.doiConcept && (
-              <span className="flex items-center gap-1.5 text-[11px] text-text-quaternary">
+              <span className="flex flex-wrap items-center gap-1.5 text-[11px] text-text-quaternary">
                 <span className="font-medium">Concept DOI (all versions):</span>
                 <a
                   href={`https://doi.org/${paper.doiConcept}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-text-tertiary"
+                  className="break-all underline hover:text-text-tertiary"
                   aria-label={`Concept DOI for all versions of ${paper.title}`}
                 >
                   https://doi.org/{paper.doiConcept}
@@ -164,7 +164,7 @@ export function PaperCard({
         </div>
 
         {/* ── Actions ── */}
-        <div className="mt-6 flex flex-wrap items-center gap-2">
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           {hasPdf ? (
             <>
               {/* Download buttons — one per language file */}
@@ -173,7 +173,7 @@ export function PaperCard({
                   key={f.filename}
                   href={`${RESEARCH_PATH}/${f.filename}`}
                   download
-                  className="inline-flex items-center gap-2 rounded-md border border-navy-700 bg-navy-700 px-4 py-2 text-[12px] font-medium text-white transition-colors hover:bg-navy-800"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-navy-700 bg-navy-700 px-4 py-2.5 text-[12px] font-medium text-white transition-colors hover:bg-navy-800 sm:w-auto sm:justify-start sm:py-2"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -190,7 +190,7 @@ export function PaperCard({
                 href={`${RESEARCH_PATH}/${paper.filename}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-border-primary bg-white px-4 py-2 text-[12px] font-medium text-text-secondary transition-colors hover:bg-stone-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border-primary bg-white px-4 py-2.5 text-[12px] font-medium text-text-secondary transition-colors hover:bg-stone-50 sm:w-auto sm:justify-start sm:py-2"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />

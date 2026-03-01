@@ -66,7 +66,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
   return (
     <div id={anchorId} className="scroll-mt-24 rounded-md border border-border-primary bg-surface-tertiary">
       {/* ── Header bar ── */}
-      <div className="flex items-center justify-between border-b border-border-primary px-4 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-primary px-4 py-2.5">
         {/* Format tabs */}
         <div className="flex gap-1" role="tablist" aria-label="Citation format">
           {(Object.keys(FORMAT_LABELS) as CitationFormat[]).map((key) => (
@@ -114,14 +114,14 @@ export function CitationBlock({ paper }: CitationBlockProps) {
                 <svg className="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
-                <span className="text-emerald-600">All Copied</span>
+                <span className="hidden text-emerald-600 sm:inline">All Copied</span>
               </>
             ) : (
               <>
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 0 0-9-9Z" />
                 </svg>
-                Copy All
+                <span className="hidden sm:inline">Copy All</span>
               </>
             )}
           </button>
@@ -154,7 +154,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
 
       {/* ── Citation text ── */}
       <div className="px-4 py-3">
-        <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-text-tertiary sm:text-[12px]">
+        <pre className="whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-text-tertiary sm:break-normal sm:text-[12px]">
           {activeCitation}
         </pre>
       </div>
