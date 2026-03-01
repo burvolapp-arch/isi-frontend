@@ -171,44 +171,44 @@ export function formatFileSize(bytes: number): string {
 /** Generate APA 7th edition citation */
 export function generateAPA(paper: PaperMeta): string {
   const year = new Date(paper.publicationDate).getFullYear();
-  const authorStr = paper.authors.join(", ");
   if (paper.doiVersion) {
-    return `${authorStr} (${year}). ${paper.title}, Paper ${paper.seriesNumber} (${paper.version}). Zenodo. https://doi.org/${paper.doiVersion}`;
+    return `International Sovereignty Institute (${year}). ${paper.title} (${paper.version}). Zenodo. https://doi.org/${paper.doiVersion}`;
   }
-  return `${authorStr} (${year}). ${paper.title} (${paper.version}). ISI Paper Series, No. ${paper.seriesNumber}.`;
+  return `International Sovereignty Institute (${year}). ${paper.title}. https://isi.internationalsovereignty.org`;
 }
 
 /** Generate Chicago 17th edition (author-date) citation */
 export function generateChicago(paper: PaperMeta): string {
   const year = new Date(paper.publicationDate).getFullYear();
-  const authorStr = paper.authors.join(", ");
   if (paper.doiVersion) {
-    return `${authorStr}. ${year}. "${paper.title}," Paper ${paper.seriesNumber} (${paper.version}). Zenodo. https://doi.org/${paper.doiVersion}.`;
+    return `International Sovereignty Institute. ${year}. "${paper.title}." ${paper.version}. Zenodo. https://doi.org/${paper.doiVersion}.`;
   }
-  return `${authorStr}. ${year}. "${paper.title}" (${paper.version}). ISI Paper Series, no. ${paper.seriesNumber}. https://isi.internationalsovereignty.org/research#${paper.id}.`;
+  return `International Sovereignty Institute. ${year}. "${paper.title}." https://isi.internationalsovereignty.org.`;
 }
 
 /** Generate BibTeX citation */
 export function generateBibTeX(paper: PaperMeta): string {
   const year = new Date(paper.publicationDate).getFullYear();
   const key = `ISI${year}Paper${paper.seriesNumber}`;
-  const authorStr = paper.authors.join(" and ");
-  const lines = [
-    `@techreport{${key},`,
-    `  author      = {${authorStr}},`,
-    `  title       = {${paper.title}},`,
-    `  institution = {${paper.institution}},`,
-    `  year        = {${year}},`,
-    `  type        = {ISI Paper Series},`,
-    `  number      = {${paper.seriesNumber}},`,
-    `  version     = {${paper.version}},`,
-  ];
   if (paper.doiVersion) {
-    lines.push(`  doi         = {${paper.doiVersion}},`);
-    lines.push(`  url         = {https://doi.org/${paper.doiVersion}}`);
-  } else {
-    lines.push(`  url         = {https://isi.internationalsovereignty.org/research#${paper.id}}`);
+    return [
+      `@misc{${key},`,
+      `  author    = {International Sovereignty Institute},`,
+      `  title     = {${paper.title}},`,
+      `  year      = {${year}},`,
+      `  version   = {${paper.version}},`,
+      `  publisher = {Zenodo},`,
+      `  doi       = {${paper.doiVersion}},`,
+      `  url       = {https://doi.org/${paper.doiVersion}}`,
+      "}",
+    ].join("\n");
   }
-  lines.push("}");
-  return lines.join("\n");
+  return [
+    `@misc{${key},`,
+    `  author    = {International Sovereignty Institute},`,
+    `  title     = {${paper.title}},`,
+    `  year      = {${year}},`,
+    `  url       = {https://isi.internationalsovereignty.org}`,
+    "}",
+  ].join("\n");
 }

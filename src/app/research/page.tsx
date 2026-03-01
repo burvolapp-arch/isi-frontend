@@ -243,16 +243,20 @@ export default function ResearchPage() {
         {/* ── Institutional footer ── */}
         <footer className="mt-8 border-t border-border-primary pb-20 pt-6">
           <p className="text-center text-[12px] leading-relaxed text-text-quaternary">
-            All publications are archived, versioned, and permanently indexed via{" "}
+            All ISI publications are archived, versioned, and permanently indexed
+            via Zenodo (CERN Open Data Infrastructure) under the International
+            Sovereignty Index (ISI) community.
+          </p>
+          <p className="mt-3 text-center text-[12px] text-text-quaternary">
+            Zenodo Community:{" "}
             <a
-              href="https://zenodo.org"
+              href="https://zenodo.org/communities/international-sovereignty-index/"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-text-tertiary"
             >
-              Zenodo
-            </a>{" "}
-            (CERN Open Data Infrastructure).
+              https://zenodo.org/communities/international-sovereignty-index/
+            </a>
           </p>
         </footer>
       </main>

@@ -161,17 +161,17 @@ export default function RootLayout({
                   Cite the ISI
                 </h3>
                 <p className="mt-3 rounded border border-border-primary bg-white px-3 py-3 font-mono text-[10px] leading-relaxed text-text-tertiary sm:px-4 sm:py-3.5 sm:text-[12px]">
-                  International Sovereignty Index (2026).{" "}
+                  International Sovereignty Institute (2026).{" "}
                   <em>
                     External Supplier Concentration — EU-27 Founding Cohort.
                   </em>{" "}
-                  internationalsovereignty.org. Retrieved{" "}
+                  https://isi.internationalsovereignty.org (accessed{" "}
                   {new Date().toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
                   })}
-                  .
+                  ).
                 </p>
                 <div className="mt-3 flex gap-4 text-[12px]">
                   <a
