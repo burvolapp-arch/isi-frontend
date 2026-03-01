@@ -8,6 +8,7 @@ import { DistributionHistogram } from "@/components/DistributionHistogram";
 import OutliersPanel from "@/components/OutliersPanel";
 import EUMap from "@/components/EUMap";
 import SovereigntyMatrix from "@/components/SovereigntyMatrix";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import {
   classificationLabel,
   extractCompositeScores,
@@ -81,6 +82,12 @@ export default async function ExecutiveOverviewPage() {
 
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateBreadcrumbJsonLd([])),
+        }}
+      />
       {/* ══════════════════════════════════════════════════════
           HERO — Full-bleed, institutional authority
          ══════════════════════════════════════════════════════ */}

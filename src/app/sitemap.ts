@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { PAPERS } from "@/lib/papers";
 
 const BASE = "https://isi.internationalsovereignty.org";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date().toISOString();
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${BASE}/`,
       lastModified: now,
@@ -60,11 +61,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.3,
     },
-    {
-      url: `${BASE}/scenario`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.4,
-    },
   ];
+
+  // Paper-anchored URLs for deep-linking into the research page
+  const paperPages: MetadataRoute.Sitemap = PAPERS.map((paper) => ({
+    url: `${BASE}/research#${paper.id}`,
+    lastModified: paper.publicationDate,
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  }));
+
+  return [...staticPages, ...paperPages];
 }

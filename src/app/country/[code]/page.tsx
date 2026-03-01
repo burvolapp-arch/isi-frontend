@@ -3,6 +3,7 @@ import { fetchCountry, fetchISI, fetchHistory, ApiError } from "@/lib/api";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CountryView } from "@/components/CountryView";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import {
   computePercentile,
   extractCompositeScores,
@@ -100,6 +101,16 @@ export default async function CountryPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateBreadcrumbJsonLd([
+              { name: country.country_name, href: `/country/${code.toLowerCase()}` },
+            ])
+          ),
+        }}
+      />
       <main className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-16">
         {/* ── Breadcrumb ── */}
         <div className="pt-6 sm:pt-10">

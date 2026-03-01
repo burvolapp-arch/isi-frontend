@@ -26,6 +26,21 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/eu-aggregate",
   },
+  openGraph: {
+    title: "EU-27 Cohort Profile — ISI",
+    description:
+      "Cohort-level summary of external supplier concentration across the EU-27 founding release cohort.",
+    url: "https://isi.internationalsovereignty.org/eu-aggregate",
+    type: "article",
+    images: [
+      {
+        url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute — EU-27 Cohort",
+      },
+    ],
+  },
 };
 
 // ─── EU aggregate derivation ────────────────────────────────────────

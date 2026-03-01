@@ -11,6 +11,21 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/methodology",
   },
+  openGraph: {
+    title: "Methodological Foundations — ISI",
+    description:
+      "HHI-based concentration measurement framework, four-layer computational architecture, and reproducibility standards for the International Sovereignty Index.",
+    url: "https://isi.internationalsovereignty.org/methodology",
+    type: "article",
+    images: [
+      {
+        url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute — Methodology",
+      },
+    ],
+  },
 };
 
 /* ════════════════════════════════════════════════════════════════════

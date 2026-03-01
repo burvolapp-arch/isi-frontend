@@ -7,6 +7,10 @@ import { formatFileSize, paperPdfPath } from "@/lib/papers";
 import { PaperCard } from "@/components/PaperCard";
 import type { PaperMeta } from "@/lib/papers";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import {
+  paperSeriesJsonLd,
+  scholarlyArticleJsonLd,
+} from "@/lib/structuredData";
 
 export const metadata: Metadata = {
   title: "Research & Publications",
@@ -16,11 +20,19 @@ export const metadata: Metadata = {
     canonical: "/research",
   },
   openGraph: {
-    title: "Research & Publications — ISI",
+    title: "Research & Publications — ISI Paper Series",
     description:
       "ISI Paper Series — methodological foundations and empirical results of the International Sovereignty Index.",
     url: "https://isi.internationalsovereignty.org/research",
     type: "website",
+    images: [
+      {
+        url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute — Research & Publications",
+      },
+    ],
   },
   other: {
     "citation_doi": PAPERS
@@ -74,73 +86,9 @@ export default function ResearchPage() {
 
   const baseUrl = "https://isi.internationalsovereignty.org";
 
-  const jsonLd = PAPERS.map((paper) => {
-    const fileInfos = getFileInfos(paper);
-    const pdfUrl = `${baseUrl}${paperPdfPath(paper)}`;
-
-    return {
-      "@context": "https://schema.org",
-      "@type": "ScholarlyArticle",
-      name: paper.title,
-      headline: paper.title,
-      description: paper.abstract,
-      author: paper.authors.map((a) => ({
-        "@type": "Organization",
-        name: a,
-      })),
-      publisher: {
-        "@type": "Organization",
-        name: paper.doiVersion ? "Zenodo" : paper.institution,
-        ...(paper.doiVersion ? { url: "https://zenodo.org" } : { url: baseUrl }),
-      },
-      datePublished: paper.publicationDate,
-      version: paper.version,
-      url: paper.doiVersion
-        ? `https://doi.org/${paper.doiVersion}`
-        : `${baseUrl}/research#${paper.id}`,
-      mainEntityOfPage: {
-        "@type": "WebPage",
-        "@id": `${baseUrl}/research#${paper.id}`,
-      },
-      ...(paper.zenodoRecordUrl
-        ? { sameAs: paper.zenodoRecordUrl }
-        : {}),
-      ...(fileInfos.some((f) => f.exists)
-        ? {
-            encoding: fileInfos
-              .filter((f) => f.exists)
-              .map((f) => ({
-                "@type": "MediaObject",
-                contentUrl: `${baseUrl}${RESEARCH_PATH}/${f.filename}`,
-                encodingFormat: "application/pdf",
-                inLanguage: f.lang,
-                ...(f.sizeBytes ? { contentSize: `${f.sizeBytes}` } : {}),
-              })),
-          }
-        : {}),
-      ...(paper.doiVersion
-        ? {
-            identifier: {
-              "@type": "PropertyValue",
-              propertyID: "DOI",
-              value: paper.doiVersion,
-            },
-          }
-        : {}),
-      license: "https://creativecommons.org/licenses/by/4.0/",
-      isPartOf: {
-        "@type": "CreativeWorkSeries",
-        name: "ISI Paper Series",
-      },
-      keywords: paper.keywords.join(", "),
-      inLanguage: paper.files && paper.files.length > 1
-        ? paper.files.map((f) => f.lang)
-        : "en",
-      ...(paper.pageCount > 0
-        ? { numberOfPages: paper.pageCount }
-        : {}),
-    };
-  });
+  // Centralised structured data — Entity C + Entity D per paper
+  const seriesJsonLd = paperSeriesJsonLd();
+  const articlesJsonLd = PAPERS.map((paper) => scholarlyArticleJsonLd(paper));
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
     { name: "Research & Publications", href: "/research" },
@@ -150,7 +98,11 @@ export default function ResearchPage() {
     <div className="min-h-screen bg-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(seriesJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articlesJsonLd) }}
       />
       <script
         type="application/ld+json"
@@ -247,6 +199,47 @@ export default function ResearchPage() {
               paper={paper}
               fileInfos={fileInfos}
             />
+          ))}
+        </section>
+
+        {/* ── AI-Summary Microdata (machine-readable per-paper) ── */}
+        <section className="sr-only" aria-hidden="true">
+          {PAPERS.map((paper) => (
+            <article
+              key={paper.id}
+              itemScope
+              itemType="https://schema.org/ScholarlyArticle"
+            >
+              <meta itemProp="name" content={paper.title} />
+              <meta itemProp="headline" content={paper.title} />
+              <meta itemProp="description" content={paper.abstract} />
+              <meta itemProp="datePublished" content={paper.publicationDate} />
+              <meta itemProp="version" content={paper.version} />
+              <meta itemProp="inLanguage" content="en" />
+              {paper.doiVersion && (
+                <meta itemProp="identifier" content={`https://doi.org/${paper.doiVersion}`} />
+              )}
+              <span itemProp="author" itemScope itemType="https://schema.org/Organization">
+                <meta itemProp="name" content="International Sovereignty Institute" />
+              </span>
+              <span itemProp="publisher" itemScope itemType="https://schema.org/Organization">
+                <meta itemProp="name" content="Zenodo" />
+              </span>
+              <span itemProp="about" itemScope itemType="https://schema.org/Thing">
+                <meta itemProp="name" content="External Dependency Measurement" />
+                <meta
+                  itemProp="description"
+                  content="Structural quantification of external supplier concentration across strategic dependency axes using Herfindahl-Hirschman Index (HHI) methodology."
+                />
+              </span>
+              <meta
+                itemProp="license"
+                content="https://creativecommons.org/licenses/by/4.0/"
+              />
+              {paper.keywords.map((kw) => (
+                <meta key={kw} itemProp="keywords" content={kw} />
+              ))}
+            </article>
           ))}
         </section>
 

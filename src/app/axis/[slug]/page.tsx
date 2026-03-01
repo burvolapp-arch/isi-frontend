@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { DistributionHistogram } from "@/components/DistributionHistogram";
+import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { countryHref, computeStdDev } from "@/lib/format";
 import { formatAxisFull, formatSeverity, formatEnum, formatScore, formatDelta } from "@/lib/presentation";
 import { resolveSourceCitation, formatSourceInline } from "@/lib/sourceRegistry";
@@ -116,6 +117,16 @@ export default async function AxisPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            generateBreadcrumbJsonLd([
+              { name: formatAxisFull(axis.axis_slug), href: `/axis/${slug}` },
+            ])
+          ),
+        }}
+      />
         <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* Breadcrumb */}
         <div className="pt-10">

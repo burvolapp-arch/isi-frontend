@@ -9,6 +9,21 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/transparency",
   },
+  openGraph: {
+    title: "Transparency & Data Governance — ISI",
+    description:
+      "Data provenance, versioning policy, and governance standards for the International Sovereignty Index.",
+    url: "https://isi.internationalsovereignty.org/transparency",
+    type: "article",
+    images: [
+      {
+        url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute — Transparency",
+      },
+    ],
+  },
 };
 
 export default function TransparencyPage() {

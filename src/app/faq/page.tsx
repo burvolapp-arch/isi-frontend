@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import { faqPageJsonLd } from "@/lib/structuredData";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -8,6 +9,21 @@ export const metadata: Metadata = {
     "Frequently asked questions about the International Sovereignty Index.",
   alternates: {
     canonical: "/faq",
+  },
+  openGraph: {
+    title: "FAQ — International Sovereignty Index",
+    description:
+      "Frequently asked questions about the ISI methodology, classifications, and data sources.",
+    url: "https://isi.internationalsovereignty.org/faq",
+    type: "website",
+    images: [
+      {
+        url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute — FAQ",
+      },
+    ],
   },
 };
 
@@ -67,6 +83,14 @@ export default function FAQPage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             generateBreadcrumbJsonLd([{ name: "FAQ", href: "/faq" }])
+          ),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            faqPageJsonLd(FAQ_ITEMS)
           ),
         }}
       />

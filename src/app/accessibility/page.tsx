@@ -9,6 +9,21 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/accessibility",
   },
+  openGraph: {
+    title: "Accessibility Statement — ISI",
+    description:
+      "Commitment to accessible publication of public interest research data.",
+    url: "https://isi.internationalsovereignty.org/accessibility",
+    type: "website",
+    images: [
+      {
+        url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "International Sovereignty Institute — Accessibility",
+      },
+    ],
+  },
 };
 
 export default function AccessibilityPage() {
