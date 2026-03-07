@@ -62,7 +62,7 @@ export const PAPERS: PaperMeta[] = [
     title:
       "The International Sovereignty Index: Construction, Methodology, and Computational Architecture",
     subtitle: "ISI v1.0 Construction Paper",
-    authors: ["International Sovereignty Institute"],
+    authors: ["Drazsky, Sebastian", "International Sovereignty Institute"],
     institution: "International Sovereignty Institute",
     publicationDate: "2026-02-01",
     version: "v1.0",
@@ -91,7 +91,7 @@ export const PAPERS: PaperMeta[] = [
     title:
       "External Supplier Concentration in the EU-27: Empirical Results (2024)",
     subtitle: "EU-27 Founding Cohort Application",
-    authors: ["International Sovereignty Institute"],
+    authors: ["Drazsky, Sebastian", "International Sovereignty Institute"],
     institution: "International Sovereignty Institute",
     publicationDate: "2026-02-01",
     version: "v1.0",
@@ -121,7 +121,7 @@ export const PAPERS: PaperMeta[] = [
     title:
       "International Sovereignty Index (ISI) — External Supplier Concentration in the EU-27: Empirical Findings (2024)",
     subtitle: "EU-27 Structural Interpretation",
-    authors: ["International Sovereignty Institute"],
+    authors: ["Drazsky, Sebastian", "International Sovereignty Institute"],
     institution: "International Sovereignty Institute",
     publicationDate: "2026-02-01",
     version: "v1.0",
@@ -145,6 +145,36 @@ export const PAPERS: PaperMeta[] = [
     ],
     pageCount: 9,
     badge: "Analytical Brief",
+  },
+  {
+    id: "isi-eu27-country-briefs",
+    seriesNumber: 4,
+    title:
+      "International Sovereignty Index (ISI) — EU-27 Country Brief Series (2024), Paper 4 (v1.0)",
+    subtitle: "EU-27 Country-Level Profiles",
+    authors: ["Drazsky, Sebastian", "International Sovereignty Institute"],
+    institution: "International Sovereignty Institute",
+    publicationDate: "2026-03-01",
+    version: "v1.0",
+    abstract:
+      "This paper presents individual country briefs for each of the 27 EU member states, profiling external supplier concentration across the six ISI dependency axes — energy, critical inputs, technology, defense, financial, and logistics. Each brief summarises the country's composite ISI score, axis-level concentration breakdown, and key structural characteristics. The profiles are designed to support national-level interpretation of the empirical results published in ISI Paper Series No. 2 and complement the cohort-wide analytical synthesis provided in Paper Series No. 3. No new data or methodology is introduced; the briefs repackage previously published measurements into per-country reference documents suitable for institutional and policy audiences.",
+    filename: "isi_eu27_country_briefs.pdf",
+    files: [
+      { filename: "isi_eu27_country_briefs.pdf", lang: "en", label: "English" },
+    ],
+    doiVersion: "10.5281/zenodo.18904016",
+    doiConcept: "10.5281/zenodo.18904015",
+    zenodoRecordUrl: "https://zenodo.org/records/18904016",
+    keywords: [
+      "EU-27",
+      "sovereignty index",
+      "country briefs",
+      "supplier concentration",
+      "HHI",
+      "country profiles",
+    ],
+    pageCount: 54,
+    badge: "Country Briefs",
   },
 ];
 
@@ -170,32 +200,39 @@ export function formatFileSize(bytes: number): string {
 
 /** Generate APA 7th edition citation */
 export function generateAPA(paper: PaperMeta): string {
-  const year = new Date(paper.publicationDate).getFullYear();
+  const d = new Date(paper.publicationDate);
+  const year = d.getFullYear();
+  const month = d.toLocaleDateString("en-US", { month: "long" });
   if (paper.doiVersion) {
-    return `International Sovereignty Institute (${year}). ${paper.title} (${paper.version}). Zenodo. https://doi.org/${paper.doiVersion}`;
+    return `Drazsky, S., & International Sovereignty Institute. (${year}, ${month}). ${paper.title} (${paper.version}). Zenodo. https://doi.org/${paper.doiVersion}`;
   }
-  return `International Sovereignty Institute (${year}). ${paper.title}. https://isi.internationalsovereignty.org`;
+  return `Drazsky, S., & International Sovereignty Institute. (${year}, ${month}). ${paper.title}. https://isi.internationalsovereignty.org`;
 }
 
 /** Generate Chicago 17th edition (author-date) citation */
 export function generateChicago(paper: PaperMeta): string {
-  const year = new Date(paper.publicationDate).getFullYear();
+  const d = new Date(paper.publicationDate);
+  const year = d.getFullYear();
+  const month = d.toLocaleDateString("en-US", { month: "long" });
   if (paper.doiVersion) {
-    return `International Sovereignty Institute. ${year}. "${paper.title}." ${paper.version}. Zenodo. https://doi.org/${paper.doiVersion}.`;
+    return `Drazsky, Sebastian, and International Sovereignty Institute. "${paper.title}." ${paper.version}. Zenodo, ${month} ${year}. https://doi.org/${paper.doiVersion}.`;
   }
-  return `International Sovereignty Institute. ${year}. "${paper.title}." https://isi.internationalsovereignty.org.`;
+  return `Drazsky, Sebastian, and International Sovereignty Institute. "${paper.title}." https://isi.internationalsovereignty.org.`;
 }
 
 /** Generate BibTeX citation */
 export function generateBibTeX(paper: PaperMeta): string {
-  const year = new Date(paper.publicationDate).getFullYear();
-  const key = `ISI${year}Paper${paper.seriesNumber}`;
+  const d = new Date(paper.publicationDate);
+  const year = d.getFullYear();
+  const month = d.toLocaleDateString("en-US", { month: "long" }).toLowerCase().slice(0, 3);
+  const key = `Drazsky${year}ISIPaper${paper.seriesNumber}`;
   if (paper.doiVersion) {
     return [
       `@misc{${key},`,
-      `  author    = {International Sovereignty Institute},`,
+      `  author    = {Drazsky, Sebastian and {International Sovereignty Institute}},`,
       `  title     = {${paper.title}},`,
       `  year      = {${year}},`,
+      `  month     = {${month}},`,
       `  version   = {${paper.version}},`,
       `  publisher = {Zenodo},`,
       `  doi       = {${paper.doiVersion}},`,
@@ -205,9 +242,10 @@ export function generateBibTeX(paper: PaperMeta): string {
   }
   return [
     `@misc{${key},`,
-    `  author    = {International Sovereignty Institute},`,
+    `  author    = {Drazsky, Sebastian and {International Sovereignty Institute}},`,
     `  title     = {${paper.title}},`,
     `  year      = {${year}},`,
+    `  month     = {${month}},`,
     `  url       = {https://isi.internationalsovereignty.org}`,
     "}",
   ].join("\n");

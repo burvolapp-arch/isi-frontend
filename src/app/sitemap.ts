@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { PAPERS } from "@/lib/papers";
+import { PAPERS, RESEARCH_PATH } from "@/lib/papers";
 
 const BASE = "https://isi.internationalsovereignty.org";
 
@@ -28,8 +28,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${BASE}/research`,
       lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
+      changeFrequency: "weekly",
+      priority: 0.9,
     },
     {
       url: `${BASE}/transparency`,
@@ -63,13 +63,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Paper-anchored URLs for deep-linking into the research page
+  // Paper-anchored URLs — deep links into the research page
   const paperPages: MetadataRoute.Sitemap = PAPERS.map((paper) => ({
     url: `${BASE}/research#${paper.id}`,
     lastModified: paper.publicationDate,
     changeFrequency: "monthly" as const,
-    priority: 0.75,
+    priority: 0.85,
   }));
 
-  return [...staticPages, ...paperPages];
+  // Direct PDF URLs — ensures search engines and academic crawlers index PDFs
+  const pdfUrls: MetadataRoute.Sitemap = PAPERS.flatMap((paper) =>
+    paper.files.map((f) => ({
+      url: `${BASE}${RESEARCH_PATH}/${f.filename}`,
+      lastModified: paper.publicationDate,
+      changeFrequency: "yearly" as const,
+      priority: 0.7,
+    })),
+  );
+
+  return [...staticPages, ...paperPages, ...pdfUrls];
 }

@@ -10,6 +10,7 @@ import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import {
   paperSeriesJsonLd,
   scholarlyArticleJsonLd,
+  allHighwireMetaTags,
 } from "@/lib/structuredData";
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     description:
       "ISI Paper Series — methodological foundations and empirical results of the International Sovereignty Index.",
     url: "https://isi.internationalsovereignty.org/research",
-    type: "website",
+    type: "article",
     images: [
       {
         url: "https://isi.internationalsovereignty.org/android-chrome-512x512.png",
@@ -34,11 +35,8 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: {
-    "citation_doi": PAPERS
-      .filter((p) => p.doiVersion)
-      .map((p) => p.doiVersion as string),
-  },
+  // Highwire Press / Google Scholar citation meta tags (one per paper)
+  other: allHighwireMetaTags(),
 };
 
 interface FileInfo {
@@ -219,6 +217,11 @@ export default function ResearchPage() {
               {paper.doiVersion && (
                 <meta itemProp="identifier" content={`https://doi.org/${paper.doiVersion}`} />
               )}
+              <span itemProp="author" itemScope itemType="https://schema.org/Person">
+                <meta itemProp="name" content="Sebastian Drazsky" />
+                <meta itemProp="familyName" content="Drazsky" />
+                <meta itemProp="givenName" content="Sebastian" />
+              </span>
               <span itemProp="author" itemScope itemType="https://schema.org/Organization">
                 <meta itemProp="name" content="International Sovereignty Institute" />
               </span>

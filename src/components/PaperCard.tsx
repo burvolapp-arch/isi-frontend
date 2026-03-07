@@ -151,16 +151,25 @@ export function PaperCard({
             </svg>
             Abstract
           </button>
-          {abstractOpen && (
-            <div
-              id={`abstract-${paper.id}`}
-              className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-5 py-4"
-            >
+          {/* Always render abstract in DOM for crawlers — toggle only controls visibility */}
+          <div
+            id={`abstract-${paper.id}`}
+            className={`mt-3 rounded-md border border-border-primary bg-surface-tertiary px-5 py-4 ${
+              abstractOpen ? "" : "hidden"
+            }`}
+          >
+            <p className="text-[14px] leading-[1.8] text-text-tertiary">
+              {paper.abstract}
+            </p>
+          </div>
+          {/* Fallback for non-JS crawlers — always visible without JS */}
+          <noscript>
+            <div className="mt-3 rounded-md border border-border-primary bg-surface-tertiary px-5 py-4">
               <p className="text-[14px] leading-[1.8] text-text-tertiary">
                 {paper.abstract}
               </p>
             </div>
-          )}
+          </noscript>
         </div>
 
         {/* ── Actions ── */}

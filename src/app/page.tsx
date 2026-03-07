@@ -9,6 +9,7 @@ import OutliersPanel from "@/components/OutliersPanel";
 import EUMap from "@/components/EUMap";
 import SovereigntyMatrix from "@/components/SovereigntyMatrix";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import { PAPERS, RESEARCH_PATH, formatPaperDate } from "@/lib/papers";
 import {
   classificationLabel,
   extractCompositeScores,
@@ -372,7 +373,66 @@ export default async function ExecutiveOverviewPage() {
           </section>
         )}
 
-        {/* ── Section 8: Scope & Limitations ──────────────── */}
+        {/* ── Section 8: Publications ──────────────────────── */}
+        <section className="mt-14 content-auto">
+          <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
+            Research &amp; Publications
+          </h2>
+          <p className="mt-1.5 text-[14px] text-text-tertiary">
+            ISI Paper Series — methodological foundations, empirical results, and
+            country-level analysis.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {[...PAPERS]
+              .sort((a, b) => {
+                const dd = new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime();
+                return dd !== 0 ? dd : b.seriesNumber - a.seriesNumber;
+              })
+              .map((paper) => (
+              <Link
+                key={paper.id}
+                href={`/research#${paper.id}`}
+                className="group flex flex-col rounded-lg border border-border-primary bg-white p-5 transition-colors hover:border-stone-300"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-navy-700/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-navy-700">
+                    Paper {paper.seriesNumber}
+                  </span>
+                  <span className="rounded bg-navy-700/5 px-2 py-0.5 text-[10px] font-medium text-navy-600">
+                    {paper.badge}
+                  </span>
+                </div>
+                <h3 className="mt-3 font-serif text-[16px] font-semibold leading-snug text-text-primary group-hover:text-navy-700 sm:text-[18px]">
+                  {paper.title}
+                </h3>
+                <p className="mt-1.5 text-[12px] text-text-quaternary">
+                  {paper.authors.join(", ")} · {formatPaperDate(paper.publicationDate)}
+                </p>
+                {paper.doiVersion && (
+                  <p className="mt-1 text-[11px] text-text-quaternary">
+                    DOI: {paper.doiVersion}
+                  </p>
+                )}
+                <span className="mt-auto pt-3 text-[12px] font-medium text-navy-700 group-hover:underline">
+                  View paper →
+                </span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4">
+            <Link
+              href="/research"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-navy-700 transition-colors hover:text-navy-900 hover:underline"
+            >
+              View all publications
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </Link>
+          </div>
+        </section>
+
+        {/* ── Section 9: Scope & Limitations ──────────────── */}
         <section className="mt-10 mb-12 border-l-2 border-l-stone-300 py-4 pl-4 pr-2 sm:mt-14 sm:mb-16 sm:pl-5 sm:pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Scope &amp; Limitations

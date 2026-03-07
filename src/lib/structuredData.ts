@@ -192,9 +192,17 @@ export function scholarlyArticleJsonLd(paper: PaperMeta) {
     name: paper.title,
     headline: paper.title,
     description: paper.abstract,
-    author: {
-      "@id": ID.organization,
-    },
+    author: [
+      {
+        "@type": "Person",
+        name: "Sebastian Drazsky",
+        familyName: "Drazsky",
+        givenName: "Sebastian",
+      },
+      {
+        "@id": ID.organization,
+      },
+    ],
     publisher: {
       "@type": "Organization",
       name: "Zenodo",
@@ -266,6 +274,80 @@ export function faqPageJsonLd(items: FAQEntry[]) {
       },
     })),
   };
+}
+
+// ── Highwire Press Meta Tags (Google Scholar) ───────────────────────
+
+/**
+ * Generate Highwire Press / Google Scholar citation meta tags for a paper.
+ * Returns a flat Record<string, string | string[]> suitable for Next.js
+ * Metadata.other. When a key appears multiple times (e.g. citation_author),
+ * the value is an array and Next.js emits one <meta> per entry.
+ */
+export function highwireMetaTags(paper: PaperMeta) {
+  const d = new Date(paper.publicationDate);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  const tags: Record<string, string | string[]> = {
+    // Core citation tags
+    citation_title: paper.title,
+    citation_author: "Sebastian Drazsky",
+    citation_author_institution: "International Sovereignty Institute",
+    citation_publication_date: `${year}/${month}/${day}`,
+    citation_online_date: `${year}/${month}/${day}`,
+    citation_language: "en",
+    citation_publisher: "Zenodo",
+
+    // PDF URL — absolute, direct link
+    citation_pdf_url: `${BASE_URL}${RESEARCH_PATH}/${paper.filename}`,
+
+    // Abstract
+    citation_abstract: paper.abstract,
+
+    // Keywords
+    citation_keywords: paper.keywords.join("; "),
+
+    // Series context
+    citation_series_title: "ISI Paper Series",
+    citation_technical_report_number: String(paper.seriesNumber),
+  };
+
+  // DOI
+  if (paper.doiVersion) {
+    tags.citation_doi = paper.doiVersion;
+  }
+
+  // Fulltext HTML URL
+  tags.citation_fulltext_html_url = `${BASE_URL}/research#${paper.id}`;
+
+  return tags;
+}
+
+/**
+ * Merge Highwire Press tags from ALL papers into a single Record.
+ * Keys with multiple values become arrays (Next.js emits one <meta> per entry).
+ */
+export function allHighwireMetaTags() {
+  const merged: Record<string, string[]> = {};
+  for (const paper of PAPERS) {
+    const tags = highwireMetaTags(paper);
+    for (const [key, value] of Object.entries(tags)) {
+      if (!merged[key]) merged[key] = [];
+      if (Array.isArray(value)) {
+        merged[key].push(...value);
+      } else {
+        merged[key].push(value);
+      }
+    }
+  }
+  // Deduplicate single-value keys
+  const result: Record<string, string | string[]> = {};
+  for (const [key, values] of Object.entries(merged)) {
+    result[key] = values.length === 1 ? values[0] : values;
+  }
+  return result;
 }
 
 // ── Sitewide JSON-LD array (injected in layout.tsx) ──────────────────
