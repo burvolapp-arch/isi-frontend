@@ -5,6 +5,8 @@ import { ErrorPanel } from "@/components/ErrorPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CountryView } from "@/components/CountryView";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { TrendChart } from "@/components/TrendChart";
 import {
   computePercentile,
   extractCompositeScores,
@@ -95,7 +97,7 @@ export default async function CountryPage({ params }: PageProps) {
 
   if (error || !country) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-10 lg:px-16">
           <Link
             href="/"
@@ -129,7 +131,7 @@ export default async function CountryPage({ params }: PageProps) {
   const compositeMean = isi?.statistics.mean ?? null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -144,12 +146,12 @@ export default async function CountryPage({ params }: PageProps) {
       <main className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-16">
         {/* ── Breadcrumb ── */}
         <div className="pt-6 sm:pt-10">
-          <Link
-            href="/"
-            className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0"
-          >
-            ← Back to Overview
-          </Link>
+          <Breadcrumbs
+            items={[
+              { label: "Countries", href: "/" },
+              { label: country.country_name },
+            ]}
+          />
         </div>
 
         {/* ── Country Header + Mode Toggle + Views (client) ── */}
@@ -434,6 +436,13 @@ function HistorySection({ history }: { history: CountryHistory }) {
       <p className="mt-1 text-[12px] text-text-quaternary">
         Methodology version: {history.methodology_version}
       </p>
+
+      {/* ── Trend Chart (visual) ── */}
+      <div className="mt-6">
+        <TrendChart history={history} />
+      </div>
+
+      {/* ── Data Table ── */}
       <div className="mt-6 overflow-x-auto">
         <table className="min-w-full text-[14px]">
           <thead>
