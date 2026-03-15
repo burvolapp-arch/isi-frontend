@@ -16,6 +16,7 @@ import {
   deriveAxisColumns,
   countryHref,
   axisHref,
+  getCountryNumericField,
 } from "@/lib/format";
 import { formatScore, formatDelta } from "@/lib/presentation";
 import { StatusBadge } from "./StatusBadge";
@@ -59,8 +60,8 @@ function getSortValue(
     return c.isi_composite - mean;
   }
   if (key === "rank") return c.isi_composite ?? -1;
-  const val = (c as unknown as Record<string, unknown>)[key];
-  return typeof val === "number" ? val : -1;
+  const val = getCountryNumericField(c, key);
+  return val ?? -1;
 }
 
 function deviationClass(dev: number | null): string {
@@ -162,10 +163,15 @@ export function CountryRankingsTable({
   const sortIndicator = (colKey: SortKey) => {
     if (sortKey !== colKey) return null;
     return (
-      <span className="ml-1 text-navy-700">
+      <span className="ml-1 text-navy-700" aria-hidden="true">
         {sortDir === "asc" ? "↑" : "↓"}
       </span>
     );
+  };
+
+  const ariaSortAttr = (colKey: SortKey): "ascending" | "descending" | "none" => {
+    if (sortKey !== colKey) return "none";
+    return sortDir === "asc" ? "ascending" : "descending";
   };
 
   const thBase =
@@ -179,12 +185,14 @@ export function CountryRankingsTable({
           <input
             type="text"
             placeholder="Search country…"
+            aria-label="Search countries"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-primary placeholder-text-quaternary outline-none focus:border-navy-700 sm:min-h-0"
           />
           <select
             value={classFilter}
+            aria-label="Filter by classification"
             onChange={(e) =>
               setClassFilter(
                 e.target.value as ScoreClassification | "all"
@@ -213,6 +221,7 @@ export function CountryRankingsTable({
               <th
                 className={`${thBase} sticky left-0 z-10 w-12 bg-white text-center`}
                 onClick={() => handleSort("rank")}
+                aria-sort={ariaSortAttr("rank")}
               >
                 #
                 {sortIndicator("rank")}
@@ -220,6 +229,7 @@ export function CountryRankingsTable({
               <th
                 className={`${thBase} sticky left-12 z-10 bg-white text-left`}
                 onClick={() => handleSort("country_name")}
+                aria-sort={ariaSortAttr("country_name")}
               >
                 Country
                 {sortIndicator("country_name")}
@@ -227,6 +237,7 @@ export function CountryRankingsTable({
               <th
                 className={`${thBase} text-right`}
                 onClick={() => handleSort("isi_composite")}
+                aria-sort={ariaSortAttr("isi_composite")}
               >
                 Composite
                 {sortIndicator("isi_composite")}
@@ -234,6 +245,7 @@ export function CountryRankingsTable({
               <th
                 className={`${thBase} text-right`}
                 onClick={() => handleSort("percentile")}
+                aria-sort={ariaSortAttr("percentile")}
               >
                 Rank
                 {sortIndicator("percentile")}
@@ -241,6 +253,7 @@ export function CountryRankingsTable({
               <th
                 className={`${thBase} text-right`}
                 onClick={() => handleSort("deviation")}
+                aria-sort={ariaSortAttr("deviation")}
               >
                 Δ Mean
                 {sortIndicator("deviation")}
@@ -250,6 +263,7 @@ export function CountryRankingsTable({
                   key={col.fieldKey}
                   className={`${thBase} text-right`}
                   onClick={() => handleSort(col.fieldKey as SortKey)}
+                  aria-sort={ariaSortAttr(col.fieldKey as SortKey)}
                   title={col.tooltip}
                 >
                   {col.label}
@@ -259,6 +273,7 @@ export function CountryRankingsTable({
               <th
                 className={`${thBase} text-center`}
                 onClick={() => handleSort("classification")}
+                aria-sort={ariaSortAttr("classification")}
               >
                 Classification
                 {sortIndicator("classification")}
@@ -378,7 +393,7 @@ export function CountryRankingsTable({
                   {/* Axis scores grid */}
                   <div className="grid grid-cols-2 gap-2">
                     {axisColumns.map((col) => {
-                      const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
+                      const score = getCountryNumericField(c, col.fieldKey);
                       const axisDev = deviationFromMean(score, mean);
                       return (
                         <Link
@@ -538,7 +553,7 @@ function TableRow({
 
         {/* Axis scores (dynamic) */}
         {axisColumns.map((col) => {
-          const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
+          const score = getCountryNumericField(c, col.fieldKey);
           const axisDev = deviationFromMean(score, mean);
           return (
             <td
@@ -566,7 +581,7 @@ function TableRow({
           <td colSpan={axisColumns.length + 5} className="px-4 py-4">
             <div className="flex flex-wrap gap-3">
               {axisColumns.map((col) => {
-                const score = (c as unknown as Record<string, unknown>)[col.fieldKey] as number | null;
+                const score = getCountryNumericField(c, col.fieldKey);
                 const axisDev = deviationFromMean(score, mean);
                 return (
                   <Link

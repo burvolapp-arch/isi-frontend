@@ -53,6 +53,7 @@ async function fetchJson<T>(path: string): Promise<T> {
     method: "GET",
     headers: { Accept: "application/json" },
     next: { revalidate: 300 },
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!res.ok) {

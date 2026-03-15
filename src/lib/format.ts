@@ -14,12 +14,9 @@ import { FIELD_TO_SLUG } from "./axisRegistry";
 import { formatAxisFull } from "./presentation";
 
 // ─── Score Formatting ───────────────────────────────────────────────
-
-/** Format a score to 4 decimal places, or em-dash for null */
-export function formatScore(score: number | null | undefined): string {
-  if (score === null || score === undefined) return "—";
-  return score.toFixed(4);
-}
+// formatScore is defined in presentation.ts (single source of truth).
+// Re-exported here for backwards compatibility.
+export { formatScore } from "./presentation";
 
 /**
  * Convert a snake_case backend key into a human-readable title.
@@ -199,9 +196,30 @@ export function getAxisScores(
     return {
       key,
       label: formatAxisFull(slug),
-      value: (c as unknown as Record<string, unknown>)[key] as number | null,
+      value: getCountryNumericField(c, key),
     };
   });
+}
+
+/**
+ * Type-safe dynamic field accessor for ISICompositeCountry.
+ * Axis fields (axis_N_*) are dynamically keyed and not in the static type.
+ * This accessor avoids `as unknown as Record` scattered through components.
+ */
+export function getCountryField(
+  c: ISICompositeCountry,
+  field: string,
+): number | string | boolean | null {
+  return (c as unknown as Record<string, number | string | boolean | null>)[field] ?? null;
+}
+
+/** Numeric variant — returns number | null only */
+export function getCountryNumericField(
+  c: ISICompositeCountry,
+  field: string,
+): number | null {
+  const val = (c as unknown as Record<string, unknown>)[field];
+  return typeof val === "number" ? val : null;
 }
 
 // ─── Slug / Routing ─────────────────────────────────────────────────

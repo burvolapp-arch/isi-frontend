@@ -1,20 +1,11 @@
 import { fetchISI } from "@/lib/api";
+import { discoverAxisFieldKeys } from "@/lib/format";
 
 export const revalidate = 300;
 
-const COLUMNS = [
-  "country",
-  "country_name",
-  "axis_1_financial",
-  "axis_2_energy",
-  "axis_3_technology",
-  "axis_4_defense",
-  "axis_5_critical_inputs",
-  "axis_6_logistics",
-  "isi_composite",
-  "classification",
-  "complete",
-] as const;
+/** Fixed columns that always appear at the start/end of the CSV */
+const PREFIX_COLUMNS = ["country", "country_name"] as const;
+const SUFFIX_COLUMNS = ["isi_composite", "classification", "complete"] as const;
 
 function escapeCSV(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -29,9 +20,15 @@ export async function GET() {
   try {
     const data = await fetchISI();
 
-    const header = COLUMNS.join(",");
+    // Derive axis columns dynamically from data shape
+    const axisColumns = data.countries.length > 0
+      ? discoverAxisFieldKeys(data.countries[0])
+      : [];
+    const columns = [...PREFIX_COLUMNS, ...axisColumns, ...SUFFIX_COLUMNS];
+
+    const header = columns.join(",");
     const rows = data.countries.map((c) =>
-      COLUMNS.map((col) => escapeCSV(c[col])).join(",")
+      columns.map((col) => escapeCSV((c as unknown as Record<string, unknown>)[col])).join(",")
     );
     const csvString = [header, ...rows].join("\n");
 

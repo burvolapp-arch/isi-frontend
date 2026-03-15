@@ -210,9 +210,11 @@ export function ScenarioLaboratory({
 
   // ── Scenario state ──
   const [scenarioState, setScenarioState] = useState<ScenarioState>({ status: "IDLE" });
-  const [failureTimestamp, setFailureTimestamp] = useState<string | null>(null);
-  const [failureStatus, setFailureStatus] = useState<number | null>(null);
-  const [failureMessage, setFailureMessage] = useState<string | null>(null);
+  const [failureInfo, setFailureInfo] = useState<{
+    timestamp: string | null;
+    status: number | null;
+    message: string | null;
+  }>({ timestamp: null, status: null, message: null });
 
   const scenario = getScenarioData(scenarioState);
   const serviceState = getServiceStatus(scenarioState);
@@ -235,18 +237,22 @@ export function ScenarioLaboratory({
   const lastSuccessRef = useRef<ScenarioResponse | null>(null);
   const [activePresetLabel, setActivePresetLabel] = useState<string | null>(null);
 
-  // ── Timeline ──
-  const [timeline, setTimeline] = useState<TimelineEntry[]>(() => {
-    if (typeof window === "undefined") return [];
+  // ── Timeline (hydration-safe: read sessionStorage in useEffect, not initializer) ──
+  const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
+  const timelineHydrated = useRef(false);
+  useEffect(() => {
+    if (timelineHydrated.current) return;
+    timelineHydrated.current = true;
     try {
       const stored = sessionStorage.getItem(`isi-timeline-${code}`);
       if (stored) {
         const parsed = JSON.parse(stored) as TimelineEntry[];
-        return Array.isArray(parsed) ? parsed.slice(0, MAX_TIMELINE_ENTRIES) : [];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTimeline(parsed.slice(0, MAX_TIMELINE_ENTRIES));
+        }
       }
     } catch { /* ignore */ }
-    return [];
-  });
+  }, [code]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -314,9 +320,7 @@ export function ScenarioLaboratory({
         if (!isValidScenarioResponse(result)) {
           logOnce("invalid-response", "Response failed validation", result);
           setScenarioState({ status: "ERROR", cached: lastSuccessRef.current });
-          setFailureTimestamp(new Date().toISOString());
-          setFailureStatus(null);
-          setFailureMessage("Response validation failed.");
+          setFailureInfo({ timestamp: new Date().toISOString(), status: null, message: "Response validation failed." });
           return;
         }
 
@@ -324,9 +328,7 @@ export function ScenarioLaboratory({
         retryCountRef.current = 0;
         // Batch all state updates together
         setScenarioState({ status: "SUCCESS", data: result });
-        setFailureTimestamp(null);
-        setFailureStatus(null);
-        setFailureMessage(null);
+        setFailureInfo({ timestamp: null, status: null, message: null });
 
         setTimeline((prev) => {
           const entry: TimelineEntry = {
@@ -345,9 +347,11 @@ export function ScenarioLaboratory({
         const kind = classifyErrorLocal(err);
         const httpStatus = err instanceof ApiError ? err.status : null;
         logOnce(`${kind}-${httpStatus}`, `${kind}: status=${httpStatus ?? "N/A"}`);
-        setFailureTimestamp(new Date().toISOString());
-        setFailureStatus(httpStatus);
-        setFailureMessage(err instanceof ApiError && err.body ? err.body : null);
+        setFailureInfo({
+          timestamp: new Date().toISOString(),
+          status: httpStatus,
+          message: err instanceof ApiError && err.body ? err.body : null,
+        });
 
         if (kind === "ROUTE_MISSING" || kind === "BAD_INPUT" || kind === "TRANSPORT_LAYER_BLOCKED") {
           if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
@@ -384,8 +388,7 @@ export function ScenarioLaboratory({
 
       if (Object.keys(adj).length === 0) {
         setScenarioState({ status: "IDLE" });
-        setFailureTimestamp(null);
-        setFailureStatus(null);
+        setFailureInfo({ timestamp: null, status: null, message: null });
         return;
       }
 
@@ -408,9 +411,7 @@ export function ScenarioLaboratory({
   const retrySimulation = useCallback(() => {
     retryCountRef.current = 0;
     setScenarioState({ status: "IDLE" });
-    setFailureTimestamp(null);
-    setFailureStatus(null);
-    setFailureMessage(null);
+    setFailureInfo({ timestamp: null, status: null, message: null });
     if (hasAdjustments) executeScenarioRequest(activeAdjustments, false);
   }, [hasAdjustments, activeAdjustments, executeScenarioRequest]);
 
@@ -436,9 +437,7 @@ export function ScenarioLaboratory({
     for (const slug of ALL_AXIS_SLUGS) reset[slug] = 0;
     setAdjustments(reset as Record<AxisSlug, number>);
     setScenarioState({ status: "IDLE" });
-    setFailureTimestamp(null);
-    setFailureStatus(null);
-    setFailureMessage(null);
+    setFailureInfo({ timestamp: null, status: null, message: null });
     setActivePresetLabel(null);
   }, []);
 
@@ -816,13 +815,13 @@ export function ScenarioLaboratory({
       {(serviceState === "SERVICE_DOWN" || serviceState === "ERROR") && (
         <div role="alert" className="rounded border border-stone-200 bg-stone-50 px-4 py-3">
           <p className="text-[13px] font-medium text-stone-600">
-            {failureStatus === 404
+            {failureInfo.status === 404
               ? "Country not available for simulation."
-              : failureStatus === 400
-                ? (failureMessage || "Invalid input parameters.")
-                : (failureStatus === 500 || failureStatus === 502)
+              : failureInfo.status === 400
+                ? (failureInfo.message || "Invalid input parameters.")
+                : (failureInfo.status === 500 || failureInfo.status === 502)
                   ? "Simulation service temporarily unavailable."
-                  : failureStatus === null
+                  : failureInfo.status === null
                     ? "Network connection error."
                     : "Simulation error."}
           </p>
@@ -852,7 +851,7 @@ export function ScenarioLaboratory({
               Technical details
             </summary>
             <div className="mt-1 font-mono text-[10px] text-stone-400">
-              <p>HTTP: {failureStatus ?? "N/A"} · {failureTimestamp ?? new Date().toISOString()}</p>
+              <p>HTTP: {failureInfo.status ?? "N/A"} · {failureInfo.timestamp ?? new Date().toISOString()}</p>
             </div>
           </details>
         </div>

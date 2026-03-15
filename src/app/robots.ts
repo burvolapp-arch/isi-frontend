@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/", "/research/"],
-        disallow: ["/api/debug-env", "/country/*/scenario"],
+        disallow: ["/api/debug-env", "/api/scenario"],
       },
       // Google Scholar / academic crawlers — full access, no delay
       {

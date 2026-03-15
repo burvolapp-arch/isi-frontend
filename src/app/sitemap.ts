@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { PAPERS, RESEARCH_PATH } from "@/lib/papers";
+import { ALL_AXIS_SLUGS } from "@/lib/axisRegistry";
 
 const BASE = "https://isi.internationalsovereignty.org";
 
@@ -81,5 +82,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-  return [...staticPages, ...paperPages, ...pdfUrls];
+  // EU-27 country pages
+  const EU27_CODES = [
+    "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR",
+    "DE","GR","HU","IE","IT","LV","LT","LU","MT","NL",
+    "PL","PT","RO","SK","SI","ES","SE",
+  ];
+  const countryPages: MetadataRoute.Sitemap = EU27_CODES.map((code) => ({
+    url: `${BASE}/country/${code.toLowerCase()}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // Axis detail pages
+  const axisPages: MetadataRoute.Sitemap = ALL_AXIS_SLUGS.map((slug) => ({
+    url: `${BASE}/axis/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...countryPages, ...axisPages, ...paperPages, ...pdfUrls];
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useId } from "react";
 import { formatScore } from "@/lib/presentation";
 
 /**
@@ -127,7 +127,8 @@ export const DistributionHistogram = memo(function DistributionHistogram({
   }
 
   // Unique gradient IDs (avoid collisions when multiple histograms render)
-  const uid = `dh-${binCount}-${height}`;
+  const reactId = useId();
+  const uid = `dh${reactId.replace(/:/g, "")}`;
 
   // Pre-compute marker X positions for collision checks
   const meanX = mean != null ? xScale(mean) : null;

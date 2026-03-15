@@ -540,7 +540,7 @@ export const RadarChart = memo(function RadarChart({
           fill="transparent"
           cursor={countryCode ? "pointer" : "default"}
           role="button"
-          tabIndex={0}
+          tabIndex={countryCode ? 0 : -1}
           aria-label={`${axis.label}: ${fmtScore(axis.value)}`}
           onMouseEnter={() => handleAxisHover(i)}
           onMouseMove={handleAxisMove}
