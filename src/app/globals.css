@@ -80,6 +80,72 @@
   --color-foreground: #111827;
 }
 
+/* ============================================================================
+   Dark Mode Token Overrides
+   ============================================================================
+   Class-based strategy: html.dark overrides semantic tokens.
+   Static palette (navy-*, stone-*) stays fixed; semantic aliases adapt.
+   ============================================================================ */
+
+.dark {
+  /* ── Surfaces ──────────────────────────────────────────── */
+  --color-surface-primary: #0f1724;
+  --color-surface-secondary: #131c2e;
+  --color-surface-tertiary: #1a2436;
+  --color-surface-elevated: #1e2a3e;
+  --color-surface-inverse: #f9fafb;
+
+  /* ── Borders ───────────────────────────────────────────── */
+  --color-border-primary: #2a3548;
+  --color-border-secondary: #374357;
+  --color-border-subtle: #1e2a3e;
+
+  /* ── Text ──────────────────────────────────────────────── */
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #b0b8c4;
+  --color-text-tertiary: #8892a2;
+  --color-text-quaternary: #5f697a;
+  --color-text-inverse: #111827;
+
+  /* ── Classification Bands — brighter for dark bg ───────── */
+  --color-band-highly: #f87171;
+  --color-band-moderately: #fbbf24;
+  --color-band-mildly: #d97706;
+  --color-band-unconcentrated: #34d399;
+
+  /* ── Severity — brighter for dark bg ───────────────────── */
+  --color-severity-high: #f87171;
+  --color-severity-medium: #fbbf24;
+  --color-severity-low: #d97706;
+  --color-severity-none: #34d399;
+
+  /* ── Deviation — brighter for dark bg ──────────────────── */
+  --color-deviation-positive: #f87171;
+  --color-deviation-negative: #34d399;
+
+  /* ── Accent ────────────────────────────────────────────── */
+  --color-accent: #60a5fa;
+  --color-accent-muted: #3b82f6;
+
+  /* ── Semantic Aliases ──────────────────────────────────── */
+  --color-background: #0b1120;
+  --color-foreground: #e5e7eb;
+}
+
+/* ── Dark mode scrollbar ─────────────────────────────────── */
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-stone-600);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-stone-500);
+}
+
+/* ── Dark mode selection ─────────────────────────────────── */
+.dark ::selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
 /* ── Base ───────────────────────────────────────────────── */
 html {
   overflow-x: hidden;

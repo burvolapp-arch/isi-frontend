@@ -56,7 +56,7 @@ export default async function AxisPage({ params }: PageProps) {
 
   if (registryError || axisId === null) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link
             href="/"
@@ -93,7 +93,7 @@ export default async function AxisPage({ params }: PageProps) {
 
   if (error || !axis) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link
             href="/"
@@ -134,7 +134,7 @@ export default async function AxisPage({ params }: PageProps) {
   const outlierThreshold = stdDev !== null && meanVal !== null ? 1.5 * stdDev : null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

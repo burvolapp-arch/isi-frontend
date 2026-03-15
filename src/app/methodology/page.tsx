@@ -83,7 +83,7 @@ export default async function MethodologyPage() {
   const latest = methodologyResult?.versions?.[0] ?? null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

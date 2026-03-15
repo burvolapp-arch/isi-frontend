@@ -1,6 +1,6 @@
 export default function RootLoading() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16 space-y-10">
         {/* Header skeleton */}
         <div className="space-y-3">

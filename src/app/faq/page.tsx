@@ -77,7 +77,7 @@ const FAQ_ITEMS: FAQItem[] = [
 
 export default function FAQPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

@@ -3,6 +3,11 @@ import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 import { ClarityAnalytics } from "@/lib/clarity";
 import { HeaderNav } from "@/components/HeaderNav";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { ToastProvider } from "@/components/Toast";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { CopyCitationButton } from "@/components/CopyCitationButton";
 import { sitewideJsonLd } from "@/lib/structuredData";
 import "./globals.css";
 
@@ -116,6 +121,8 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} min-h-screen antialiased`}
       >
+        <ThemeProvider>
+        <ToastProvider>
         <ClarityAnalytics />
         <script
           type="application/ld+json"
@@ -142,7 +149,10 @@ export default function RootLayout({
                   International Sovereignty Index
                 </span>
               </Link>
-              <HeaderNav items={HEADER_NAV} />
+              <div className="flex items-center gap-1">
+                <HeaderNav items={HEADER_NAV} />
+                <ThemeToggle />
+              </div>
             </div>
           </header>
 
@@ -150,7 +160,7 @@ export default function RootLayout({
           <main id="main-content" className="flex-1">{children}</main>
 
           {/* ── Footer ─────────────────────────────────────── */}
-          <footer className="border-t border-border-primary bg-stone-50">
+          <footer className="border-t border-border-primary bg-surface-tertiary dark:bg-surface-secondary">
             <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12 lg:px-16">
 
               {/* Block A (top): Citation + Downloads */}
@@ -158,7 +168,7 @@ export default function RootLayout({
                 <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                   Cite the ISI
                 </h3>
-                <p className="mt-3 rounded border border-border-primary bg-white px-3 py-3 font-mono text-[10px] leading-relaxed text-text-tertiary sm:px-4 sm:py-3.5 sm:text-[12px]">
+                <p id="isi-citation" className="mt-3 rounded border border-border-primary bg-surface-primary px-3 py-3 font-mono text-[10px] leading-relaxed text-text-tertiary sm:px-4 sm:py-3.5 sm:text-[12px]">
                   Drazsky, S., &amp; International Sovereignty Institute. (2026, February).{" "}
                   <em>
                     External Supplier Concentration — EU-27 Founding Cohort.
@@ -188,6 +198,7 @@ export default function RootLayout({
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                     JSON
                   </a>
+                  <CopyCitationButton />
                 </div>
               </div>
 
@@ -230,7 +241,12 @@ export default function RootLayout({
 
             </div>
           </footer>
+          <MobileBottomNav />
         </div>
+        {/* Bottom nav spacer for mobile */}
+        <div className="h-16 sm:hidden" aria-hidden="true" />
+        </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

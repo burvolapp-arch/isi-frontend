@@ -42,7 +42,7 @@ export function CountryTable({ countries }: CountryTableProps) {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-200 bg-white dark:divide-zinc-800 dark:bg-zinc-950">
+        <tbody className="divide-y divide-zinc-200 bg-surface-primary dark:divide-zinc-800 dark:bg-zinc-950">
           {countries.map((c) => (
             <tr
               key={c.country}

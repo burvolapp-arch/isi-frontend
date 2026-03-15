@@ -14,7 +14,7 @@ export default function RootError({
     console.error("[ISI] Unhandled error:", error.digest ?? error.message);
   }, [error]);
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <main className="mx-auto flex max-w-[1400px] flex-col items-center justify-center px-4 py-24 sm:px-6 lg:px-16">
         <div className="mx-auto w-full max-w-lg rounded-md border border-border-primary bg-surface-tertiary p-6 sm:p-8">
           <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">

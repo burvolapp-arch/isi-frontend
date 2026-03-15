@@ -1,6 +1,6 @@
 export default function CountryLoading() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16 space-y-8">
         <div className="h-4 w-32 animate-pulse bg-surface-tertiary" />
         <div className="space-y-3">

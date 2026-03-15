@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { RadarChart } from "@/components/RadarChart";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useToast } from "@/components/Toast";
 import {
   fetchScenario,
   ApiError,
@@ -206,6 +207,7 @@ export function ScenarioLaboratory({
   totalRanked,
 }: ScenarioLaboratoryProps) {
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const code = country.country;
 
   // ── Scenario state ──
@@ -515,7 +517,8 @@ export function ScenarioLaboratory({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [scenario, country, baselineRank, activeAdjustments]);
+    toast("Simulation export complete");
+  }, [scenario, country, baselineRank, activeAdjustments, toast]);
 
   const showSimulated = hasAdjustments && scenario !== null && serviceState === "SUCCESS";
 
@@ -704,7 +707,7 @@ export function ScenarioLaboratory({
                   disabled:opacity-40 disabled:cursor-not-allowed
                   ${isActive
                     ? "border-navy-700 bg-navy-700 text-white"
-                    : "border-border-primary bg-white text-text-secondary hover:bg-stone-50"
+                    : "border-border-primary bg-surface-primary text-text-secondary hover:bg-surface-tertiary"
                   }
                 `}
               >
@@ -760,7 +763,7 @@ export function ScenarioLaboratory({
                               ? isBase
                                 ? "bg-stone-700 text-white"
                                 : "bg-navy-700 text-white"
-                              : "border border-border-primary bg-white text-text-tertiary hover:bg-stone-50"
+                              : "border border-border-primary bg-surface-primary text-text-tertiary hover:bg-surface-tertiary"
                             }
                           `}
                         >
@@ -782,7 +785,7 @@ export function ScenarioLaboratory({
           type="button"
           onClick={resetToBaseline}
           disabled={(!hasAdjustments && serviceState === "IDLE") || serviceState === "COMPUTING"}
-          className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-0"
+          className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-0"
         >
           Reset to Baseline
         </button>
@@ -790,7 +793,7 @@ export function ScenarioLaboratory({
           <button
             type="button"
             onClick={retrySimulation}
-            className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+            className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
           >
             Retry
           </button>
@@ -799,7 +802,7 @@ export function ScenarioLaboratory({
           <button
             type="button"
             onClick={exportSnapshot}
-            className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+            className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
           >
             Export JSON
           </button>
@@ -834,14 +837,14 @@ export function ScenarioLaboratory({
             <button
               type="button"
               onClick={retrySimulation}
-              className="min-h-[44px] rounded border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium text-stone-600 hover:bg-stone-50 sm:min-h-0"
+              className="min-h-[44px] rounded border border-stone-300 bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={resetToBaseline}
-              className="min-h-[44px] rounded border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium text-stone-600 hover:bg-stone-50 sm:min-h-0"
+              className="min-h-[44px] rounded border border-stone-300 bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
             >
               Reset
             </button>

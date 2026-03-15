@@ -133,7 +133,7 @@ export default async function EU27Page() {
 
   if (!isi || isiError) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
@@ -154,7 +154,7 @@ export default async function EU27Page() {
   const eu = computeEUAggregate(isi.countries, isi.statistics);
   if (!eu) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
@@ -174,7 +174,7 @@ export default async function EU27Page() {
   const compositeScores = extractCompositeScores(isi.countries);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
