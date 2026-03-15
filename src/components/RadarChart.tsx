@@ -54,6 +54,13 @@ export interface RadarAxisMeta {
   totalRanked?: number | null;
 }
 
+/** Multi-country overlay layer */
+export interface RadarOverlay {
+  axes: RadarAxisInput[];
+  label: string;
+  color: string;
+}
+
 interface RadarChartProps {
   /** Primary country's axis scores — slug + value only */
   axes: RadarAxisInput[];
@@ -62,6 +69,8 @@ interface RadarChartProps {
   /** Second country overlay (for comparison mode) */
   compareAxes?: RadarAxisInput[];
   compareLabel?: string;
+  /** Multiple country overlays (3-4 country comparison mode) */
+  overlays?: RadarOverlay[];
   /** Country label */
   label?: string;
   /** Country code for axis navigation (e.g. "SE") */
@@ -206,6 +215,7 @@ export const RadarChart = memo(function RadarChart({
   euMean,
   compareAxes,
   compareLabel,
+  overlays,
   label,
   countryCode,
   axisMeta,
@@ -271,7 +281,7 @@ export const RadarChart = memo(function RadarChart({
     );
   };
 
-  const hasLegend = !!(euMean || compareAxes);
+  const hasLegend = !!(euMean || compareAxes || (overlays && overlays.length > 0));
   const totalHeight = VB_SIZE + (hasLegend ? LEGEND_HEIGHT : 0);
   const legendY = VB_SIZE + 2;
 
@@ -284,6 +294,16 @@ export const RadarChart = memo(function RadarChart({
     () => (compareAxes && compareAxes.length > 0 ? buildPath(compareAxes.map((a) => a?.value ?? null)) : null),
     [compareAxes],
   );
+
+  // Multi-country overlay paths
+  const overlayPaths = useMemo(() => {
+    if (!overlays || overlays.length === 0) return [];
+    return overlays.map((ov) => ({
+      path: buildPath(ov.axes.map((a) => a?.value ?? null)),
+      label: ov.label,
+      color: ov.color,
+    }));
+  }, [overlays]);
 
   // ── Interaction handlers ──
   const wedgeReach = radius * 1.15; // wedge extends slightly beyond axis tips
@@ -442,6 +462,22 @@ export const RadarChart = memo(function RadarChart({
         />
       )}
 
+      {/* Multi-country overlay polygons */}
+      {overlayPaths.map((ov, i) => (
+        <path
+          key={ov.label}
+          d={ov.path}
+          fill={ov.color}
+          fillOpacity={0.10}
+          stroke={ov.color}
+          strokeWidth={1.4}
+          strokeDasharray={i === 0 ? "4 3" : i === 1 ? "6 3" : "2 3"}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+
       {/* Primary polygon — solid navy, clearly visible fill */}
       <path
         d={primaryPath}
@@ -571,6 +607,12 @@ export const RadarChart = memo(function RadarChart({
               <text x={MARGIN + 129} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">{compareLabel}</text>
             </g>
           )}
+          {overlayPaths.map((ov, i) => (
+            <g key={ov.label}>
+              <line x1={MARGIN + i * 100} y1={legendY + 14} x2={MARGIN + i * 100 + 14} y2={legendY + 14} stroke={ov.color} strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <text x={MARGIN + i * 100 + 19} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">{ov.label}</text>
+            </g>
+          ))}
         </g>
       )}
     </svg>
