@@ -181,8 +181,10 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     let geojson: GeoJSON.FeatureCollection;
     try {
       geojson = feature(topoData, topoObj) as GeoJSON.FeatureCollection;
-    } catch {
-      console.error("[EUMap] feature() conversion failed");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      console.error(`[EUMap] feature() conversion failed: ${msg}`);
+      setLoadError(`TopoJSON conversion failed: ${msg}`);
       return null;
     }
     if (!geojson.features?.length) return null;

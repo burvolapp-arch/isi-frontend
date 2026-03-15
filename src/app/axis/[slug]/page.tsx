@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { fetchAxes, fetchAxis, ApiError } from "@/lib/api";
@@ -10,11 +11,28 @@ import { countryHref, computeStdDev } from "@/lib/format";
 import { formatAxisFull, formatSeverity, formatEnum, formatScore, formatDelta } from "@/lib/presentation";
 import { resolveSourceCitation, formatSourceInline } from "@/lib/sourceRegistry";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
+import { ALL_AXIS_SLUGS } from "@/lib/axisRegistry";
 
 export const revalidate = 300; // ISR: rebuild at most every 5 minutes
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+export function generateStaticParams() {
+  return ALL_AXIS_SLUGS.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const title = formatAxisFull(slug);
+  const description = `Cross-EU analysis of ${title.toLowerCase()} across all 27 member states. Score distribution, rankings, and data sources.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/axis/${slug}` },
+    openGraph: { title, description },
+  };
 }
 
 export default async function AxisPage({ params }: PageProps) {
@@ -122,6 +140,7 @@ export default async function AxisPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             generateBreadcrumbJsonLd([
+              { name: "Axes", href: "/" },
               { name: formatAxisFull(axis.axis_slug), href: `/axis/${slug}` },
             ])
           ),

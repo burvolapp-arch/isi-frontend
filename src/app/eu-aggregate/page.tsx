@@ -65,7 +65,7 @@ function computeEUAggregate(
     axisMeans[slug] = { sum: 0, count: 0, scores: [] };
     for (const c of scored) {
       const val = (c as unknown as Record<string, unknown>)[field];
-      if (typeof val === "number" && val !== null) {
+      if (typeof val === "number") {
         axisMeans[slug].sum += val;
         axisMeans[slug].count += 1;
         axisMeans[slug].scores.push(val);

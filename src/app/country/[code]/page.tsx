@@ -1,5 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchCountry, fetchISI, fetchHistory, ApiError } from "@/lib/api";
+import { fetchCountry, fetchISI, fetchHistory, fetchAxes, ApiError } from "@/lib/api";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CountryView } from "@/components/CountryView";
@@ -34,6 +35,34 @@ export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ code: string }>;
+}
+
+const EU27_CODES = [
+  "at", "be", "bg", "cy", "cz", "de", "dk", "ee", "el", "es",
+  "fi", "fr", "hr", "hu", "ie", "it", "lt", "lu", "lv", "mt",
+  "nl", "pl", "pt", "ro", "se", "si", "sk",
+];
+
+export function generateStaticParams() {
+  return EU27_CODES.map((code) => ({ code }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { code } = await params;
+  const upperCode = code.toUpperCase();
+  try {
+    const country = await fetchCountry(upperCode);
+    const title = `${country.country_name} — Sovereignty Profile`;
+    const description = `ISI concentration profile for ${country.country_name} (${upperCode}): composite score ${country.isi_composite?.toFixed(4) ?? "N/A"}, classification ${classificationLabel(country.isi_classification)}.`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/country/${code.toLowerCase()}` },
+      openGraph: { title, description },
+    };
+  } catch {
+    return { title: `Country ${upperCode}` };
+  }
 }
 
 export default async function CountryPage({ params }: PageProps) {
@@ -106,6 +135,7 @@ export default async function CountryPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             generateBreadcrumbJsonLd([
+              { name: "Countries", href: "/" },
               { name: country.country_name, href: `/country/${code.toLowerCase()}` },
             ])
           ),
@@ -275,7 +305,9 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
                           ? "text-severity-medium"
                           : "text-text-quaternary"
                     }`}
+                    aria-label={`Severity: ${formatSeverity(w.severity)}`}
                   >
+                    {w.severity === "HIGH" ? "▲" : w.severity === "MEDIUM" ? "◆" : "●"}{" "}
                     [{formatSeverity(w.severity)}]
                   </span>
                   {w.text}

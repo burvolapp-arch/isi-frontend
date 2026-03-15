@@ -111,7 +111,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="dns-prefetch" href="https://isi-backend-production.up.railway.app" />
         <link rel="preconnect" href="https://isi-backend-production.up.railway.app" crossOrigin="anonymous" />
       </head>
       <body
@@ -125,6 +124,12 @@ export default function RootLayout({
           }}
         />
 
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded focus:bg-navy-900 focus:px-4 focus:py-2 focus:text-white"
+        >
+          Skip to main content
+        </a>
         <div className="flex min-h-screen flex-col">
           {/* ── Header ─────────────────────────────────────── */}
           <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-navy-900/95 backdrop-blur-md">
@@ -142,7 +147,7 @@ export default function RootLayout({
           </header>
 
           {/* ── Main Content ───────────────────────────────── */}
-          <main className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1">{children}</main>
 
           {/* ── Footer ─────────────────────────────────────── */}
           <footer className="border-t border-border-primary bg-stone-50">
@@ -200,16 +205,19 @@ export default function RootLayout({
                       International Sovereignty Index · Founding cohort: EU-27 · HHI framework
                     </p>
                   </div>
-                  <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-text-tertiary sm:gap-x-5">
-                    {FOOTER_NAV.map(({ href, label }) => (
-                      <Link
-                        key={href}
-                        href={href}
-                        className="py-1.5 transition-colors hover:text-text-primary"
-                      >
-                        {label}
-                      </Link>
-                    ))}
+                  <nav aria-label="Footer" className="text-[13px] text-text-tertiary">
+                    <ul className="flex flex-wrap gap-x-4 gap-y-1 sm:gap-x-5">
+                      {FOOTER_NAV.map(({ href, label }) => (
+                        <li key={href}>
+                          <Link
+                            href={href}
+                            className="py-1.5 transition-colors hover:text-text-primary"
+                          >
+                            {label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </nav>
                 </div>
                 <p className="mt-6 text-[11px] leading-relaxed text-text-quaternary">
