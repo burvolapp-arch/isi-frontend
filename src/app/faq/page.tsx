@@ -114,7 +114,7 @@ export default function FAQPage() {
           {FAQ_ITEMS.map((item, i) => (
             <details
               key={i}
-              className="group rounded-md border border-border-primary bg-white transition-[border-color] open:border-stone-300 open:bg-surface-tertiary"
+              className="group rounded-md border border-border-primary bg-surface-primary transition-[border-color] open:border-stone-300 open:bg-surface-tertiary"
             >
               <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-[14px] font-semibold text-text-secondary transition-colors hover:text-text-primary [&::-webkit-details-marker]:hidden min-h-[44px] sm:min-h-0">
                 <span>{item.q}</span>

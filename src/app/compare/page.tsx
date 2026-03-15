@@ -64,13 +64,13 @@ function heatIntensity(absDelta: number, maxAbsDelta: number): number {
   return Math.min(absDelta / maxAbsDelta, 1);
 }
 
-/** Divergence heatmap cell background style */
+/** Divergence heatmap cell background style (dark-mode aware) */
 function heatBg(intensity: number): string {
-  if (intensity < 0.15) return "bg-stone-50";
-  if (intensity < 0.35) return "bg-stone-100";
-  if (intensity < 0.55) return "bg-stone-200";
-  if (intensity < 0.75) return "bg-stone-300";
-  return "bg-stone-400";
+  if (intensity < 0.15) return "bg-stone-50 dark:bg-stone-800/30";
+  if (intensity < 0.35) return "bg-stone-100 dark:bg-stone-800/50";
+  if (intensity < 0.55) return "bg-stone-200 dark:bg-stone-700/60";
+  if (intensity < 0.75) return "bg-stone-300 dark:bg-stone-700/80";
+  return "bg-stone-400 dark:bg-stone-600/90";
 }
 
 /** Ordinal suffix */
@@ -331,8 +331,8 @@ export default function ComparePage() {
       <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <div className="space-y-4">
-            <div className="h-8 w-64 animate-pulse rounded bg-stone-100" />
-            <div className="h-4 w-96 animate-pulse rounded bg-stone-50" />
+            <div className="h-8 w-64 animate-pulse rounded bg-surface-tertiary" />
+            <div className="h-4 w-96 animate-pulse rounded bg-surface-tertiary/50" />
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="h-12 animate-pulse rounded border border-border-primary bg-surface-tertiary" />
               <div className="h-12 animate-pulse rounded border border-border-primary bg-surface-tertiary" />
@@ -596,13 +596,13 @@ export default function ComparePage() {
                       </div>
                       {/* Dual bar */}
                       <div className="mt-1.5 flex gap-1">
-                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-stone-800/40">
                           <div
                             className="h-full rounded bg-navy-700 transition-all"
                             style={{ width: `${Math.max(shareA * 100, 0.5)}%` }}
                           />
                         </div>
-                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-stone-800/40">
                           <div
                             className="h-full rounded bg-stone-400 transition-all"
                             style={{ width: `${Math.max(shareB * 100, 0.5)}%` }}
@@ -829,7 +829,7 @@ export default function ComparePage() {
                           : "—"}
                       </td>
                       <td className="px-3 py-2.5 text-center">
-                        <span className="inline-block rounded bg-stone-100 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+                        <span className="inline-block rounded bg-stone-100 dark:bg-stone-800/50 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
                           Σ {diagnostic.structuralDistance.toFixed(4)}
                         </span>
                       </td>

@@ -152,30 +152,30 @@ function RadarTooltip({
       ref={ref}
       role="tooltip"
       style={style}
-      className="pointer-events-none rounded-lg border border-stone-200 bg-white px-4 py-3 shadow-lg dark:border-stone-700 dark:bg-stone-900"
+      className="pointer-events-none rounded-lg border border-border-primary bg-surface-primary px-4 py-3 shadow-lg"
     >
-      <p className="mb-2 text-sm font-semibold text-stone-800 dark:text-stone-100">
+      <p className="mb-2 text-sm font-semibold text-text-primary">
         {data.label}
       </p>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-        <span className="text-stone-500">Score</span>
-        <span className="font-mono text-stone-800 dark:text-stone-200">
+        <span className="text-text-quaternary">Score</span>
+        <span className="font-mono text-text-secondary">
           {fmtScore(data.score)}
         </span>
-        <span className="text-stone-500">Cohort Mean</span>
-        <span className="font-mono text-stone-800 dark:text-stone-200">
+        <span className="text-text-quaternary">Cohort Mean</span>
+        <span className="font-mono text-text-secondary">
           {fmtScore(data.euMean)}
         </span>
-        <span className="text-stone-500">Deviation</span>
-        <span className="font-mono text-stone-800 dark:text-stone-200">
+        <span className="text-text-quaternary">Deviation</span>
+        <span className="font-mono text-text-secondary">
           {data.deviation != null
             ? formatDelta(data.deviation)
             : "—"}
         </span>
         {data.rank != null && data.totalRanked != null && (
           <>
-            <span className="text-stone-500">Rank</span>
-            <span className="font-mono text-stone-800 dark:text-stone-200">
+            <span className="text-text-quaternary">Rank</span>
+            <span className="font-mono text-text-secondary">
               {data.rank} / {data.totalRanked}
             </span>
           </>

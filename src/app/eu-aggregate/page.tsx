@@ -272,7 +272,7 @@ export default async function EU27Page() {
           <p className="mt-1.5 text-[14px] text-text-tertiary">
             Frequency distribution of composite ISI scores. Vertical markers indicate cohort mean and median.
           </p>
-          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
               scores={compositeScores}
               mean={eu.mean}
