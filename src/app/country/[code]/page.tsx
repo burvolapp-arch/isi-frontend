@@ -25,6 +25,8 @@ import {
   formatPercentage,
 } from "@/lib/presentation";
 import { resolveSourceCitation } from "@/lib/sourceRegistry";
+import { SupplierBreakdownChart } from "@/components/SupplierBreakdownChart";
+import { CitationFooter } from "@/components/CitationFooter";
 import type {
   CountryDetail,
   CountryAxisDetail,
@@ -177,6 +179,11 @@ export default async function CountryPage({ params }: PageProps) {
         {history && history.years.length > 1 && (
           <HistorySection history={history} />
         )}
+
+        {/* ── Citation ── */}
+        <div className="mt-10 mb-16">
+          <CitationFooter compact />
+        </div>
       </main>
     </div>
   );
@@ -377,6 +384,16 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                   </div>
                 </div>
               ))}
+            </div>
+            {/* Supplier breakdown stacked bar */}
+            <div className="mt-3">
+              <SupplierBreakdownChart
+                suppliers={validPartners.map((p) => ({
+                  partner: p.partner,
+                  share: p.share,
+                }))}
+                maxDisplay={5}
+              />
             </div>
           </div>
         );

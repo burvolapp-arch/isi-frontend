@@ -92,6 +92,7 @@ const HEADER_NAV = [
   { href: "/eu-aggregate", label: "EU-27" },
   { href: "/compare", label: "Comparative" },
   { href: "/simulation", label: "Simulation" },
+  { href: "/dataset", label: "Dataset" },
   { href: "/methodology", label: "Methodology" },
   { href: "/transparency", label: "Transparency" },
   { href: "/faq", label: "FAQ" },
@@ -99,11 +100,15 @@ const HEADER_NAV = [
 
 const FOOTER_NAV = [
   { href: "/research", label: "Research" },
+  { href: "/dataset", label: "Dataset" },
   { href: "/methodology", label: "Methodology" },
   { href: "/transparency", label: "Transparency" },
   { href: "/eu-aggregate", label: "EU-27 Cohort" },
+  { href: "/analysis/eu", label: "EU Analysis" },
   { href: "/simulation", label: "Simulation" },
   { href: "/compare", label: "Comparative" },
+  { href: "/press", label: "Press" },
+  { href: "/releases", label: "Releases" },
   { href: "/faq", label: "FAQ" },
   { href: "/accessibility", label: "Accessibility" },
 ] as const;

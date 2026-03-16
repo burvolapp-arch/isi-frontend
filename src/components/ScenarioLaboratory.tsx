@@ -21,6 +21,7 @@ import {
   type AxisSlug,
 } from "@/lib/axisRegistry";
 import { formatAxisLabel, formatScore, formatDelta } from "@/lib/presentation";
+import { getScenarioExplanation } from "@/lib/scenarioExplanations";
 import type {
   CountryDetail,
   ScenarioResponse,
@@ -716,6 +717,47 @@ export function ScenarioLaboratory({
             );
           })}
         </div>
+        {/* Scenario explanation panel */}
+        {activePresetLabel && (() => {
+          const activePreset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
+          const explanation = activePreset ? getScenarioExplanation(activePreset.id) : null;
+          if (!explanation) return null;
+          return (
+            <div className="mt-3 rounded-md border border-border-primary bg-surface-tertiary p-4">
+              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                Scenario Context
+              </p>
+              <p className="mt-2 text-[12px] leading-relaxed text-text-tertiary">
+                {explanation.context}
+              </p>
+              <p className="mt-2 text-[11px] leading-relaxed text-text-quaternary">
+                <span className="font-medium text-text-tertiary">Parameter shift:</span>{" "}
+                {explanation.parameterDescription}
+              </p>
+              {explanation.impacts.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
+                    Expected Impacts
+                  </p>
+                  <ul className="mt-1 space-y-0.5">
+                    {explanation.impacts.map((impact, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-[11px] text-text-quaternary">
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-text-quaternary" />
+                        {impact}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {explanation.referenceEvents.length > 0 && (
+                <p className="mt-2 text-[10px] text-text-quaternary">
+                  <span className="font-medium">Reference events:</span>{" "}
+                  {explanation.referenceEvents.join(" · ")}
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </section>
 
       {/* ═══ 3. AXIS-LEVEL ADJUSTMENTS ═══ */}
