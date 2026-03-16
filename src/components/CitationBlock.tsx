@@ -25,14 +25,6 @@ export function CitationBlock({ paper }: CitationBlockProps) {
   useEffect(() => () => clearTimeout(copyTimerRef.current), []);
 
   const anchorId = `cite-${paper.id}`;
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-    };
-  }, []);
 
   const citations = useMemo(
     () => ({
@@ -59,11 +51,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
       document.body.removeChild(textarea);
     }
     setCopied(kind);
-<<<<<<< HEAD
     clearTimeout(copyTimerRef.current);
-=======
-    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
->>>>>>> e3a9a2d (Improve research pages, charts, citation block, and analytical utilities)
     copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   }, []);
 

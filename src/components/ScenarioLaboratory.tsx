@@ -230,7 +230,7 @@ export function ScenarioLaboratory({
       const param = searchParams.get(slug);
       if (param !== null) {
         const val = parseFloat(param);
-        if (!isNaN(val) && val >= -0.30 && val <= 0.30) init[slug] = val;
+        if (!isNaN(val) && val >= -0.20 && val <= 0.20) init[slug] = val;
       }
     }
     return init as Record<AxisSlug, number>;

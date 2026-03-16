@@ -74,11 +74,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-<<<<<<< HEAD
   // EU-27 country pages
   const EU27_CODES = [
     "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR",
-    "DE","GR","HU","IE","IT","LV","LT","LU","MT","NL",
+    "DE","EL","HU","IE","IT","LV","LT","LU","MT","NL",
     "PL","PT","RO","SK","SI","ES","SE",
   ];
   const countryPages: MetadataRoute.Sitemap = EU27_CODES.map((code) => ({
@@ -96,8 +95,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...countryPages, ...axisPages, ...paperPages, ...pdfUrls];
-=======
-  return [...staticPages, ...pdfUrls];
->>>>>>> e3a9a2d (Improve research pages, charts, citation block, and analytical utilities)
+  return [...staticPages, ...countryPages, ...axisPages, ...pdfUrls];
 }
