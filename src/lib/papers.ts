@@ -188,6 +188,7 @@ export function formatPaperDate(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString("en-GB", {
     year: "numeric",
     month: "long",
+    timeZone: "UTC",
   });
 }
 

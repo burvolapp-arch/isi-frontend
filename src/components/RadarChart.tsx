@@ -222,20 +222,22 @@ export const RadarChart = memo(function RadarChart({
 }: RadarChartProps) {
   const router = useRouter();
 
-  // ── Interaction state ──
+  // ── Interaction state (all hooks MUST run before any early return) ──
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  if (axes.length === 0) return null;
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Safety invariant: filter out undefined/invalid axis entries ──
-  const safeAxes = axes.filter(
-    (a): a is RadarAxisInput =>
-      a != null &&
-      typeof a.slug === "string" &&
-      a.slug.length > 0,
+  const safeAxes = useMemo(
+    () =>
+      axes.filter(
+        (a): a is RadarAxisInput =>
+          a != null &&
+          typeof a.slug === "string" &&
+          a.slug.length > 0,
+      ),
+    [axes],
   );
-  if (safeAxes.length === 0) return null;
 
   // Resolve canonical labels from slugs — the ONLY label resolution path
   const resolvedAxes = useMemo(
@@ -254,45 +256,48 @@ export const RadarChart = memo(function RadarChart({
   );
 
   const n = resolvedAxes.length;
-
-  // Radius from authoritative constant — no runtime arithmetic drift
-  const radius = RADAR_RADIUS; // 193 — VB_SIZE * 0.42
-
+  const radius = RADAR_RADIUS;
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;
-  const angleStep = (2 * Math.PI) / n;
+  const angleStep = n > 0 ? (2 * Math.PI) / n : 0;
 
-  const polarToXY = (value: number, index: number) => {
-    const angle = angleStep * index - Math.PI / 2;
-    const safeVal = Number.isFinite(value) ? value : 0;
-    return {
-      x: vbCenterX + radius * safeVal * Math.cos(angle),
-      y: vbCenterY + radius * safeVal * Math.sin(angle),
-    };
-  };
+  const polarToXY = useCallback(
+    (value: number, index: number) => {
+      const angle = angleStep * index - Math.PI / 2;
+      const safeVal = Number.isFinite(value) ? value : 0;
+      return {
+        x: vbCenterX + radius * safeVal * Math.cos(angle),
+        y: vbCenterY + radius * safeVal * Math.sin(angle),
+      };
+    },
+    [angleStep, vbCenterX, vbCenterY, radius],
+  );
 
-  const buildPath = (values: (number | null)[]) => {
-    const points = values.map((v, i) => {
-      const safe = v != null && Number.isFinite(v) ? v : 0;
-      return polarToXY(safe, i);
-    });
-    return (
-      points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z"
-    );
-  };
+  const buildPath = useCallback(
+    (values: (number | null)[]) => {
+      const points = values.map((v, i) => {
+        const safe = v != null && Number.isFinite(v) ? v : 0;
+        return polarToXY(safe, i);
+      });
+      return (
+        points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z"
+      );
+    },
+    [polarToXY],
+  );
 
   const hasLegend = !!(euMean || compareAxes || (overlays && overlays.length > 0));
   const totalHeight = VB_SIZE + (hasLegend ? LEGEND_HEIGHT : 0);
   const legendY = VB_SIZE + 2;
 
-  const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [resolvedAxes]);
+  const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [buildPath, resolvedAxes]);
   const euMeanPath = useMemo(
     () => (euMean ? buildPath(euMean) : null),
-    [euMean],
+    [buildPath, euMean],
   );
   const comparePath = useMemo(
     () => (compareAxes && compareAxes.length > 0 ? buildPath(compareAxes.map((a) => a?.value ?? null)) : null),
-    [compareAxes],
+    [buildPath, compareAxes],
   );
 
   // Multi-country overlay paths
@@ -306,7 +311,7 @@ export const RadarChart = memo(function RadarChart({
   }, [overlays]);
 
   // ── Interaction handlers ──
-  const wedgeReach = radius * 1.15; // wedge extends slightly beyond axis tips
+  const wedgeReach = radius * 1.15;
 
   const handleAxisHover = useCallback((index: number) => {
     setHoveredAxis(index);
@@ -319,6 +324,23 @@ export const RadarChart = memo(function RadarChart({
   const handleAxisLeave = useCallback(() => {
     setHoveredAxis(null);
   }, []);
+
+  // Touch support: show tooltip on tap, auto-dismiss after 2s
+  const handleAxisTouch = useCallback(
+    (e: React.TouchEvent, index: number) => {
+      // Prevent immediate click-through on touch devices
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (touch) {
+        setMousePos({ x: touch.clientX, y: touch.clientY });
+      }
+      setHoveredAxis(index);
+      // Clear any previous auto-dismiss timer
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = setTimeout(() => setHoveredAxis(null), 2000);
+    },
+    [],
+  );
 
   const handleAxisClick = useCallback(
     (index: number) => {
@@ -365,6 +387,9 @@ export const RadarChart = memo(function RadarChart({
     };
   }, [hoveredAxis, resolvedAxes, axisMeta, euMean]);
 
+  // ── Early returns AFTER all hooks ──
+  if (axes.length === 0 || safeAxes.length === 0) return null;
+
   const svg = (
     <svg
       viewBox={`0 0 ${VB_SIZE} ${totalHeight}`}
@@ -375,6 +400,7 @@ export const RadarChart = memo(function RadarChart({
       textRendering="optimizeLegibility"
       strokeLinejoin="round"
       role="img"
+      aria-roledescription="radar chart"
       aria-label={
         label
           ? `Radar chart showing multi-axis profile for ${label}`
@@ -524,6 +550,24 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
+      {/* Comparison data points */}
+      {compareAxes && compareAxes.length > 0 && compareAxes.map((axis, i) => {
+        if (axis?.value == null) return null;
+        const p = polarToXY(axis.value, i);
+        return (
+          <circle
+            key={`cmp-${i}`}
+            cx={p.x}
+            cy={p.y}
+            r={DATA_POINT_RADIUS - 0.5}
+            fill="var(--color-stone-500)"
+            stroke="var(--color-surface-primary)"
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+        );
+      })}
+
       {/* Axis labels — dim non-hovered on interaction */}
       {resolvedAxes.map((axis, i) => {
         const labelPoint = polarToXY(LABEL_OFFSET, i);
@@ -569,9 +613,18 @@ export const RadarChart = memo(function RadarChart({
       })}
 
       {/* Interactive wedge overlay — transparent pie-slice hit areas per axis */}
+      <defs>
+        <style>{`
+          .radar-wedge:focus-visible {
+            outline: 2px solid var(--color-navy-700);
+            outline-offset: -2px;
+          }
+        `}</style>
+      </defs>
       {resolvedAxes.map((axis, i) => (
         <path
           key={`wedge-${i}`}
+          className="radar-wedge"
           d={buildWedge(i, n, vbCenterX, vbCenterY, wedgeReach)}
           fill="transparent"
           cursor={countryCode ? "pointer" : "default"}
@@ -581,8 +634,11 @@ export const RadarChart = memo(function RadarChart({
           onMouseEnter={() => handleAxisHover(i)}
           onMouseMove={handleAxisMove}
           onMouseLeave={handleAxisLeave}
+          onTouchStart={(e) => handleAxisTouch(e, i)}
           onClick={() => handleAxisClick(i)}
           onKeyDown={(e) => handleAxisKeyDown(e, i)}
+          onFocus={() => handleAxisHover(i)}
+          onBlur={handleAxisLeave}
         />
       ))}
 

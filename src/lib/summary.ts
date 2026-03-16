@@ -68,9 +68,9 @@ export function generateStructuralSummary(
   summary += `The lowest axis score is ${formatAxisFull(lowest.name)} at ${formatScore(lowest.score)}`;
   summary += `, indicating relative diversification in this domain`;
 
-  // EU mean comparison for lowest axis
+  // Cohort composite mean comparison (approximation — per-axis means not available here)
   if (euMean !== null && lowest.score < euMean) {
-    summary += " and performance below the cohort composite mean";
+    summary += " and a score below the cohort composite mean";
   }
   summary += ". ";
 

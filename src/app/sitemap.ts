@@ -64,14 +64,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Paper-anchored URLs — deep links into the research page
-  const paperPages: MetadataRoute.Sitemap = PAPERS.map((paper) => ({
-    url: `${BASE}/research#${paper.id}`,
-    lastModified: paper.publicationDate,
-    changeFrequency: "monthly" as const,
-    priority: 0.85,
-  }));
-
   // Direct PDF URLs — ensures search engines and academic crawlers index PDFs
   const pdfUrls: MetadataRoute.Sitemap = PAPERS.flatMap((paper) =>
     paper.files.map((f) => ({
@@ -82,6 +74,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
+<<<<<<< HEAD
   // EU-27 country pages
   const EU27_CODES = [
     "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR",
@@ -104,4 +97,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   return [...staticPages, ...countryPages, ...axisPages, ...paperPages, ...pdfUrls];
+=======
+  return [...staticPages, ...pdfUrls];
+>>>>>>> e3a9a2d (Improve research pages, charts, citation block, and analytical utilities)
 }

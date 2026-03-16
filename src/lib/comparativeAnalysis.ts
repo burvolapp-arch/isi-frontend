@@ -172,7 +172,8 @@ function classifyStructuralProfile(c: ISICompositeCountry): StructuralProfile {
   const mean = entries.reduce((a, b) => a + b.score, 0) / entries.length;
   const variance = entries.reduce((a, b) => a + (b.score - mean) ** 2, 0) / entries.length;
   const stdDev = Math.sqrt(variance);
-  const composite = c.isi_composite;
+  // Note: composite (c.isi_composite) intentionally unused — classification
+  // is based on per-axis structural profile, not composite score.
 
   // Balanced low: all axes below 0.15 (unconcentrated threshold)
   if (entries.every((e) => e.score < 0.15)) return "balanced-low";

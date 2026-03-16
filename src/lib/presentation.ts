@@ -196,8 +196,8 @@ const DATASET_RULES: [RegExp, string][] = [
   // SIPRI with version suffixes
   [/(SIPRI\s+Arms\s+Transfers\s+Database)\s+v[\d.]+/i, "$1"],
   // Generic: strip trailing version/code patterns like "v2.1", "rev4", dataset IDs
-  [/\s+v\d+[\d.]*/g, ""],
-  [/\s+rev\d+/gi, ""],
+  [/\s+v\d+[\d.]*/, ""],
+  [/\s+rev\d+/i, ""],
 ];
 
 export function formatDataset(source: string): string {
