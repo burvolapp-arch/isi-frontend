@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import type { PaperMeta } from "@/lib/papers";
 import { generateAPA, generateChicago, generateBibTeX } from "@/lib/papers";
 
@@ -19,6 +19,10 @@ interface CitationBlockProps {
 export function CitationBlock({ paper }: CitationBlockProps) {
   const [format, setFormat] = useState<CitationFormat>("apa");
   const [copied, setCopied] = useState<"single" | "all" | false>(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Cleanup timeout on unmount
+  useEffect(() => () => clearTimeout(copyTimerRef.current), []);
 
   const anchorId = `cite-${paper.id}`;
 
@@ -47,7 +51,8 @@ export function CitationBlock({ paper }: CitationBlockProps) {
       document.body.removeChild(textarea);
     }
     setCopied(kind);
-    setTimeout(() => setCopied(false), 2000);
+    clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   }, []);
 
   const handleCopySingle = useCallback(() => {
@@ -78,7 +83,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
               onClick={() => setFormat(key)}
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 format === key
-                  ? "bg-white text-text-primary shadow-sm"
+                  ? "bg-surface-primary text-text-primary shadow-sm"
                   : "text-text-tertiary hover:text-text-secondary"
               }`}
             >
@@ -92,7 +97,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
           {/* Permalink */}
           <a
             href={`#${anchorId}`}
-            className="rounded p-1.5 text-text-quaternary transition-colors hover:bg-white hover:text-text-secondary hover:shadow-sm"
+            className="rounded p-1.5 text-text-quaternary transition-colors hover:bg-surface-primary hover:text-text-secondary hover:shadow-sm"
             title="Permalink to this citation"
             aria-label="Permalink to citation"
           >
@@ -105,7 +110,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
           <button
             type="button"
             onClick={handleCopyAll}
-            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-quaternary transition-colors hover:bg-white hover:text-text-secondary hover:shadow-sm"
+            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-quaternary transition-colors hover:bg-surface-primary hover:text-text-secondary hover:shadow-sm"
             aria-label="Copy all citation formats"
             title="Copy all formats"
           >
@@ -130,7 +135,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
           <button
             type="button"
             onClick={handleCopySingle}
-            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-tertiary transition-colors hover:bg-white hover:text-text-primary hover:shadow-sm"
+            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-tertiary transition-colors hover:bg-surface-primary hover:text-text-primary hover:shadow-sm"
             aria-label={`Copy ${FORMAT_LABELS[format]} citation`}
           >
             {copied === "single" ? (

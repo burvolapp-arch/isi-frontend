@@ -219,7 +219,7 @@ export function CountryRankingsTable({
           <thead>
             <tr className="border-b-2 border-navy-900">
               <th
-                className={`${thBase} sticky left-0 z-10 w-12 bg-white text-center`}
+                className={`${thBase} sticky left-0 z-10 w-12 bg-surface-primary text-center`}
                 onClick={() => handleSort("rank")}
                 aria-sort={ariaSortAttr("rank")}
               >
@@ -227,7 +227,7 @@ export function CountryRankingsTable({
                 {sortIndicator("rank")}
               </th>
               <th
-                className={`${thBase} sticky left-12 z-10 bg-white text-left`}
+                className={`${thBase} sticky left-12 z-10 bg-surface-primary text-left`}
                 onClick={() => handleSort("country_name")}
                 aria-sort={ariaSortAttr("country_name")}
               >
@@ -326,7 +326,7 @@ export function CountryRankingsTable({
           return (
             <div
               key={c.country}
-              className="rounded-md border border-border-primary bg-white"
+              className="rounded-md border border-border-primary bg-surface-primary"
             >
               {/* Collapsed row — always visible */}
               <button
@@ -494,7 +494,7 @@ function TableRow({
     <>
       <tr className={`border-b border-border-subtle hover:bg-surface-tertiary transition-colors ${zebraClass} ${borderIndicator}`}>
         {/* Rank */}
-        <td className={`sticky left-0 z-10 whitespace-nowrap px-3 py-2.5 text-center text-[13px] text-text-quaternary ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-white"}`}>
+        <td className={`sticky left-0 z-10 whitespace-nowrap px-3 py-2.5 text-center text-[13px] text-text-quaternary ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-surface-primary"}`}>
           <button
             onClick={onToggle}
             className="inline-flex min-h-[44px] items-center gap-1.5 text-text-quaternary hover:text-text-primary transition-colors sm:min-h-0"
@@ -518,7 +518,7 @@ function TableRow({
         </td>
 
         {/* Country */}
-        <td className={`sticky left-12 z-10 whitespace-nowrap px-3 py-2.5 text-[14px] ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-white"}`}>
+        <td className={`sticky left-12 z-10 whitespace-nowrap px-3 py-2.5 text-[14px] ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-surface-primary"}`}>
           <Link
             href={countryHref(c.country)}
             className="font-medium text-text-primary hover:text-navy-700 transition-colors"
@@ -587,7 +587,7 @@ function TableRow({
                   <Link
                     key={col.fieldKey}
                     href={axisHref(col.slug)}
-                    className="rounded-md border border-border-primary bg-white px-3 py-2.5 transition-colors hover:bg-surface-tertiary"
+                    className="rounded-md border border-border-primary bg-surface-primary px-3 py-2.5 transition-colors hover:bg-surface-tertiary"
                   >
                     <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
                       {col.label}

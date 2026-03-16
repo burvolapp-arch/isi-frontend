@@ -11,7 +11,7 @@ export function PdfPreview({ src, title }: PdfPreviewProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-md border border-border-primary bg-white">
+    <div className="rounded-md border border-border-primary bg-surface-primary">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}

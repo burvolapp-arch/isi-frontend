@@ -143,7 +143,7 @@ export default function OutliersPanel({ countries, mean }: OutliersPanelProps) {
           <Link
             key={card.country}
             href={countryHref(card.country)}
-            className="group block rounded-md border border-border-primary bg-white p-4 sm:p-5 transition-[border-color,box-shadow] duration-150 hover:border-stone-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+            className="group block rounded-md border border-border-primary bg-surface-primary p-4 sm:p-5 transition-[border-color,box-shadow] duration-150 hover:border-stone-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
           >
             <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               {card.title}

@@ -549,7 +549,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             {/* Tooltip */}
             {tooltip && (
               <div
-                className="pointer-events-none absolute z-20 rounded-xl border border-stone-200 bg-white/95 px-5 py-4 text-xs text-navy-900 shadow-lg backdrop-blur-md"
+                className="pointer-events-none absolute z-20 rounded-xl border border-border-primary bg-surface-primary/95 px-5 py-4 text-xs text-text-primary shadow-lg backdrop-blur-md"
                 style={{
                   left: tooltip.x,
                   top: tooltip.y,

@@ -133,7 +133,7 @@ export default async function EU27Page() {
 
   if (!isi || isiError) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
@@ -154,7 +154,7 @@ export default async function EU27Page() {
   const eu = computeEUAggregate(isi.countries, isi.statistics);
   if (!eu) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary hover:text-text-primary sm:min-h-0">
             ← Back to Overview
@@ -174,7 +174,7 @@ export default async function EU27Page() {
   const compositeScores = extractCompositeScores(isi.countries);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -272,7 +272,7 @@ export default async function EU27Page() {
           <p className="mt-1.5 text-[14px] text-text-tertiary">
             Frequency distribution of composite ISI scores. Vertical markers indicate cohort mean and median.
           </p>
-          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
               scores={compositeScores}
               mean={eu.mean}

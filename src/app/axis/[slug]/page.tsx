@@ -56,7 +56,7 @@ export default async function AxisPage({ params }: PageProps) {
 
   if (registryError || axisId === null) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link
             href="/"
@@ -93,7 +93,7 @@ export default async function AxisPage({ params }: PageProps) {
 
   if (error || !axis) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <Link
             href="/"
@@ -134,7 +134,7 @@ export default async function AxisPage({ params }: PageProps) {
   const outlierThreshold = stdDev !== null && meanVal !== null ? 1.5 * stdDev : null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -232,7 +232,7 @@ export default async function AxisPage({ params }: PageProps) {
             <p className="mt-1.5 text-[14px] text-text-tertiary">
               Distribution of HHI scores across all scored cohort countries for this axis.
             </p>
-            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
             <DistributionHistogram
               scores={axisScores}
               mean={meanVal}
@@ -269,7 +269,7 @@ export default async function AxisPage({ params }: PageProps) {
                   <p className="mt-1 text-[13px] text-text-tertiary">
                     {citation.displayName}
                   </p>
-                  <div className="mt-2 rounded border border-border-subtle bg-white px-3 py-2 text-[12px] leading-relaxed text-text-quaternary">
+                  <div className="mt-2 rounded border border-border-subtle bg-surface-primary px-3 py-2 text-[12px] leading-relaxed text-text-quaternary">
                     <p>
                       <span className="font-medium text-text-tertiary">Publisher:</span>{" "}
                       {citation.publisher}

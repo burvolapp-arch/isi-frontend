@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { RadarChart } from "@/components/RadarChart";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorPanel } from "@/components/ErrorPanel";
+import { useToast } from "@/components/Toast";
 import { countryHref } from "@/lib/format";
 import { AXIS_FIELD_MAP, type AxisSlug, ALL_AXIS_SLUGS } from "@/lib/axisRegistry";
 import {
@@ -22,6 +25,13 @@ import {
   type StructuralDiagnostic,
 } from "@/lib/comparativeAnalysis";
 import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
+
+// ── Multi-country overlay color palette ─────────────────────────────
+const OVERLAY_COLORS = [
+  "#6366f1", // indigo (Country B)
+  "#f59e0b", // amber  (Country C)
+  "#10b981", // emerald (Country D)
+] as const;
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -54,13 +64,13 @@ function heatIntensity(absDelta: number, maxAbsDelta: number): number {
   return Math.min(absDelta / maxAbsDelta, 1);
 }
 
-/** Divergence heatmap cell background style */
+/** Divergence heatmap cell background style (dark-mode aware) */
 function heatBg(intensity: number): string {
-  if (intensity < 0.15) return "bg-stone-50";
-  if (intensity < 0.35) return "bg-stone-100";
-  if (intensity < 0.55) return "bg-stone-200";
-  if (intensity < 0.75) return "bg-stone-300";
-  return "bg-stone-400";
+  if (intensity < 0.15) return "bg-stone-50 dark:bg-stone-800/30";
+  if (intensity < 0.35) return "bg-stone-100 dark:bg-stone-800/50";
+  if (intensity < 0.55) return "bg-stone-200 dark:bg-stone-700/60";
+  if (intensity < 0.75) return "bg-stone-300 dark:bg-stone-700/80";
+  return "bg-stone-400 dark:bg-stone-600/90";
 }
 
 /** Ordinal suffix */
@@ -75,10 +85,31 @@ function ordinal(n: number): string {
 // ═════════════════════════════════════════════════════════════════════
 
 export default function ComparePage() {
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
   const [data, setData] = useState<ISIComposite | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [codeA, setCodeA] = useState("");
-  const [codeB, setCodeB] = useState("");
+  const [codeA, setCodeA] = useState(() => searchParams.get("a")?.toUpperCase() ?? "");
+  const [codeB, setCodeB] = useState(() => searchParams.get("b")?.toUpperCase() ?? "");
+  const [codeC, setCodeC] = useState(() => searchParams.get("c")?.toUpperCase() ?? "");
+  const [codeD, setCodeD] = useState(() => searchParams.get("d")?.toUpperCase() ?? "");
+
+  // ── URL sync (lightweight — bypasses Next.js router) ──
+  const urlRafRef = useRef(0);
+  useEffect(() => {
+    cancelAnimationFrame(urlRafRef.current);
+    urlRafRef.current = requestAnimationFrame(() => {
+      const qp = new URLSearchParams();
+      if (codeA) qp.set("a", codeA);
+      if (codeB) qp.set("b", codeB);
+      if (codeC) qp.set("c", codeC);
+      if (codeD) qp.set("d", codeD);
+      const qs = qp.toString();
+      const newPath = `/compare${qs ? `?${qs}` : ""}`;
+      window.history.replaceState(null, "", newPath);
+    });
+    return () => cancelAnimationFrame(urlRafRef.current);
+  }, [codeA, codeB, codeC, codeD]);
 
   useEffect(() => {
     fetchISIOnce()
@@ -96,7 +127,13 @@ export default function ComparePage() {
 
   const countryA = countries.find((c) => c.country === codeA) ?? null;
   const countryB = countries.find((c) => c.country === codeB) ?? null;
+  const countryC = countries.find((c) => c.country === codeC) ?? null;
+  const countryD = countries.find((c) => c.country === codeD) ?? null;
   const ready = countryA !== null && countryB !== null && codeA !== codeB;
+
+  // All selected codes for duplicate detection
+  const selectedCodes = [codeA, codeB, codeC, codeD].filter(Boolean);
+  const hasDuplicates = new Set(selectedCodes).size < selectedCodes.length;
 
   // ── Diagnostic Computation ──────────────────────────────────────
   const diagnostic: StructuralDiagnostic | null = useMemo(() => {
@@ -147,6 +184,41 @@ export default function ComparePage() {
         : [],
     [countryB],
   );
+  const radarAxesC = useMemo(
+    () =>
+      countryC
+        ? ALL_AXIS_SLUGS.map((slug) => ({
+            slug,
+            value: getAxisScore(countryC, slug),
+          }))
+        : [],
+    [countryC],
+  );
+  const radarAxesD = useMemo(
+    () =>
+      countryD
+        ? ALL_AXIS_SLUGS.map((slug) => ({
+            slug,
+            value: getAxisScore(countryD, slug),
+          }))
+        : [],
+    [countryD],
+  );
+
+  // ── Multi-country radar overlays ──────────────────────────────
+  const radarOverlays = useMemo(() => {
+    const overlays: { axes: typeof radarAxesB; label: string; color: string }[] = [];
+    if (countryB && radarAxesB.length > 0) {
+      overlays.push({ axes: radarAxesB, label: countryB.country_name, color: OVERLAY_COLORS[0] });
+    }
+    if (countryC && radarAxesC.length > 0) {
+      overlays.push({ axes: radarAxesC, label: countryC.country_name, color: OVERLAY_COLORS[1] });
+    }
+    if (countryD && radarAxesD.length > 0) {
+      overlays.push({ axes: radarAxesD, label: countryD.country_name, color: OVERLAY_COLORS[2] });
+    }
+    return overlays;
+  }, [countryB, countryC, countryD, radarAxesB, radarAxesC, radarAxesD]);
 
   // ── Heatmap max delta ───────────────────────────────────────────
   const maxAbsDelta = useMemo(() => {
@@ -175,7 +247,8 @@ export default function ComparePage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [countryA, countryB, diagnostic, compositePercentileA, compositePercentileB]);
+    toast("JSON export complete");
+  }, [countryA, countryB, diagnostic, compositePercentileA, compositePercentileB, toast]);
 
   const handleExportCSV = useCallback(() => {
     if (!countryA || !countryB || !diagnostic) return;
@@ -235,12 +308,13 @@ export default function ComparePage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [countryA, countryB, diagnostic, compositePercentileA, compositePercentileB]);
+    toast("CSV export complete");
+  }, [countryA, countryB, diagnostic, compositePercentileA, compositePercentileB, toast]);
 
   // ── Error / Loading ─────────────────────────────────────────────
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <ErrorPanel
             title="Data temporarily unavailable"
@@ -254,11 +328,11 @@ export default function ComparePage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-16">
           <div className="space-y-4">
-            <div className="h-8 w-64 animate-pulse rounded bg-stone-100" />
-            <div className="h-4 w-96 animate-pulse rounded bg-stone-50" />
+            <div className="h-8 w-64 animate-pulse rounded bg-surface-tertiary" />
+            <div className="h-4 w-96 animate-pulse rounded bg-surface-tertiary/50" />
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="h-12 animate-pulse rounded border border-border-primary bg-surface-tertiary" />
               <div className="h-12 animate-pulse rounded border border-border-primary bg-surface-tertiary" />
@@ -274,14 +348,12 @@ export default function ComparePage() {
   // ═════════════════════════════════════════════════════════════════
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
         <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-16">
         {/* ── Header ───────────────────────────────────────── */}
         <section className="pt-10">
-          <Link href="/" className="inline-flex items-center min-h-[44px] text-[13px] text-text-tertiary transition-colors hover:text-text-primary sm:min-h-0">
-            ← Back to Overview
-          </Link>
-          <h1 className="mt-6 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
+          <Breadcrumbs items={[{ label: "Comparative Analysis" }]} />
+          <h1 className="mt-2 font-serif text-[28px] font-bold leading-[1.15] tracking-tight text-text-primary sm:text-[40px]">
             Comparative Structural Analysis
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-tertiary">
@@ -292,48 +364,38 @@ export default function ComparePage() {
         </section>
 
         {/* ── Country Selectors ─────────────────────────────── */}
-        <section className="mt-8 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="compare-country-a" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-              Country A
-            </label>
-            <select
-              id="compare-country-a"
-              value={codeA}
-              onChange={(e) => setCodeA(e.target.value)}
-              className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
-            >
-              <option value="">— Select —</option>
-              {countries.map((c) => (
-                <option key={c.country} value={c.country}>
-                  {c.country_name} ({c.country})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="compare-country-b" className="mb-2 block text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
-              Country B
-            </label>
-            <select
-              id="compare-country-b"
-              value={codeB}
-              onChange={(e) => setCodeB(e.target.value)}
-              className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
-            >
-              <option value="">— Select —</option>
-              {countries.map((c) => (
-                <option key={c.country} value={c.country}>
-                  {c.country_name} ({c.country})
-                </option>
-              ))}
-            </select>
-          </div>
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {([
+            { id: "a", label: "Country A", value: codeA, setter: setCodeA, color: "var(--color-navy-700)" },
+            { id: "b", label: "Country B", value: codeB, setter: setCodeB, color: OVERLAY_COLORS[0] },
+            { id: "c", label: "Country C (optional)", value: codeC, setter: setCodeC, color: OVERLAY_COLORS[1] },
+            { id: "d", label: "Country D (optional)", value: codeD, setter: setCodeD, color: OVERLAY_COLORS[2] },
+          ] as const).map((slot) => (
+            <div key={slot.id}>
+              <label htmlFor={`compare-country-${slot.id}`} className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: slot.color }} />
+                {slot.label}
+              </label>
+              <select
+                id={`compare-country-${slot.id}`}
+                value={slot.value}
+                onChange={(e) => slot.setter(e.target.value)}
+                className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
+              >
+                <option value="">— Select —</option>
+                {countries.map((c) => (
+                  <option key={c.country} value={c.country}>
+                    {c.country_name} ({c.country})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
         </section>
 
-        {codeA === codeB && codeA !== "" && (
+        {hasDuplicates && (
           <p className="mt-4 text-[14px] text-severity-medium">
-            Select two different countries for comparison.
+            Each country slot must be unique. Remove duplicates to proceed.
           </p>
         )}
 
@@ -534,13 +596,13 @@ export default function ComparePage() {
                       </div>
                       {/* Dual bar */}
                       <div className="mt-1.5 flex gap-1">
-                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-stone-800/40">
                           <div
                             className="h-full rounded bg-navy-700 transition-all"
                             style={{ width: `${Math.max(shareA * 100, 0.5)}%` }}
                           />
                         </div>
-                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-stone-800/40">
                           <div
                             className="h-full rounded bg-stone-400 transition-all"
                             style={{ width: `${Math.max(shareB * 100, 0.5)}%` }}
@@ -767,7 +829,7 @@ export default function ComparePage() {
                           : "—"}
                       </td>
                       <td className="px-3 py-2.5 text-center">
-                        <span className="inline-block rounded bg-stone-100 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+                        <span className="inline-block rounded bg-stone-100 dark:bg-stone-800/50 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
                           Σ {diagnostic.structuralDistance.toFixed(4)}
                         </span>
                       </td>
@@ -830,12 +892,16 @@ export default function ComparePage() {
             <section className="mt-12 rounded border border-border-primary p-4 sm:p-6">
               <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
                 Multi-Axis Profile Overlay
+                {radarOverlays.length > 1 && (
+                  <span className="ml-2 text-text-quaternary font-normal normal-case tracking-normal">
+                    — {radarOverlays.length + 1} countries
+                  </span>
+                )}
               </h2>
               <div className="mt-4 flex w-full items-center justify-center">
                 <RadarChart
                   axes={radarAxesA}
-                  compareAxes={radarAxesB}
-                  compareLabel={countryB.country_name}
+                  overlays={radarOverlays}
                   label={countryA.country_name}
                 />
               </div>
@@ -852,29 +918,28 @@ export default function ComparePage() {
                 <button
                   type="button"
                   onClick={handleExportJSON}
-                  className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+                  className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
                 >
                   Export JSON
                 </button>
                 <button
                   type="button"
                   onClick={handleExportCSV}
-                  className="min-h-[44px] rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+                  className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
                 >
                   Export CSV
                 </button>
-                <Link
-                  href={countryHref(countryA.country)}
-                  className="inline-flex min-h-[44px] items-center rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 sm:min-h-0"
-                >
-                  {countryA.country_name} Profile →
-                </Link>
-                <Link
-                  href={countryHref(countryB.country)}
-                  className="inline-flex min-h-[44px] items-center rounded border border-border-primary bg-white px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-stone-50 sm:min-h-0"
-                >
-                  {countryB.country_name} Profile →
-                </Link>
+                {[countryA, countryB, countryC, countryD]
+                  .filter((c): c is NonNullable<typeof c> => c !== null)
+                  .map((c) => (
+                    <Link
+                      key={c.country}
+                      href={countryHref(c.country)}
+                      className="inline-flex min-h-[44px] items-center rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
+                    >
+                      {c.country_name} Profile →
+                    </Link>
+                  ))}
               </div>
             </section>
           </>

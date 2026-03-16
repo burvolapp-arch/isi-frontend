@@ -9,6 +9,7 @@ import OutliersPanel from "@/components/OutliersPanel";
 import EUMap from "@/components/EUMap";
 import SovereigntyMatrix from "@/components/SovereigntyMatrix";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
+import { ScrollRevealActivator } from "@/components/ScrollRevealActivator";
 import { PAPERS, RESEARCH_PATH, formatPaperDate } from "@/lib/papers";
 import {
   classificationLabel,
@@ -82,7 +83,8 @@ export default async function ExecutiveOverviewPage() {
     : null;
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
+      <ScrollRevealActivator />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -171,7 +173,7 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 1: EU Choropleth Map ─────────────── */}
         {isi && (
-          <section id="map" className="mt-10 scroll-mt-8 sm:mt-14">
+          <section id="map" className="fade-in mt-10 scroll-mt-8 sm:mt-14">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               EU-27 Structural Exposure
             </h2>
@@ -190,7 +192,7 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 2: Structural Outliers ───────────────── */}
         {isi && (
-          <section className="mt-14">
+          <section className="fade-in mt-14">
             <OutliersPanel
               countries={isi.countries}
               mean={isi.statistics.mean}
@@ -200,7 +202,7 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 3: Composite Statistics KPIs ─────────── */}
         {isi && (
-          <section className="mt-14">
+          <section className="fade-in mt-14">
             <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               Executive Summary
             </h2>
@@ -242,7 +244,7 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 4: Distribution Histogram ──────────── */}
         {isi && distribution && (
-          <section className="mt-14 content-auto">
+          <section className="fade-in mt-14 content-auto">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Composite Score Distribution
             </h2>
@@ -250,7 +252,7 @@ export default async function ExecutiveOverviewPage() {
               Distribution of ISI composite scores across the current release cohort (EU-27).
               Vertical bands indicate HHI classification thresholds.
             </p>
-            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-white p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
               <DistributionHistogram
                 scores={compositeScores}
                 mean={isi.statistics.mean}
@@ -302,7 +304,7 @@ export default async function ExecutiveOverviewPage() {
         )}
 
         {/* ── Section 5: Interpretation Guide ──────────────── */}
-        <section className="mt-12">
+        <section className="fade-in mt-12">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Reading the Index
           </h3>
@@ -336,7 +338,7 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 6: Country Rankings (interactive) ───── */}
         {isi && axes && (
-          <section className="mt-14 content-auto">
+          <section className="fade-in mt-14 content-auto">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Country Rankings
             </h2>
@@ -355,7 +357,7 @@ export default async function ExecutiveOverviewPage() {
 
         {/* ── Section 7: Axis Registry ───────────────── */}
         {axes && (
-          <section className="mt-14 content-auto">
+          <section className="fade-in mt-14 content-auto">
             <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
               Axis Registry
             </h2>
@@ -374,7 +376,7 @@ export default async function ExecutiveOverviewPage() {
         )}
 
         {/* ── Section 8: Publications ──────────────────────── */}
-        <section className="mt-14 content-auto">
+        <section className="fade-in mt-14 content-auto">
           <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
             Research &amp; Publications
           </h2>
@@ -392,7 +394,7 @@ export default async function ExecutiveOverviewPage() {
               <Link
                 key={paper.id}
                 href={`/research#${paper.id}`}
-                className="group flex flex-col rounded-lg border border-border-primary bg-white p-5 transition-colors hover:border-stone-300"
+                className="group flex flex-col rounded-lg border border-border-primary bg-surface-primary p-5 transition-colors hover:border-stone-300 dark:hover:border-stone-600"
               >
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-navy-700/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-navy-700">

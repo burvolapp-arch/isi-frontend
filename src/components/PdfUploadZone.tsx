@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface PdfUploadZoneProps {
   paperId: string;
@@ -20,6 +20,10 @@ export function PdfUploadZone({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Cleanup timeout on unmount
+  useEffect(() => () => clearTimeout(successTimerRef.current), []);
 
   const upload = useCallback(
     async (file: File) => {
@@ -52,7 +56,8 @@ export function PdfUploadZone({
         }
 
         setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        clearTimeout(successTimerRef.current);
+        successTimerRef.current = setTimeout(() => setSuccess(false), 3000);
         onUploadComplete();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Upload failed");
