@@ -234,8 +234,8 @@ export default async function ReleasesPage() {
               </li>
               <li>
                 <strong className="text-text-secondary">API endpoints:</strong> The <code className="font-mono text-[12px]">/api/data/isi</code> and{" "}
-                <code className="font-mono text-[12px]">/api/data/country/[code]</code> endpoints include a{" "}
-                <code className="font-mono text-[12px]">schemaVersion</code> field for forward compatibility.
+                <code className="font-mono text-[12px]">/api/data/country/[code]</code> endpoints include versioned
+                metadata (dataset version, methodology version) for forward compatibility.
               </li>
               <li>
                 <strong className="text-text-secondary">Backward compatibility:</strong> Additive fields

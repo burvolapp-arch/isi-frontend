@@ -89,7 +89,7 @@ export function SupplierBreakdownChart({
               title={`${s.partner}: ${formatPercentage(s.share, "share")}`}
             >
               {widthPct > 10 && (
-                <span className="truncate px-1 text-[9px] font-medium text-white sm:text-[10px]">
+                <span className={`truncate px-1 text-[9px] font-medium sm:text-[10px] ${s.partner === "Other" ? "text-stone-600 dark:text-stone-200" : "text-white"}`}>
                   {s.partner}
                 </span>
               )}

@@ -102,7 +102,7 @@ export default async function EUAnalysisPage() {
   const lowestAxis = sortedMeans[sortedMeans.length - 1] ?? null;
 
   // Cross-country dispersion: countries sorted by composite (most concentrated first)
-  const topConcentrated = scored.slice(0, 5);
+  const topConcentrated = [...scored].sort((a, b) => (b.isi_composite ?? 0) - (a.isi_composite ?? 0)).slice(0, 5);
   const leastConcentrated = [...scored].sort((a, b) => (a.isi_composite ?? 0) - (b.isi_composite ?? 0)).slice(0, 5);
 
   return (
