@@ -66,7 +66,7 @@ function MathBlock({ children }: { children: React.ReactNode }) {
 
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-stone-200 bg-stone-50 px-5 py-3 text-[13px] leading-relaxed text-text-tertiary">
+    <div className="rounded-md border border-border-primary bg-surface-tertiary px-5 py-3 text-[13px] leading-relaxed text-text-tertiary">
       {children}
     </div>
   );

@@ -399,7 +399,7 @@ export function CountryRankingsTable({
                         <Link
                           key={col.fieldKey}
                           href={axisHref(col.slug)}
-                          className="rounded border border-border-primary bg-surface-tertiary px-2.5 py-2 transition-colors hover:bg-stone-100"
+                          className="rounded border border-border-primary bg-surface-tertiary px-2.5 py-2 transition-colors hover:bg-surface-elevated"
                         >
                           <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-quaternary">
                             {col.label}

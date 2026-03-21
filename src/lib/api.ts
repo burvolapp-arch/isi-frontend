@@ -156,7 +156,6 @@ export async function fetchScenario(
   const payload = validation.payload;
 
   if (isDev) {
-    // eslint-disable-next-line no-console
     console.log("SCENARIO PAYLOAD", payload);
   }
 

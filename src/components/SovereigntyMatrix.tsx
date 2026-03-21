@@ -59,7 +59,7 @@ export default function SovereigntyMatrix({
     <div className="w-full" role="figure" aria-label="Cohort Mean Axis Exposure matrix">
       {/* Title */}
       <p
-        className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500"
+        className="text-[10px] font-medium uppercase tracking-[0.14em] text-stone-400"
       >
         Cohort Mean Axis Exposure
       </p>
@@ -76,35 +76,34 @@ export default function SovereigntyMatrix({
               {/* Label row */}
               <div className="flex items-baseline justify-between">
                 <div>
-                  <span className="block text-[11px] font-medium tracking-[0.08em] text-slate-400">
+                  <span className="block text-[11px] font-medium tracking-[0.08em] text-stone-300">
                     {row.label}
                   </span>
-                  <span className="block text-[9px] tracking-[0.04em] text-slate-600">
+                  <span className="block text-[9px] tracking-[0.04em] text-stone-400">
                     HHI mean
                   </span>
                 </div>
-                <span className="font-mono text-[11px] tabular-nums text-slate-300">
+                <span className="font-mono text-[11px] tabular-nums text-stone-400">
                   {row.mean !== null ? formatScore(row.mean) : "—"}
                 </span>
               </div>
 
               {/* Bar track */}
-              <div className="relative mt-1.5 h-[6px] rounded-[3px] bg-slate-800">
+              <div className="relative mt-1.5 h-[6px] rounded-[3px] bg-white/10">
                 {/* Gridlines */}
                 {GRIDLINES.map((v) => (
                   <div
                     key={v}
-                    className="pointer-events-none absolute top-0 h-full w-px bg-slate-500"
+                    className="pointer-events-none absolute top-0 h-full w-px bg-white/10"
                     style={{
                       left: `${(v / SCALE_MAX) * 100}%`,
-                      opacity: 0.15,
                     }}
                   />
                 ))}
                 {/* Fill */}
                 {row.mean !== null && (
                   <div
-                    className="absolute inset-y-0 left-0 rounded-[3px] bg-gradient-to-r from-slate-400 to-slate-300 transition-[width] duration-700 ease-out"
+                    className="absolute inset-y-0 left-0 rounded-[3px] bg-gradient-to-r from-stone-400 to-stone-300 transition-[width] duration-700 ease-out"
                     style={{ width: `${pct}%` }}
                   />
                 )}
@@ -116,8 +115,8 @@ export default function SovereigntyMatrix({
 
       {/* Scale labels */}
       <div className="mt-2 flex justify-between">
-        <span className="font-mono text-[9px] text-slate-600">0.00</span>
-        <span className="font-mono text-[9px] text-slate-600">0.50</span>
+        <span className="font-mono text-[9px] text-stone-500">0.00</span>
+        <span className="font-mono text-[9px] text-stone-500">0.50</span>
       </div>
     </div>
   );

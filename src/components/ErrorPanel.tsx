@@ -11,7 +11,7 @@ interface ErrorPanelProps {
 
 export const ErrorPanel = memo(function ErrorPanel({ title, message, endpoint, status }: ErrorPanelProps) {
   return (
-    <div className="rounded-md border border-stone-200 bg-stone-50 px-5 py-4">
+    <div className="rounded-md border border-border-primary bg-surface-tertiary px-5 py-4">
       <div className="flex items-start gap-3">
         <div className="mt-0.5 text-text-tertiary">
           <svg
@@ -36,7 +36,7 @@ export const ErrorPanel = memo(function ErrorPanel({ title, message, endpoint, s
             {message}
           </p>
           {endpoint && (
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded bg-stone-100 px-2 py-0.5 font-mono text-[11px] text-text-quaternary">
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded bg-surface-elevated px-2 py-0.5 font-mono text-[11px] text-text-quaternary">
               {endpoint}
               {status != null && <span className="text-text-quaternary/60">· HTTP {status}</span>}
             </p>

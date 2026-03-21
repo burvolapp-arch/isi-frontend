@@ -70,6 +70,33 @@
   --color-accent: #0b2545;
   --color-accent-muted: #1b4278;
 
+  /* ── Chart / SVG System ────────────────────────────────── */
+  --color-chart-line: #0b2545;
+  --color-chart-line-secondary: #6b7280;
+  --color-chart-grid: #e5e7eb;
+  --color-chart-border: #d1d5db;
+  --color-chart-label: #9ca3af;
+  --color-chart-bar-from: #6b7280;
+  --color-chart-bar-to: #9ca3af;
+  --color-chart-bar-hl-from: #0b2545;
+  --color-chart-bar-hl-to: #245694;
+  --color-chart-highlight-bg: rgba(11, 37, 69, 0.07);
+  --color-chart-coastline: #64748b;
+
+  /* ── Band Tints (background fills for histogram zones) ── */
+  --color-band-tint-unconcentrated: #e8f5e9;
+  --color-band-tint-mild: #fff8e1;
+  --color-band-tint-moderate: #fff3e0;
+  --color-band-tint-high: #ffebee;
+
+  /* ── Map ────────────────────────────────────────────────── */
+  --color-map-water-from: #e9f0f8;
+  --color-map-water-mid: #dce5ef;
+  --color-map-water-to: #d1dbe8;
+  --color-map-land-shadow: #ccd5de;
+  --color-map-border-internal: #ffffff;
+  --color-map-hover-glow: #3b82f6;
+
   /* ── Typography ──────────────────────────────────────── */
   --font-serif: var(--font-source-serif), "Georgia", "Times New Roman", serif;
   --font-sans: var(--font-inter), "Helvetica Neue", "Arial", sans-serif;
@@ -126,6 +153,33 @@
   /* ── Accent ────────────────────────────────────────────── */
   --color-accent: #60a5fa;
   --color-accent-muted: #3b82f6;
+
+  /* ── Chart / SVG System ────────────────────────────────── */
+  --color-chart-line: #93c5fd;
+  --color-chart-line-secondary: #8892a2;
+  --color-chart-grid: #2a3548;
+  --color-chart-border: #374357;
+  --color-chart-label: #5f697a;
+  --color-chart-bar-from: #5f697a;
+  --color-chart-bar-to: #3d4654;
+  --color-chart-bar-hl-from: #60a5fa;
+  --color-chart-bar-hl-to: #3b82f6;
+  --color-chart-highlight-bg: rgba(96, 165, 250, 0.12);
+  --color-chart-coastline: #5f697a;
+
+  /* ── Band Tints — subtle on dark background ─────────── */
+  --color-band-tint-unconcentrated: rgba(16, 185, 129, 0.12);
+  --color-band-tint-mild: rgba(217, 119, 6, 0.10);
+  --color-band-tint-moderate: rgba(245, 158, 11, 0.10);
+  --color-band-tint-high: rgba(239, 68, 68, 0.10);
+
+  /* ── Map ─────────────────────────────────────────────── */
+  --color-map-water-from: #0b1628;
+  --color-map-water-mid: #0e1a30;
+  --color-map-water-to: #111e38;
+  --color-map-land-shadow: #1a2436;
+  --color-map-border-internal: rgba(255, 255, 255, 0.12);
+  --color-map-hover-glow: #60a5fa;
 
   /* ── Semantic Aliases ──────────────────────────────────── */
   --color-background: #0b1120;
@@ -411,4 +465,27 @@ tbody tr {
   /* Deviation colors — ensure print readability */
   .text-deviation-positive { color: #b91c1c !important; }
   .text-deviation-negative { color: #065f46 !important; }
+
+  /* Print-only citation footer */
+  .print-citation-footer {
+    display: block !important;
+    margin-top: 2cm;
+    padding-top: 0.5cm;
+    border-top: 1px solid #d1d5db;
+    font-size: 9pt;
+    color: #6b7280;
+    page-break-before: avoid;
+  }
+
+  /* Print-only timestamp */
+  .print-timestamp::after {
+    content: " — Printed " attr(data-print-date);
+  }
+
+  /* Force light mode colors for print */
+  .dark * {
+    color: #111827 !important;
+    background-color: transparent !important;
+    border-color: #d1d5db !important;
+  }
 }

@@ -9,12 +9,10 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { KPICard } from "@/components/KPICard";
 import { ScenarioLaboratory } from "@/components/ScenarioLaboratory";
 import {
-  computePercentile,
   deviationFromMean,
   axisHref,
-  computeRank,
 } from "@/lib/format";
-import { formatAxisFull, formatAxisShort, formatScore } from "@/lib/presentation";
+import { formatAxisFull, formatScore } from "@/lib/presentation";
 import { generateStructuralSummary } from "@/lib/summary";
 import type { CountryDetail, ISIComposite } from "@/lib/types";
 
@@ -42,7 +40,6 @@ interface CountryViewProps {
 export function CountryView({
   country,
   isi,
-  code,
   allScores,
   rank,
   totalRanked,
@@ -56,7 +53,7 @@ export function CountryView({
     if (typeof window !== "undefined") {
       const hash = window.location.hash;
       if (hash === "#simulation" || hash === "#scenario") {
-        setMode("scenario");
+        requestAnimationFrame(() => setMode("scenario"));
       }
     }
   }, []);

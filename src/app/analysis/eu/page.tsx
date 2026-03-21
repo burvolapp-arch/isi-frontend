@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
-import { fetchISI, fetchAxes, ApiError } from "@/lib/api";
+import { fetchISI, ApiError } from "@/lib/api";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { KPICard } from "@/components/KPICard";
 import { CitationFooter } from "@/components/CitationFooter";
@@ -16,7 +16,6 @@ import {
 import { formatScore, formatAxisShort } from "@/lib/presentation";
 import { AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
 import { decomposeVarianceByAxis } from "@/lib/countryBrief";
-import type { ISICompositeCountry } from "@/lib/types";
 
 export const revalidate = 300;
 

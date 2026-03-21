@@ -21,6 +21,7 @@ import {
   type AxisSlug,
 } from "@/lib/axisRegistry";
 import { formatAxisLabel, formatScore, formatDelta } from "@/lib/presentation";
+import { SCENARIO_PRESETS, type ScenarioPreset } from "@/lib/scenarioPresets";
 import { getScenarioExplanation } from "@/lib/scenarioExplanations";
 import type {
   CountryDetail,
@@ -50,48 +51,8 @@ const MAX_AUTO_RETRIES = 2;
 const MAX_TIMELINE_ENTRIES = 10;
 
 // ═══════════════════════════════════════════════════════════════════════
-// Structural Shock Presets
+// Structural Shock Presets — sourced from scenarioPresets registry
 // ═══════════════════════════════════════════════════════════════════════
-
-interface StructuralPreset {
-  id: string;
-  label: string;
-  description: string;
-  adjustments: Partial<Record<AxisSlug, number>>;
-}
-
-const STRUCTURAL_PRESETS: StructuralPreset[] = [
-  {
-    id: "energy-diversification",
-    label: "Energy Diversification",
-    description: "−15% energy concentration",
-    adjustments: { energy: -0.15 },
-  },
-  {
-    id: "defense-reindustrialization",
-    label: "Defense Reindustrialization",
-    description: "−20% defense concentration",
-    adjustments: { defense: -0.20 },
-  },
-  {
-    id: "logistics-disruption",
-    label: "Logistics Disruption",
-    description: "+20% logistics concentration",
-    adjustments: { logistics: 0.20 },
-  },
-  {
-    id: "technology-decoupling",
-    label: "Technology Decoupling",
-    description: "+15% tech concentration",
-    adjustments: { technology: 0.15 },
-  },
-  {
-    id: "financial-fragmentation",
-    label: "Financial Fragmentation",
-    description: "+10% financial concentration",
-    adjustments: { financial: 0.10 },
-  },
-];
 
 // ═══════════════════════════════════════════════════════════════════════
 // State Machine
@@ -251,7 +212,7 @@ export function ScenarioLaboratory({
       if (stored) {
         const parsed = JSON.parse(stored) as TimelineEntry[];
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setTimeline(parsed.slice(0, MAX_TIMELINE_ENTRIES));
+          requestAnimationFrame(() => setTimeline(parsed.slice(0, MAX_TIMELINE_ENTRIES)));
         }
       }
     } catch { /* ignore */ }
@@ -308,6 +269,8 @@ export function ScenarioLaboratory({
   }, [adjustments, code]);
 
   // ── Core fetch with retry ──
+  // Use a ref for the recursive self-reference to avoid accessing before declaration
+  const executeRef = useRef<(adj: Record<string, number>, isRetry: boolean) => Promise<void>>(undefined);
   const executeScenarioRequest = useCallback(
     async (adj: Record<string, number>, isRetry: boolean) => {
       if (abortRef.current) abortRef.current.abort();
@@ -368,7 +331,7 @@ export function ScenarioLaboratory({
           if (retryCountRef.current < MAX_AUTO_RETRIES) {
             const delay = RETRY_DELAYS[retryCountRef.current] ?? 2400;
             retryCountRef.current += 1;
-            retryTimerRef.current = setTimeout(() => executeScenarioRequest(adj, true), delay);
+            retryTimerRef.current = setTimeout(() => executeRef.current?.(adj, true), delay);
             return;
           }
           setScenarioState({ status: "SERVICE_DOWN", cached: lastSuccessRef.current });
@@ -380,6 +343,9 @@ export function ScenarioLaboratory({
     },
     [code, activePresetLabel],
   );
+  useEffect(() => {
+    executeRef.current = executeScenarioRequest;
+  }, [executeScenarioRequest]);
 
   // ── Debounced trigger ──
   const runScenario = useCallback(
@@ -400,7 +366,7 @@ export function ScenarioLaboratory({
     [executeScenarioRequest],
   );
 
-  useEffect(() => { runScenario(activeAdjustments); }, [activeAdjustments, runScenario]);
+  useEffect(() => { requestAnimationFrame(() => runScenario(activeAdjustments)); }, [activeAdjustments, runScenario]);
 
   useEffect(() => {
     return () => {
@@ -423,7 +389,7 @@ export function ScenarioLaboratory({
     setActivePresetLabel(null);
   }, []);
 
-  const applyPreset = useCallback((preset: StructuralPreset) => {
+  const applyPreset = useCallback((preset: ScenarioPreset) => {
     const next: Record<string, number> = {};
     for (const slug of ALL_AXIS_SLUGS) next[slug] = 0;
     for (const [slug, val] of Object.entries(preset.adjustments)) next[slug] = val;
@@ -685,7 +651,7 @@ export function ScenarioLaboratory({
             Active Simulation:{" "}
             <span className="font-medium text-text-secondary">{activePresetLabel}</span>
             {(() => {
-              const preset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
+              const preset = SCENARIO_PRESETS.find((p) => p.label === activePresetLabel);
               return preset ? (
                 <span className="ml-1 text-text-quaternary">({preset.description})</span>
               ) : null;
@@ -693,7 +659,7 @@ export function ScenarioLaboratory({
           </p>
         )}
         <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {STRUCTURAL_PRESETS.map((preset) => {
+          {SCENARIO_PRESETS.map((preset) => {
             const isActive = activePresetLabel === preset.label;
             return (
               <button
@@ -701,7 +667,7 @@ export function ScenarioLaboratory({
                 type="button"
                 disabled={controlsLocked}
                 onClick={() => applyPreset(preset)}
-                title={preset.description}
+                title={`${preset.shortLabel}: ${preset.description}`}
                 className={`
                   min-h-[44px] rounded border px-2.5 py-1.5 text-[11px] font-medium sm:min-h-0
                   focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
@@ -712,14 +678,14 @@ export function ScenarioLaboratory({
                   }
                 `}
               >
-                {preset.label}
+                {preset.shortLabel}
               </button>
             );
           })}
         </div>
         {/* Scenario explanation panel */}
         {activePresetLabel && (() => {
-          const activePreset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
+          const activePreset = SCENARIO_PRESETS.find((p) => p.label === activePresetLabel);
           const explanation = activePreset ? getScenarioExplanation(activePreset.id) : null;
           if (!explanation) return null;
           return (
@@ -773,7 +739,7 @@ export function ScenarioLaboratory({
               <div
                 key={slug}
                 className={`rounded border border-border-primary px-3 py-2 ${
-                  controlsLocked ? "bg-stone-50 opacity-70" : "bg-surface-tertiary"
+                  controlsLocked ? "bg-surface-tertiary opacity-70" : "bg-surface-tertiary"
                 }`}
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
@@ -858,8 +824,8 @@ export function ScenarioLaboratory({
 
       {/* ═══ FAILURE PANEL ═══ */}
       {(serviceState === "SERVICE_DOWN" || serviceState === "ERROR") && (
-        <div role="alert" className="rounded border border-stone-200 bg-stone-50 px-4 py-3">
-          <p className="text-[13px] font-medium text-stone-600">
+        <div role="alert" className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+          <p className="text-[13px] font-medium text-text-secondary">
             {failureInfo.status === 404
               ? "Country not available for simulation."
               : failureInfo.status === 400
@@ -871,7 +837,7 @@ export function ScenarioLaboratory({
                     : "Simulation error."}
           </p>
           {showingCached && (
-            <p className="mt-1.5 text-[11px] text-stone-500">
+            <p className="mt-1.5 text-[11px] text-text-quaternary">
               Displaying last successful result.
             </p>
           )}
@@ -879,23 +845,23 @@ export function ScenarioLaboratory({
             <button
               type="button"
               onClick={retrySimulation}
-              className="min-h-[44px] rounded border border-stone-300 bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
+              className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={resetToBaseline}
-              className="min-h-[44px] rounded border border-stone-300 bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
+              className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
             >
               Reset
             </button>
           </div>
           <details className="mt-2">
-            <summary className="cursor-pointer text-[10px] text-stone-400 hover:text-stone-500">
+            <summary className="cursor-pointer text-[10px] text-text-quaternary hover:text-text-tertiary">
               Technical details
             </summary>
-            <div className="mt-1 font-mono text-[10px] text-stone-400">
+            <div className="mt-1 font-mono text-[10px] text-text-quaternary">
               <p>HTTP: {failureInfo.status ?? "N/A"} · {failureInfo.timestamp ?? new Date().toISOString()}</p>
             </div>
           </details>
@@ -969,9 +935,9 @@ export function ScenarioLaboratory({
                       {item.label}
                     </span>
                     <div className="relative flex h-3 flex-1 items-center">
-                      <div className="absolute inset-0 rounded bg-stone-100" />
+                      <div className="absolute inset-0 rounded bg-surface-tertiary" />
                       <div
-                        className={`relative h-full rounded ${isPositive ? "bg-stone-400" : "bg-stone-300"}`}
+                        className={`relative h-full rounded ${isPositive ? "bg-text-quaternary" : "bg-border-secondary"}`}
                         style={{ width: `${Math.max(pct, 2)}%` }}
                       />
                     </div>
@@ -1004,17 +970,17 @@ export function ScenarioLaboratory({
             <table className="w-full text-left text-[11px]">
               <thead>
                 <tr className="border-b border-border-primary text-[10px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
-                  <th className="pb-1.5 pr-3">Time</th>
-                  <th className="pb-1.5 pr-3">Composite</th>
-                  <th className="pb-1.5 pr-3">Rank</th>
-                  <th className="pb-1.5 pr-3">Classification</th>
-                  <th className="pb-1.5 pr-3">Simulation</th>
-                  <th className="pb-1.5" />
+                  <th scope="col" className="pb-1.5 pr-3">Time</th>
+                  <th scope="col" className="pb-1.5 pr-3">Composite</th>
+                  <th scope="col" className="pb-1.5 pr-3">Rank</th>
+                  <th scope="col" className="pb-1.5 pr-3">Classification</th>
+                  <th scope="col" className="pb-1.5 pr-3">Simulation</th>
+                  <th scope="col" className="pb-1.5" />
                 </tr>
               </thead>
               <tbody>
                 {timeline.map((entry) => (
-                  <tr key={entry.id} className="border-b border-stone-100 text-text-secondary">
+                  <tr key={entry.id} className="border-b border-border-subtle text-text-secondary">
                     <td className="py-1.5 pr-3 font-mono text-[10px] text-text-quaternary">
                       {new Date(entry.timestamp).toLocaleTimeString()}
                     </td>
@@ -1031,7 +997,7 @@ export function ScenarioLaboratory({
                         type="button"
                         onClick={() => restoreTimelineEntry(entry)}
                         disabled={controlsLocked}
-                        className="text-[10px] font-medium text-stone-500 hover:text-stone-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="text-[10px] font-medium text-text-quaternary hover:text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Restore
                       </button>

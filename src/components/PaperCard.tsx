@@ -31,7 +31,7 @@ export function PaperCard({
   return (
     <article
       id={paper.id}
-      className="scroll-mt-20 rounded-lg border border-border-primary bg-surface-primary transition-[border-color] hover:border-stone-300"
+      className="scroll-mt-20 rounded-lg border border-border-primary bg-surface-primary transition-[border-color] hover:border-border-secondary"
       aria-labelledby={`title-${paper.id}`}
     >
       <div className="p-6 sm:p-8">
@@ -103,7 +103,7 @@ export function PaperCard({
                 href={`https://doi.org/${paper.doiVersion}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="break-all text-navy-700 underline hover:text-navy-900"
+                className="break-all text-accent-muted underline hover:text-accent dark:text-blue-400 dark:hover:text-blue-300"
                 aria-label={`DOI for ${paper.title}`}
               >
                 https://doi.org/{paper.doiVersion}
@@ -199,7 +199,7 @@ export function PaperCard({
                 href={`${RESEARCH_PATH}/${paper.filename}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border-primary bg-surface-primary px-4 py-2.5 text-[12px] font-medium text-text-secondary transition-colors hover:bg-stone-50 sm:w-auto sm:justify-start sm:py-2"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border-primary bg-surface-primary px-4 py-2.5 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-tertiary sm:w-auto sm:justify-start sm:py-2"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
@@ -208,7 +208,7 @@ export function PaperCard({
               </a>
             </>
           ) : (
-            <div className="rounded-md border border-stone-200 bg-stone-50 px-4 py-2.5 text-[12px] text-text-quaternary">
+            <div className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[12px] text-text-quaternary">
               PDF not yet available for this paper.
             </div>
           )}

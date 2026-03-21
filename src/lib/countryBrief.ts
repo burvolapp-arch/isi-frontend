@@ -11,7 +11,7 @@
 import type { CountryDetail, ISICompositeCountry } from "./types";
 import { formatScore, classificationLabel, computeRank } from "./format";
 import { formatAxisShort } from "./presentation";
-import { AXIS_FIELD_MAP, type AxisSlug } from "./axisRegistry";
+import { AXIS_FIELD_MAP } from "./axisRegistry";
 
 // ─── Types ──────────────────────────────────────────────────────────
 

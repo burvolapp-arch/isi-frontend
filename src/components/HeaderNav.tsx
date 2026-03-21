@@ -28,7 +28,7 @@ export function HeaderNav({ items }: HeaderNavProps) {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    checkScroll();
+    requestAnimationFrame(checkScroll);
     el.addEventListener("scroll", checkScroll, { passive: true });
     window.addEventListener("resize", checkScroll, { passive: true });
     return () => {

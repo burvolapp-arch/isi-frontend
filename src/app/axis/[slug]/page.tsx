@@ -9,7 +9,7 @@ import { DistributionHistogram } from "@/components/DistributionHistogram";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { countryHref, computeStdDev } from "@/lib/format";
 import { formatAxisFull, formatSeverity, formatEnum, formatScore, formatDelta } from "@/lib/presentation";
-import { resolveSourceCitation, formatSourceInline } from "@/lib/sourceRegistry";
+import { resolveSourceCitation } from "@/lib/sourceRegistry";
 import type { AxisDetail, AxisCountryEntry } from "@/lib/types";
 import { ALL_AXIS_SLUGS } from "@/lib/axisRegistry";
 

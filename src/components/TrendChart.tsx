@@ -48,10 +48,9 @@ export function TrendChart({ history }: TrendChartProps) {
   }, [years]);
 
   // Scales
-  const xScale = useMemo(() => {
-    if (years.length <= 1) return (i: number) => PLOT_W / 2;
-    return (i: number) => (i / (years.length - 1)) * PLOT_W;
-  }, [years]);
+  const xScale = years.length <= 1
+    ? () => PLOT_W / 2
+    : (i: number) => (i / (years.length - 1)) * PLOT_W;
 
   const allValues = useMemo(() => {
     const vals = years.map((y) => y.composite);

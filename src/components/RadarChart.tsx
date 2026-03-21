@@ -256,6 +256,8 @@ export const RadarChart = memo(function RadarChart({
   );
 
   const n = resolvedAxes.length;
+
+  // Radius from authoritative constant
   const radius = RADAR_RADIUS;
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;
@@ -308,7 +310,7 @@ export const RadarChart = memo(function RadarChart({
       label: ov.label,
       color: ov.color,
     }));
-  }, [overlays]);
+  }, [buildPath, overlays]);
 
   // ── Interaction handlers ──
   const wedgeReach = radius * 1.15;
@@ -387,6 +389,8 @@ export const RadarChart = memo(function RadarChart({
     };
   }, [hoveredAxis, resolvedAxes, axisMeta, euMean]);
 
+  // ── Early return AFTER all hooks ──
+  if (n === 0) return null;
   // ── Early returns AFTER all hooks ──
   if (axes.length === 0 || safeAxes.length === 0) return null;
 
@@ -416,7 +420,7 @@ export const RadarChart = memo(function RadarChart({
             return `${p.x},${p.y}`;
           }).join(" ")}
           fill="none"
-          stroke="var(--color-stone-300)"
+          stroke="var(--color-chart-border)"
           strokeWidth={GRID_STROKE}
           strokeOpacity={r === 1.0 ? OUTER_RING_OPACITY : GRID_OPACITY}
           vectorEffect="non-scaling-stroke"
@@ -433,7 +437,7 @@ export const RadarChart = memo(function RadarChart({
             y1={vbCenterY}
             x2={p.x}
             y2={p.y}
-            stroke="var(--color-stone-300)"
+            stroke="var(--color-chart-border)"
             strokeWidth={GRID_STROKE}
             strokeOpacity={GRID_OPACITY}
             vectorEffect="non-scaling-stroke"
@@ -463,9 +467,9 @@ export const RadarChart = memo(function RadarChart({
       {euMeanPath && (
         <path
           d={euMeanPath}
-          fill="var(--color-stone-300)"
+          fill="var(--color-chart-border)"
           fillOpacity={0.14}
-          stroke="var(--color-stone-400)"
+          stroke="var(--color-chart-label)"
           strokeWidth={1}
           strokeDasharray="3 3"
           strokeLinejoin="round"
@@ -477,9 +481,9 @@ export const RadarChart = memo(function RadarChart({
       {comparePath && (
         <path
           d={comparePath}
-          fill="var(--color-stone-400)"
+          fill="var(--color-chart-label)"
           fillOpacity={0.12}
-          stroke="var(--color-stone-500)"
+          stroke="var(--color-chart-line-secondary)"
           strokeWidth={1.4}
           strokeDasharray="4 3"
           strokeLinejoin="round"
@@ -653,13 +657,13 @@ export const RadarChart = memo(function RadarChart({
           )}
           {euMean && (
             <g>
-              <line x1={MARGIN} y1={legendY + 14} x2={MARGIN + 14} y2={legendY + 14} stroke="var(--color-stone-400)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <line x1={MARGIN} y1={legendY + 14} x2={MARGIN + 14} y2={legendY + 14} stroke="var(--color-chart-label)" strokeWidth={1} strokeDasharray="3 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
               <text x={MARGIN + 19} y={legendY + 17} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">Cohort Mean</text>
             </g>
           )}
           {compareLabel && (
             <g>
-              <line x1={MARGIN + 110} y1={legendY} x2={MARGIN + 124} y2={legendY} stroke="var(--color-stone-400)" strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <line x1={MARGIN + 110} y1={legendY} x2={MARGIN + 124} y2={legendY} stroke="var(--color-chart-label)" strokeWidth={1.2} strokeDasharray="4 3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
               <text x={MARGIN + 129} y={legendY + 3} fill="var(--color-text-tertiary)" fontSize="8" fontFamily="var(--font-sans)">{compareLabel}</text>
             </g>
           )}

@@ -27,7 +27,7 @@ export default function RootError({
             {error.message || "An unexpected error occurred while processing your request."}
           </p>
           {error.digest && (
-            <p className="mt-2 rounded bg-stone-100 px-2.5 py-1 font-mono text-[11px] text-text-quaternary inline-block">
+            <p className="mt-2 rounded bg-surface-elevated px-2.5 py-1 font-mono text-[11px] text-text-quaternary inline-block">
               Ref: {error.digest}
             </p>
           )}
@@ -40,7 +40,7 @@ export default function RootError({
             </button>
             <Link
               href="/"
-              className="rounded-md border border-border-primary px-5 py-2.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-stone-50"
+              className="rounded-md border border-border-primary px-5 py-2.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-tertiary"
             >
               Back to Overview
             </Link>

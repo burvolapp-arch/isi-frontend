@@ -172,9 +172,6 @@ function classifyStructuralProfile(c: ISICompositeCountry): StructuralProfile {
   const mean = entries.reduce((a, b) => a + b.score, 0) / entries.length;
   const variance = entries.reduce((a, b) => a + (b.score - mean) ** 2, 0) / entries.length;
   const stdDev = Math.sqrt(variance);
-  // Note: composite (c.isi_composite) intentionally unused — classification
-  // is based on per-axis structural profile, not composite score.
-
   // Balanced low: all axes below 0.15 (unconcentrated threshold)
   if (entries.every((e) => e.score < 0.15)) return "balanced-low";
 
@@ -233,7 +230,6 @@ function classifySymmetry(
   // Count axes where both are high (>0.25), both are low (<0.15), or divergent
   let bothHigh = 0;
   let bothLow = 0;
-  let divergent = 0;
   let complementary = 0;
 
   for (const { a, b } of pairs) {
@@ -245,7 +241,6 @@ function classifySymmetry(
     if (aHigh && bHigh) bothHigh++;
     else if (aLow && bLow) bothLow++;
     else if ((aHigh && bLow) || (aLow && bHigh)) complementary++;
-    else divergent++;
   }
 
   // Complementary: at least 2 axes where one is high and the other is low

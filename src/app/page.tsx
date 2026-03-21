@@ -121,7 +121,7 @@ export default async function ExecutiveOverviewPage() {
             <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:justify-start">
               <a
                 href="#map"
-                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)]"
+                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)] focus-visible:outline-navy-500"
               >
                 Explore the Map
                 <span aria-hidden="true" className="transition-transform group-hover/cta:translate-y-0.5">↓</span>
@@ -394,7 +394,7 @@ export default async function ExecutiveOverviewPage() {
               <Link
                 key={paper.id}
                 href={`/research#${paper.id}`}
-                className="group flex flex-col rounded-lg border border-border-primary bg-surface-primary p-5 transition-colors hover:border-stone-300 dark:hover:border-stone-600"
+                className="group flex flex-col rounded-lg border border-border-primary bg-surface-primary p-5 transition-colors hover:border-border-secondary"
               >
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-navy-700/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-navy-700">
@@ -435,7 +435,7 @@ export default async function ExecutiveOverviewPage() {
         </section>
 
         {/* ── Section 9: Scope & Limitations ──────────────── */}
-        <section className="mt-10 mb-12 border-l-2 border-l-stone-300 py-4 pl-4 pr-2 sm:mt-14 sm:mb-16 sm:pl-5 sm:pr-6">
+        <section className="mt-10 mb-12 border-l-2 border-l-border-secondary py-4 pl-4 pr-2 sm:mt-14 sm:mb-16 sm:pl-5 sm:pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Scope &amp; Limitations
           </h3>
