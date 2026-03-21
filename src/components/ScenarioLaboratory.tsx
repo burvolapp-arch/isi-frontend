@@ -268,6 +268,8 @@ export function ScenarioLaboratory({
   }, [adjustments, code]);
 
   // ── Core fetch with retry ──
+  // Use a ref for the recursive self-reference to avoid accessing before declaration
+  const executeRef = useRef<(adj: Record<string, number>, isRetry: boolean) => Promise<void>>(undefined);
   const executeScenarioRequest = useCallback(
     async (adj: Record<string, number>, isRetry: boolean) => {
       if (abortRef.current) abortRef.current.abort();
@@ -328,7 +330,7 @@ export function ScenarioLaboratory({
           if (retryCountRef.current < MAX_AUTO_RETRIES) {
             const delay = RETRY_DELAYS[retryCountRef.current] ?? 2400;
             retryCountRef.current += 1;
-            retryTimerRef.current = setTimeout(() => executeScenarioRequest(adj, true), delay);
+            retryTimerRef.current = setTimeout(() => executeRef.current?.(adj, true), delay);
             return;
           }
           setScenarioState({ status: "SERVICE_DOWN", cached: lastSuccessRef.current });
@@ -340,6 +342,7 @@ export function ScenarioLaboratory({
     },
     [code, activePresetLabel],
   );
+  executeRef.current = executeScenarioRequest;
 
   // ── Debounced trigger ──
   const runScenario = useCallback(

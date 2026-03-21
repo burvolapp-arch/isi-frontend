@@ -226,16 +226,17 @@ export const RadarChart = memo(function RadarChart({
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  if (axes.length === 0) return null;
-
   // ── Safety invariant: filter out undefined/invalid axis entries ──
-  const safeAxes = axes.filter(
-    (a): a is RadarAxisInput =>
-      a != null &&
-      typeof a.slug === "string" &&
-      a.slug.length > 0,
+  const safeAxes = useMemo(
+    () =>
+      axes.filter(
+        (a): a is RadarAxisInput =>
+          a != null &&
+          typeof a.slug === "string" &&
+          a.slug.length > 0,
+      ),
+    [axes],
   );
-  if (safeAxes.length === 0) return null;
 
   // Resolve canonical labels from slugs — the ONLY label resolution path
   const resolvedAxes = useMemo(
@@ -255,44 +256,50 @@ export const RadarChart = memo(function RadarChart({
 
   const n = resolvedAxes.length;
 
-  // Radius from authoritative constant — no runtime arithmetic drift
-  const radius = RADAR_RADIUS; // 193 — VB_SIZE * 0.42
+  // Radius from authoritative constant
+  const radius = RADAR_RADIUS;
 
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;
-  const angleStep = (2 * Math.PI) / n;
+  const angleStep = n > 0 ? (2 * Math.PI) / n : 0;
 
-  const polarToXY = (value: number, index: number) => {
-    const angle = angleStep * index - Math.PI / 2;
-    const safeVal = Number.isFinite(value) ? value : 0;
-    return {
-      x: vbCenterX + radius * safeVal * Math.cos(angle),
-      y: vbCenterY + radius * safeVal * Math.sin(angle),
-    };
-  };
+  const polarToXY = useCallback(
+    (value: number, index: number) => {
+      const angle = angleStep * index - Math.PI / 2;
+      const safeVal = Number.isFinite(value) ? value : 0;
+      return {
+        x: vbCenterX + radius * safeVal * Math.cos(angle),
+        y: vbCenterY + radius * safeVal * Math.sin(angle),
+      };
+    },
+    [angleStep, vbCenterX, vbCenterY, radius],
+  );
 
-  const buildPath = (values: (number | null)[]) => {
-    const points = values.map((v, i) => {
-      const safe = v != null && Number.isFinite(v) ? v : 0;
-      return polarToXY(safe, i);
-    });
-    return (
-      points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z"
-    );
-  };
+  const buildPath = useCallback(
+    (values: (number | null)[]) => {
+      const points = values.map((v, i) => {
+        const safe = v != null && Number.isFinite(v) ? v : 0;
+        return polarToXY(safe, i);
+      });
+      return (
+        points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z"
+      );
+    },
+    [polarToXY],
+  );
 
   const hasLegend = !!(euMean || compareAxes || (overlays && overlays.length > 0));
   const totalHeight = VB_SIZE + (hasLegend ? LEGEND_HEIGHT : 0);
   const legendY = VB_SIZE + 2;
 
-  const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [resolvedAxes]);
+  const primaryPath = useMemo(() => buildPath(resolvedAxes.map((a) => a.value)), [buildPath, resolvedAxes]);
   const euMeanPath = useMemo(
     () => (euMean ? buildPath(euMean) : null),
-    [euMean],
+    [buildPath, euMean],
   );
   const comparePath = useMemo(
     () => (compareAxes && compareAxes.length > 0 ? buildPath(compareAxes.map((a) => a?.value ?? null)) : null),
-    [compareAxes],
+    [buildPath, compareAxes],
   );
 
   // Multi-country overlay paths
@@ -303,10 +310,10 @@ export const RadarChart = memo(function RadarChart({
       label: ov.label,
       color: ov.color,
     }));
-  }, [overlays]);
+  }, [buildPath, overlays]);
 
   // ── Interaction handlers ──
-  const wedgeReach = radius * 1.15; // wedge extends slightly beyond axis tips
+  const wedgeReach = radius * 1.15;
 
   const handleAxisHover = useCallback((index: number) => {
     setHoveredAxis(index);
@@ -364,6 +371,9 @@ export const RadarChart = memo(function RadarChart({
       totalRanked: meta?.totalRanked ?? null,
     };
   }, [hoveredAxis, resolvedAxes, axisMeta, euMean]);
+
+  // ── Early return AFTER all hooks ──
+  if (n === 0) return null;
 
   const svg = (
     <svg

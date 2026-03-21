@@ -57,6 +57,10 @@ export const DistributionHistogram = memo(function DistributionHistogram({
   highlight,
   highlightLabel,
 }: DistributionHistogramProps) {
+  // useId must be called unconditionally (Rules of Hooks)
+  const reactId = useId();
+  const uid = `dh${reactId.replace(/:/g, "")}`;
+
   if (scores.length === 0) return null;
 
   const min = 0;
@@ -112,10 +116,6 @@ export const DistributionHistogram = memo(function DistributionHistogram({
     const step = maxCount <= 10 ? 2 : maxCount <= 20 ? 5 : 10;
     for (let i = step; i <= maxCount; i += step) yTicks.push(i);
   }
-
-  // Unique gradient IDs
-  const reactId = useId();
-  const uid = `dh${reactId.replace(/:/g, "")}`;
 
   // Pre-compute marker X positions for collision checks
   const meanX = mean != null ? xScale(mean) : null;
