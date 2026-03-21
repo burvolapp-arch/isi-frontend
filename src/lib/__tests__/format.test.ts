@@ -9,7 +9,6 @@ import { describe, it, expect } from "vitest";
 import {
   humanizeKey,
   formatScorePercent,
-  formatNumber,
   classificationLabel,
   classificationDescription,
   classifyScore,

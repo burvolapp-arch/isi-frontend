@@ -36,7 +36,7 @@ describe("SCENARIO_PRESETS", () => {
 
   it("all adjustments are within [-0.20, +0.20] bounds", () => {
     for (const preset of SCENARIO_PRESETS) {
-      for (const [key, value] of Object.entries(preset.adjustments)) {
+      for (const [, value] of Object.entries(preset.adjustments)) {
         expect(value).toBeGreaterThanOrEqual(-0.20);
         expect(value).toBeLessThanOrEqual(0.20);
       }

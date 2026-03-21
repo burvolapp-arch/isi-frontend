@@ -212,7 +212,7 @@ export function ScenarioLaboratory({
       if (stored) {
         const parsed = JSON.parse(stored) as TimelineEntry[];
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setTimeline(parsed.slice(0, MAX_TIMELINE_ENTRIES));
+          requestAnimationFrame(() => setTimeline(parsed.slice(0, MAX_TIMELINE_ENTRIES)));
         }
       }
     } catch { /* ignore */ }
@@ -343,7 +343,9 @@ export function ScenarioLaboratory({
     },
     [code, activePresetLabel],
   );
-  executeRef.current = executeScenarioRequest;
+  useEffect(() => {
+    executeRef.current = executeScenarioRequest;
+  }, [executeScenarioRequest]);
 
   // ── Debounced trigger ──
   const runScenario = useCallback(
@@ -364,7 +366,7 @@ export function ScenarioLaboratory({
     [executeScenarioRequest],
   );
 
-  useEffect(() => { runScenario(activeAdjustments); }, [activeAdjustments, runScenario]);
+  useEffect(() => { requestAnimationFrame(() => runScenario(activeAdjustments)); }, [activeAdjustments, runScenario]);
 
   useEffect(() => {
     return () => {

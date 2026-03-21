@@ -15,8 +15,6 @@ import {
   resolveAxisSlug,
   normalizeAxisKey,
   getAxisShortName,
-  assertCanonicalLabel,
-  type AxisSlug,
 } from "../axisRegistry";
 
 // ─── Registry Constants ─────────────────────────────────────────────

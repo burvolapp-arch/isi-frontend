@@ -69,14 +69,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Hydrate from localStorage
   useEffect(() => {
     const stored = readStored();
-    setThemeState(stored);
-    setResolved(resolve(stored));
+    requestAnimationFrame(() => {
+      setThemeState(stored);
+      setResolved(resolve(stored));
+    });
   }, []);
 
   // Apply class on <html>
   useEffect(() => {
     const r = resolve(theme);
-    setResolved(r);
+    requestAnimationFrame(() => setResolved(r));
     const html = document.documentElement;
     html.classList.toggle("dark", r === "dark");
     html.style.colorScheme = r;

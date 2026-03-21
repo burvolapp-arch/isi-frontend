@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchCountry, fetchISI, fetchHistory, fetchAxes, ApiError } from "@/lib/api";
+import { fetchCountry, fetchISI, fetchHistory, ApiError } from "@/lib/api";
 import { ErrorPanel } from "@/components/ErrorPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CountryView } from "@/components/CountryView";

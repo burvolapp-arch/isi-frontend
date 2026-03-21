@@ -714,7 +714,6 @@ export default function ComparePage() {
                 {/* ── Mobile card list (< md) ── */}
                 <div className="space-y-2 md:hidden">
                   {diagnostic.axes.map((axis) => {
-                    const intensity = heatIntensity(axis.absDelta, maxAbsDelta);
                     return (
                       <div key={axis.slug} className="rounded-md border border-border-primary p-3">
                         <div className="flex items-baseline justify-between gap-2">

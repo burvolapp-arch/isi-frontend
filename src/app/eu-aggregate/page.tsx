@@ -108,26 +108,15 @@ function computeEUAggregate(
 
 export default async function EU27Page() {
   let isiError: { message: string; endpoint: string; status?: number } | null = null;
-  let axesError: { message: string; endpoint: string; status?: number } | null = null;
-
-  const [isiResult, axesResult] = await Promise.allSettled([fetchISI(), fetchAxes()]);
+  const [isiResult] = await Promise.allSettled([fetchISI(), fetchAxes()]);
 
   const isi = isiResult.status === "fulfilled" ? isiResult.value : null;
-  const axes = axesResult.status === "fulfilled" ? axesResult.value : null;
 
   if (isiResult.status === "rejected") {
     const err = isiResult.reason;
     isiError = {
       message: err instanceof Error ? err.message : String(err),
       endpoint: "/isi",
-      status: err instanceof ApiError ? err.status : undefined,
-    };
-  }
-  if (axesResult.status === "rejected") {
-    const err = axesResult.reason;
-    axesError = {
-      message: err instanceof Error ? err.message : String(err),
-      endpoint: "/axes",
       status: err instanceof ApiError ? err.status : undefined,
     };
   }
