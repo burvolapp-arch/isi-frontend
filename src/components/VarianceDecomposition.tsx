@@ -7,13 +7,13 @@ import { formatAxisShort, formatScore } from "@/lib/presentation";
 
 // ─── Axis Colors ────────────────────────────────────────────────────
 
-const AXIS_COLORS: Record<string, string> = {
-  financial: "#2563eb",
-  energy: "#f59e0b",
-  technology: "#8b5cf6",
-  defense: "#ef4444",
-  critical_inputs: "#10b981",
-  logistics: "#06b6d4",
+const AXIS_COLOR_VARS: Record<string, string> = {
+  financial: "--color-axis-financial",
+  energy: "--color-axis-energy",
+  technology: "--color-axis-technology",
+  defense: "--color-axis-defense",
+  critical_inputs: "--color-axis-critical-inputs",
+  logistics: "--color-axis-logistics",
 };
 
 // ─── Props ──────────────────────────────────────────────────────────
@@ -56,7 +56,9 @@ export function VarianceDecomposition({ countries }: VarianceDecompositionProps)
       <div className="space-y-3" role="img" aria-label="Variance contribution by axis">
         {entries.map((entry) => {
           const pct = entry.share * 100;
-          const color = AXIS_COLORS[entry.slug] ?? "#6b7280";
+          const color = AXIS_COLOR_VARS[entry.slug]
+            ? `var(${AXIS_COLOR_VARS[entry.slug]})`
+            : `var(--color-axis-fallback)`;
           return (
             <div key={entry.slug} className="space-y-1">
               <div className="flex items-baseline justify-between text-[13px]">
@@ -110,7 +112,7 @@ export function VarianceDecomposition({ countries }: VarianceDecompositionProps)
             {entries.map((entry) => (
               <tr key={entry.slug} className="border-b border-border-subtle">
                 <td className="px-3 py-2 font-medium text-text-secondary">
-                  <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: AXIS_COLORS[entry.slug] ?? "#6b7280" }} />
+                  <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: AXIS_COLOR_VARS[entry.slug] ? `var(${AXIS_COLOR_VARS[entry.slug]})` : `var(--color-axis-fallback)` }} />
                   {formatAxisShort(entry.slug)}
                 </td>
                 <td className="px-3 py-2 text-right font-mono text-text-primary">

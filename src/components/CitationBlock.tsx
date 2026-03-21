@@ -83,7 +83,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
               onClick={() => setFormat(key)}
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 format === key
-                  ? "bg-surface-primary text-text-primary shadow-sm"
+                  ? "bg-surface-primary text-text-primary shadow-[var(--shadow-card-sm)]"
                   : "text-text-tertiary hover:text-text-secondary"
               }`}
             >
@@ -97,7 +97,7 @@ export function CitationBlock({ paper }: CitationBlockProps) {
           {/* Permalink */}
           <a
             href={`#${anchorId}`}
-            className="rounded p-1.5 text-text-quaternary transition-colors hover:bg-surface-primary hover:text-text-secondary hover:shadow-sm"
+            className="rounded p-1.5 text-text-quaternary transition-colors hover:bg-surface-primary hover:text-text-secondary hover:shadow-[var(--shadow-card-sm)]"
             title="Permalink to this citation"
             aria-label="Permalink to citation"
           >
@@ -110,16 +110,16 @@ export function CitationBlock({ paper }: CitationBlockProps) {
           <button
             type="button"
             onClick={handleCopyAll}
-            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-quaternary transition-colors hover:bg-surface-primary hover:text-text-secondary hover:shadow-sm"
+            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-quaternary transition-colors hover:bg-surface-primary hover:text-text-secondary hover:shadow-[var(--shadow-card-sm)]"
             aria-label="Copy all citation formats"
             title="Copy all formats"
           >
             {copied === "all" ? (
               <>
-                <svg className="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <svg className="h-3.5 w-3.5 text-confirm" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
-                <span className="hidden text-emerald-600 sm:inline">All Copied</span>
+                <span className="hidden text-confirm sm:inline">All Copied</span>
               </>
             ) : (
               <>
@@ -135,15 +135,15 @@ export function CitationBlock({ paper }: CitationBlockProps) {
           <button
             type="button"
             onClick={handleCopySingle}
-            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-tertiary transition-colors hover:bg-surface-primary hover:text-text-primary hover:shadow-sm"
+            className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-text-tertiary transition-colors hover:bg-surface-primary hover:text-text-primary hover:shadow-[var(--shadow-card-sm)]"
             aria-label={`Copy ${FORMAT_LABELS[format]} citation`}
           >
             {copied === "single" ? (
               <>
-                <svg className="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <svg className="h-3.5 w-3.5 text-confirm" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
-                <span className="text-emerald-600">Copied</span>
+                <span className="text-confirm">Copied</span>
               </>
             ) : (
               <>

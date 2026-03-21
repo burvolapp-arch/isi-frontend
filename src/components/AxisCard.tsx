@@ -8,7 +8,7 @@ interface AxisCardProps {
 
 export function AxisCard({ axis }: AxisCardProps) {
   return (
-    <div className="group rounded-md border border-border-primary bg-surface-primary p-5 transition-[border-color,box-shadow] duration-150 hover:border-border-secondary hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+    <div className="group rounded-md border border-border-primary bg-surface-primary p-5 transition-[border-color,box-shadow] duration-150 hover:border-border-secondary hover:shadow-[var(--shadow-card-hover)]">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-text-quaternary">

@@ -115,7 +115,7 @@ export function CountryView({
                 min-h-[44px] rounded px-4 py-1.5 text-[12px] font-medium transition-colors sm:min-h-0
                 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
                 ${mode === "baseline"
-                  ? "bg-btn-primary-bg text-btn-primary-fg shadow-sm"
+                  ? "bg-btn-primary-bg text-btn-primary-fg shadow-[var(--shadow-card-sm)]"
                   : "text-text-tertiary hover:text-text-secondary"
                 }
               `}
@@ -129,7 +129,7 @@ export function CountryView({
                 min-h-[44px] rounded px-4 py-1.5 text-[12px] font-medium transition-colors sm:min-h-0
                 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
                 ${mode === "scenario"
-                  ? "bg-btn-primary-bg text-btn-primary-fg shadow-sm"
+                  ? "bg-btn-primary-bg text-btn-primary-fg shadow-[var(--shadow-card-sm)]"
                   : "text-text-tertiary hover:text-text-secondary"
                 }
               `}
@@ -200,7 +200,7 @@ export function CountryView({
               <p className="mt-1.5 text-[12px] text-text-tertiary">
                 {country.country_name}&apos;s composite score relative to the EU-27 cohort.
               </p>
-              <div className="mt-3 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-5">
+              <div className="mt-3 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[var(--shadow-inset)] sm:p-5">
                 <DistributionHistogram
                   scores={allScores}
                   mean={compositeMean}

@@ -28,9 +28,9 @@ import type { ISIComposite, ISICompositeCountry } from "@/lib/types";
 
 // ── Multi-country overlay color palette ─────────────────────────────
 const OVERLAY_COLORS = [
-  "#6366f1", // indigo (Country B)
-  "#f59e0b", // amber  (Country C)
-  "#10b981", // emerald (Country D)
+  "var(--color-overlay-b)", // indigo (Country B)
+  "var(--color-overlay-c)", // amber  (Country C)
+  "var(--color-overlay-d)", // emerald (Country D)
 ] as const;
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";

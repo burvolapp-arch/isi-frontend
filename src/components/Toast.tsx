@@ -113,7 +113,7 @@ function ToastBubble({
       role="status"
       className={`
         pointer-events-auto flex items-center gap-2 rounded-lg px-4 py-2.5
-        text-[13px] font-medium shadow-lg
+        text-[13px] font-medium shadow-[var(--shadow-tooltip)]
         transition-all duration-200 ease-out
         ${variantClasses}
         ${visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}

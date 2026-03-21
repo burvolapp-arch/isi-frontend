@@ -80,13 +80,27 @@ let _listeners = new Set<() => void>();
 let _theme: Theme = "system";
 let _resolved: "light" | "dark" = "light";
 
+// ── Stable snapshot references ──────────────────────────────────────
+// useSyncExternalStore compares snapshots with Object.is().
+// Returning a new object every call → infinite re-render loop.
+// We cache the snapshot and only create a new object when values change.
+let _snapshot: { theme: Theme; resolved: "light" | "dark" } = {
+  theme: _theme,
+  resolved: _resolved,
+};
+
+const _serverSnapshot: { theme: Theme; resolved: "light" | "dark" } = {
+  theme: "system",
+  resolved: "light",
+};
+
 function getSnapshot(): { theme: Theme; resolved: "light" | "dark" } {
-  return { theme: _theme, resolved: _resolved };
+  return _snapshot;
 }
 
 function getServerSnapshot(): { theme: Theme; resolved: "light" | "dark" } {
   // Server always returns system/light — the inline <script> will correct before paint
-  return { theme: "system", resolved: "light" };
+  return _serverSnapshot;
 }
 
 function subscribe(listener: () => void): () => void {
@@ -95,6 +109,10 @@ function subscribe(listener: () => void): () => void {
 }
 
 function notify() {
+  // Update cached snapshot reference (new object only when values actually changed)
+  if (_snapshot.theme !== _theme || _snapshot.resolved !== _resolved) {
+    _snapshot = { theme: _theme, resolved: _resolved };
+  }
   for (const l of _listeners) l();
 }
 

@@ -70,7 +70,7 @@ export default function SimulationPage() {
 
         <div className="mt-12 max-w-xl">
           {error && (
-            <div className="mb-6 rounded-md border border-severity-high bg-red-50 p-4 text-[14px] text-severity-high">
+            <div className="mb-6 rounded-md border border-severity-high bg-error-bg p-4 text-[14px] text-severity-high">
               Data temporarily unavailable. Please try again later.
             </div>
           )}

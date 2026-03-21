@@ -152,7 +152,7 @@ function RadarTooltip({
       ref={ref}
       role="tooltip"
       style={style}
-      className="pointer-events-none rounded-lg border border-border-primary bg-surface-primary px-4 py-3 shadow-lg"
+      className="pointer-events-none rounded-lg border border-border-primary bg-surface-primary px-4 py-3 shadow-[var(--shadow-tooltip)]"
     >
       <p className="mb-2 text-sm font-semibold text-text-primary">
         {data.label}

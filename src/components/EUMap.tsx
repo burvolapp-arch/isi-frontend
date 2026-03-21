@@ -361,7 +361,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
           minHeight: "min(560px, 80vw)",
           aspectRatio: "4 / 3",
           contain: "content",
-          boxShadow: "inset 0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)",
+          boxShadow: "var(--shadow-map)",
         }}
       >
         {/* Ocean / water background */}
@@ -546,7 +546,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
             {/* Tooltip */}
             {tooltip && (
               <div
-                className="pointer-events-none absolute z-20 rounded-xl border border-border-primary bg-surface-primary/95 px-5 py-4 text-xs text-text-primary shadow-lg backdrop-blur-md"
+                className="pointer-events-none absolute z-20 rounded-xl border border-border-primary bg-surface-primary/95 px-5 py-4 text-xs text-text-primary shadow-[var(--shadow-tooltip)] backdrop-blur-md"
                 style={{
                   left: tooltip.x,
                   top: tooltip.y,
@@ -614,7 +614,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
           <span key={item.label} className="inline-flex items-center gap-1.5">
             <span
               className="inline-block h-2.5 w-6 rounded-[3px]"
-              style={{ backgroundColor: item.color, boxShadow: "inset 0 1px 2px rgba(0,0,0,0.08)" }}
+              style={{ backgroundColor: item.color, boxShadow: "var(--shadow-swatch)" }}
             />
             <span className="font-mono text-[10px] tabular-nums text-text-tertiary">{item.label}</span>
           </span>

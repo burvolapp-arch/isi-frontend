@@ -252,7 +252,7 @@ export default async function ExecutiveOverviewPage() {
               Distribution of ISI composite scores across the current release cohort (EU-27).
               Vertical bands indicate HHI classification thresholds.
             </p>
-            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-7">
+            <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-3 shadow-[var(--shadow-inset)] sm:p-7">
               <DistributionHistogram
                 scores={compositeScores}
                 mean={isi.statistics.mean}

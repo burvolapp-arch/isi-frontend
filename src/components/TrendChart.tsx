@@ -22,17 +22,19 @@ const PAD = { top: 20, right: 20, bottom: 36, left: 50 };
 const PLOT_W = WIDTH - PAD.left - PAD.right;
 const PLOT_H = HEIGHT - PAD.top - PAD.bottom;
 
-const AXIS_COLORS: Record<string, string> = {
-  financial: "#2563eb",
-  energy: "#f59e0b",
-  technology: "#8b5cf6",
-  defense: "#ef4444",
-  critical_inputs: "#10b981",
-  logistics: "#06b6d4",
+const AXIS_COLOR_VARS: Record<string, string> = {
+  financial: "--color-axis-financial",
+  energy: "--color-axis-energy",
+  technology: "--color-axis-technology",
+  defense: "--color-axis-defense",
+  critical_inputs: "--color-axis-critical-inputs",
+  logistics: "--color-axis-logistics",
 };
 
 function getColor(slug: string): string {
-  return AXIS_COLORS[slug] ?? "#6b7280";
+  const varName = AXIS_COLOR_VARS[slug];
+  if (!varName) return `var(--color-axis-fallback)`;
+  return `var(${varName})`;
 }
 
 export function TrendChart({ history }: TrendChartProps) {
