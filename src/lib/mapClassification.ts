@@ -24,12 +24,13 @@ const T_HIGH = 0.50;
 // ─── Color Palette — Sequential Blues ───────────────────────────────
 // Aligned with the institutional navy design system.
 // Each step has clear perceptual distance from its neighbors.
+// Uses CSS custom properties so dark mode can override fills.
 
-const C_UNCONCENTRATED = "#c7e0f9"; // sky-blue — lightest data
-const C_MILD           = "#5b9cf5"; // blue-400
-const C_MODERATE       = "#2563eb"; // blue-600
-const C_HIGH           = "#14305a"; // navy-850 — darkest
-const C_NO_DATA        = "#eef0f3"; // stone-100 — neutral grey
+const C_UNCONCENTRATED = "var(--color-map-fill-unconcentrated)";
+const C_MILD           = "var(--color-map-fill-mild)";
+const C_MODERATE       = "var(--color-map-fill-moderate)";
+const C_HIGH           = "var(--color-map-fill-high)";
+const C_NO_DATA        = "var(--color-map-fill-nodata)";
 
 // ─── Classification Bands ───────────────────────────────────────────
 

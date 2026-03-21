@@ -217,7 +217,7 @@ export function CountryRankingsTable({
       <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b-2 border-accent">
+            <tr className="border-b border-accent/60">
               <th
                 className={`${thBase} sticky left-0 z-10 w-12 bg-surface-primary text-center`}
                 onClick={() => handleSort("rank")}

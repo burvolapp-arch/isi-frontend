@@ -121,13 +121,14 @@ export default async function ExecutiveOverviewPage() {
             <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:justify-start">
               <a
                 href="#map"
-                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)] focus-visible:outline-accent"
+                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)] focus-visible:outline-accent active:scale-[0.98]"
               >
                 Explore the Map
-                <span aria-hidden="true" className="transition-transform group-hover/cta:translate-y-0.5">↓</span>
+                <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-navy-900/10 text-[12px] transition-all group-hover/cta:bg-navy-900/20 group-hover/cta:translate-y-0.5">↓</span>
               </a>
               {isi && (
-                <span className="text-[12px] font-mono text-stone-500 sm:text-[13px]">
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 font-mono text-[11px] text-stone-500 backdrop-blur-sm sm:text-[12px]">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500/80" aria-hidden="true" />
                   {isi.version} · {isi.window} ·{" "}
                   {isi.countries_complete}/{isi.countries_total} countries
                 </span>
@@ -174,13 +175,20 @@ export default async function ExecutiveOverviewPage() {
         {/* ── Section 1: EU Choropleth Map ─────────────── */}
         {isi && (
           <section id="map" className="fade-in mt-10 scroll-mt-8 sm:mt-14">
-            <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
-              EU-27 Structural Exposure
-            </h2>
-            <p className="mt-1.5 text-[14px] text-text-tertiary">
-              Composite ISI scores mapped across {isi.countries_complete} member
-              states. Click any country for full axis-level detail.
-            </p>
+            <div className="flex items-baseline justify-between gap-4">
+              <div>
+                <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
+                  EU-27 Structural Exposure
+                </h2>
+                <p className="mt-1.5 text-[14px] text-text-tertiary">
+                  Composite ISI scores mapped across {isi.countries_complete} member
+                  states. Click any country for full axis-level detail.
+                </p>
+              </div>
+              <span className="hidden shrink-0 rounded border border-border-primary px-2 py-0.5 text-[10px] font-medium text-text-quaternary sm:inline-block">
+                Interactive
+              </span>
+            </div>
             <div className="mt-6">
               <EUMap
                 countries={isi.countries}
@@ -394,7 +402,7 @@ export default async function ExecutiveOverviewPage() {
               <Link
                 key={paper.id}
                 href={`/research#${paper.id}`}
-                className="group flex flex-col rounded-lg border border-border-primary bg-surface-primary p-5 transition-colors hover:border-border-secondary"
+                className="group flex flex-col card-lift rounded-lg border border-border-primary bg-surface-primary p-5 transition-[colors,transform,box-shadow] hover:border-border-secondary hover:shadow-[var(--shadow-card-hover)]"
               >
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-badge-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-badge-fg">

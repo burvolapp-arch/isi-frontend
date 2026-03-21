@@ -66,20 +66,20 @@ export default function SovereigntyMatrix({
 
       {/* Rows */}
       <div className="mt-4 space-y-4">
-        {rows.map((row) => {
+        {rows.map((row, i) => {
           const pct =
             row.mean !== null
               ? Math.min(row.mean / SCALE_MAX, 1) * 100
               : 0;
           return (
-            <div key={row.label}>
+            <div key={row.label} className="stagger-item" style={{ animationDelay: `${i * 60}ms` }}>
               {/* Label row */}
               <div className="flex items-baseline justify-between">
                 <div>
                   <span className="block text-[11px] font-medium tracking-[0.08em] text-stone-300">
                     {row.label}
                   </span>
-                  <span className="block text-[9px] tracking-[0.04em] text-stone-400">
+                  <span className="block text-[9px] tracking-[0.04em] text-stone-500">
                     HHI mean
                   </span>
                 </div>
@@ -89,12 +89,12 @@ export default function SovereigntyMatrix({
               </div>
 
               {/* Bar track */}
-              <div className="relative mt-1.5 h-[6px] rounded-[3px] bg-white/10">
+              <div className="relative mt-1.5 h-[6px] rounded-[3px] bg-white/[0.08]">
                 {/* Gridlines */}
                 {GRIDLINES.map((v) => (
                   <div
                     key={v}
-                    className="pointer-events-none absolute top-0 h-full w-px bg-white/10"
+                    className="pointer-events-none absolute top-0 h-full w-px bg-white/[0.06]"
                     style={{
                       left: `${(v / SCALE_MAX) * 100}%`,
                     }}
@@ -103,7 +103,7 @@ export default function SovereigntyMatrix({
                 {/* Fill */}
                 {row.mean !== null && (
                   <div
-                    className="absolute inset-y-0 left-0 rounded-[3px] bg-gradient-to-r from-stone-400 to-stone-300 transition-[width] duration-700 ease-out"
+                    className="absolute inset-y-0 left-0 rounded-[3px] bg-gradient-to-r from-stone-400/90 to-stone-300/80 transition-[width] duration-700 ease-out"
                     style={{ width: `${pct}%` }}
                   />
                 )}

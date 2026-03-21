@@ -15,6 +15,8 @@ import {
 } from "@/lib/format";
 import { formatScore } from "@/lib/presentation";
 
+// Cards use card-lift CSS utility for hover microinteraction
+
 interface OutliersPanelProps {
   countries: ISICompositeCountry[];
   mean: number | null;
@@ -143,7 +145,7 @@ export default function OutliersPanel({ countries, mean }: OutliersPanelProps) {
           <Link
             key={card.country}
             href={countryHref(card.country)}
-            className="group block rounded-md border border-border-primary bg-surface-primary p-4 sm:p-5 transition-[border-color,box-shadow] duration-150 hover:border-border-secondary hover:shadow-[var(--shadow-card-hover)]"
+            className="group block card-lift rounded-md border border-border-primary bg-surface-primary p-4 sm:p-5 transition-[border-color,box-shadow,transform] duration-150 hover:border-border-secondary hover:shadow-[var(--shadow-card-hover)]"
           >
             <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-text-quaternary">
               {card.title}

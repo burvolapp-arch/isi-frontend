@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToastProvider } from "@/components/Toast";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { CopyCitationButton } from "@/components/CopyCitationButton";
 import { sitewideJsonLd } from "@/lib/structuredData";
 import "./globals.css";
@@ -152,7 +153,7 @@ export default function RootLayout({
         </a>
         <div className="flex min-h-screen flex-col">
           {/* ── Header ─────────────────────────────────────── */}
-          <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-navy-900/95 backdrop-blur-md">
+          <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-navy-900/95 backdrop-blur-md relative">
             <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-2 px-3 py-2 sm:px-6 sm:py-4 lg:px-16">
               <Link href="/" className="flex shrink-0 items-baseline gap-2 sm:gap-3">
                 <span className="font-serif text-lg font-bold tracking-tight text-white sm:text-xl">
@@ -215,8 +216,10 @@ export default function RootLayout({
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="mt-6 border-t border-border-primary sm:mt-8" />
+              {/* Divider — gradient fade */}
+              <div className="mt-6 sm:mt-8">
+                <div className="h-px bg-gradient-to-r from-transparent via-border-primary to-transparent" />
+              </div>
 
               {/* Block B (bottom): Identity + Nav + Disclaimer */}
               <div className="mt-6 sm:mt-8">
@@ -255,6 +258,7 @@ export default function RootLayout({
             </div>
           </footer>
           <MobileBottomNav />
+          <ScrollToTop />
         </div>
         {/* Bottom nav spacer for mobile */}
         <div className="h-16 sm:hidden" aria-hidden="true" />

@@ -13,7 +13,7 @@ export function KPICard({
 }: KPICardProps) {
   return (
     <div
-      className={`group rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 transition-[border-color,box-shadow] duration-150 hover:border-border-secondary hover:shadow-[var(--shadow-card-sm)] sm:px-5 sm:py-4 ${
+      className={`group card-lift rounded-md border border-border-primary bg-surface-tertiary px-4 py-3 transition-[border-color,box-shadow,transform] duration-150 hover:border-border-secondary hover:shadow-[var(--shadow-card-sm)] sm:px-5 sm:py-4 ${
         variant === "highlight" ? "border-l-2 border-l-accent" : ""
       }`}
     >

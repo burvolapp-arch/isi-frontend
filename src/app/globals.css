@@ -138,6 +138,13 @@
   --color-map-border-internal: #ffffff;
   --color-map-hover-glow: #3b82f6;
 
+  /* ── Map Choropleth Fills ──────────────────────────────── */
+  --color-map-fill-unconcentrated: #c7e0f9;
+  --color-map-fill-mild: #5b9cf5;
+  --color-map-fill-moderate: #2563eb;
+  --color-map-fill-high: #14305a;
+  --color-map-fill-nodata: #eef0f3;
+
   /* ── Shadows ─────────────────────────────────────────── */
   --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-card-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -182,22 +189,29 @@
 
 .dark {
   /* ── Surfaces ──────────────────────────────────────────── */
-  --color-surface-primary: #0f1724;
-  --color-surface-secondary: #131c2e;
-  --color-surface-tertiary: #1a2436;
-  --color-surface-elevated: #1e2a3e;
+  /* Deeper, more separated layers. Canvas → Card → Elevated.
+     Linear designed this well: each step needs ~6-8 L* units. */
+  --color-surface-primary: #0c1322;    /* cards, panels — lifted off canvas */
+  --color-surface-secondary: #111a2c;  /* footer, alt sections */
+  --color-surface-tertiary: #0a0f1a;   /* page-level section bg, slightly darker than canvas for inset feel */
+  --color-surface-elevated: #162032;   /* dropdowns, tooltips, popovers */
   --color-surface-inverse: #f9fafb;
 
   /* ── Borders ───────────────────────────────────────────── */
-  --color-border-primary: #2a3548;
-  --color-border-secondary: #374357;
-  --color-border-subtle: #1e2a3e;
+  /* Slightly more visible than before — cards need edge definition */
+  --color-border-primary: #1e2b40;
+  --color-border-secondary: #2a3a52;
+  --color-border-subtle: #151e2e;
 
   /* ── Text ──────────────────────────────────────────────── */
-  --color-text-primary: #e5e7eb;
-  --color-text-secondary: #b0b8c4;
-  --color-text-tertiary: #8892a2;
-  --color-text-quaternary: #5f697a;
+  /* Key fix: primary was #e5e7eb (too white, renders thick on dark).
+     Dropping to #cdd2d9 reduces glare and improves perceived sharpness.
+     Subpixel rendering is off in dark mode (antialiased) so lighter
+     text renders bolder than it actually is. */
+  --color-text-primary: #cdd2d9;
+  --color-text-secondary: #9aa3b1;
+  --color-text-tertiary: #6d7a8a;
+  --color-text-quaternary: #4a5568;
   --color-text-inverse: #111827;
 
   /* ── Classification Bands — brighter for dark bg ───────── */
@@ -224,20 +238,20 @@
   --color-btn-primary-bg: #3b82f6;
   --color-btn-primary-bg-hover: #60a5fa;
   --color-btn-primary-fg: #ffffff;
-  --color-btn-solid-bg: #1e3a5f;
-  --color-btn-solid-bg-hover: #2a4a72;
-  --color-btn-solid-fg: #e5e7eb;
+  --color-btn-solid-bg: #172640;
+  --color-btn-solid-bg-hover: #1e3350;
+  --color-btn-solid-fg: #cdd2d9;
   --color-link: #60a5fa;
   --color-link-hover: #93c5fd;
-  --color-badge-bg: rgba(96, 165, 250, 0.15);
-  --color-badge-fg: #93c5fd;
-  --color-badge-secondary-bg: rgba(96, 165, 250, 0.08);
+  --color-badge-bg: rgba(96, 165, 250, 0.12);
+  --color-badge-fg: #7db8fc;
+  --color-badge-secondary-bg: rgba(96, 165, 250, 0.06);
   --color-badge-secondary-fg: #60a5fa;
-  --color-tag-bg: #3b82f6;
+  --color-tag-bg: #2563eb;
   --color-tag-fg: #ffffff;
 
   /* ── Progress & Indicator ──────────────────────────────── */
-  --color-progress-track: #1e2a3e;
+  --color-progress-track: #151e2e;
   --color-progress-fill: #3b82f6;
   --color-dot: #3b82f6;
 
@@ -254,25 +268,25 @@
   --color-error-fg-muted: #f87171;
 
   /* ── Toast ──────────────────────────────────────────── */
-  --color-toast-success-bg: #e5e7eb;
-  --color-toast-success-fg: #111827;
+  --color-toast-success-bg: #cdd2d9;
+  --color-toast-success-fg: #0a0f1a;
   --color-toast-error-bg: #f87171;
-  --color-toast-error-fg: #111827;
-  --color-toast-info-bg: #93c5fd;
-  --color-toast-info-fg: #111827;
+  --color-toast-error-fg: #0a0f1a;
+  --color-toast-info-bg: #7db8fc;
+  --color-toast-info-fg: #0a0f1a;
 
   /* ── Chart / SVG System ────────────────────────────────── */
-  --color-chart-line: #93c5fd;
-  --color-chart-line-secondary: #8892a2;
-  --color-chart-grid: #2a3548;
-  --color-chart-border: #374357;
-  --color-chart-label: #5f697a;
-  --color-chart-bar-from: #5f697a;
-  --color-chart-bar-to: #3d4654;
+  --color-chart-line: #7db8fc;
+  --color-chart-line-secondary: #6d7a8a;
+  --color-chart-grid: #1e2b40;
+  --color-chart-border: #2a3a52;
+  --color-chart-label: #4a5568;
+  --color-chart-bar-from: #4a5568;
+  --color-chart-bar-to: #333e4f;
   --color-chart-bar-hl-from: #60a5fa;
   --color-chart-bar-hl-to: #3b82f6;
-  --color-chart-highlight-bg: rgba(96, 165, 250, 0.12);
-  --color-chart-coastline: #5f697a;
+  --color-chart-highlight-bg: rgba(96, 165, 250, 0.08);
+  --color-chart-coastline: #4a5568;
 
   /* ── Band Tints — subtle on dark background ─────────── */
   --color-band-tint-unconcentrated: rgba(16, 185, 129, 0.12);
@@ -281,20 +295,32 @@
   --color-band-tint-high: rgba(239, 68, 68, 0.10);
 
   /* ── Map ─────────────────────────────────────────────── */
-  --color-map-water-from: #0b1628;
-  --color-map-water-mid: #0e1a30;
-  --color-map-water-to: #111e38;
-  --color-map-land-shadow: #1a2436;
-  --color-map-border-internal: rgba(255, 255, 255, 0.12);
+  /* Darker ocean — more contrast against fills.
+     Internal borders bumped to 0.18 for small-state visibility. */
+  --color-map-water-from: #070c17;
+  --color-map-water-mid: #0a1020;
+  --color-map-water-to: #0d1428;
+  --color-map-land-shadow: #111a2c;
+  --color-map-border-internal: rgba(255, 255, 255, 0.18);
   --color-map-hover-glow: #60a5fa;
 
+  /* ── Map Choropleth Fills — dark mode ──────────────────── */
+  /* Boosted luminance so sequential blues remain perceptually
+     ordered against the near-black ocean. Small states (Malta,
+     Cyprus, Luxembourg) become visible again. */
+  --color-map-fill-unconcentrated: #93c5fd;
+  --color-map-fill-mild: #3b82f6;
+  --color-map-fill-moderate: #1e40af;
+  --color-map-fill-high: #1e3050;
+  --color-map-fill-nodata: #1a2436;
+
   /* ── Shadows ─────────────────────────────────────────── */
-  --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-card-sm: 0 1px 3px rgba(0, 0, 0, 0.20);
-  --shadow-inset: inset 0 1px 3px rgba(255, 255, 255, 0.03);
-  --shadow-tooltip: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.25);
-  --shadow-map: inset 0 2px 12px rgba(0, 0, 0, 0.20), 0 1px 3px rgba(0, 0, 0, 0.25);
-  --shadow-swatch: inset 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-card-hover: 0 2px 12px rgba(0, 0, 0, 0.35);
+  --shadow-card-sm: 0 1px 4px rgba(0, 0, 0, 0.30);
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  --shadow-tooltip: 0 4px 20px rgba(0, 0, 0, 0.45), 0 1px 6px rgba(0, 0, 0, 0.30);
+  --shadow-map: inset 0 2px 12px rgba(0, 0, 0, 0.25), 0 1px 4px rgba(0, 0, 0, 0.30);
+  --shadow-swatch: inset 0 1px 2px rgba(0, 0, 0, 0.25);
 
   /* ── Axis Categorical Palette — brighter for dark bg ─── */
   --color-axis-financial: #60a5fa;
@@ -314,16 +340,16 @@
   --color-confirm: #34d399;
 
   /* ── Semantic Aliases ──────────────────────────────────── */
-  --color-background: #0b1120;
-  --color-foreground: #e5e7eb;
+  --color-background: #080d18;
+  --color-foreground: #cdd2d9;
 }
 
 /* ── Dark mode scrollbar ─────────────────────────────────── */
 .dark ::-webkit-scrollbar-thumb {
-  background: var(--color-stone-600);
+  background: #2a3a52;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-stone-500);
+  background: #3a4d66;
 }
 
 /* ── Theme transition (opt-in, applied after initial load) ── */
@@ -349,10 +375,25 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   line-height: 1.5;
   letter-spacing: -0.011em;
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+}
+
+/* ── Dark mode typography compensation ─────────────────── */
+/* Light-on-dark text renders perceptually bolder due to     */
+/* irradiation illusion + subpixel-off antialiasing.         */
+/* Compensate with slightly thinner stroke and tighter       */
+/* tracking on small UI text.                                */
+.dark body {
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none;
+}
+
+.dark h1, .dark h2, .dark h3 {
+  font-weight: 600;
 }
 
 /* ── Institutional Table ───────────────────────────────── */
@@ -393,10 +434,57 @@ tbody tr {
   animation: sectionReveal 0.4s ease-out both;
 }
 
-/* ── Content Visibility — Performance ──────────────────── */
+/* ── Staggered Item Entrance (matrix bars, grid cards) ─── */
+@keyframes staggerIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stagger-item {
+  animation: staggerIn 0.35s ease-out both;
+}
+
+/* ── Scroll-to-Top Button ──────────────────────────────── */
+@keyframes scrollTopIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes scrollTopOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.95); }
+}
+
+.scroll-top-visible {
+  animation: scrollTopIn 0.2s ease-out forwards;
+}
+
+.scroll-top-hidden {
+  animation: scrollTopOut 0.15s ease-in forwards;
+  pointer-events: none;
+}
+
+/* ── Content Visibility — Performance ────────────────── */
 .content-auto {
   content-visibility: auto;
   contain-intrinsic-size: auto 600px;
+}
+
+/* ── Skeleton Shimmer ───────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-elevated) 0%,
+    var(--color-border-primary) 50%,
+    var(--color-surface-elevated) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
 }
 
 /* ── Fade-in utility (JS-controlled) ──────────────────── */
@@ -410,10 +498,69 @@ tbody tr {
   transform: translateY(0);
 }
 
+/* ── Card hover lift (subtle elevation on interact) ────── */
+.card-lift {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.card-lift:hover {
+  transform: translateY(-1px);
+}
+
 /* ── Map Tooltip Animation ─────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translate(-50%, -100%) translateY(4px); }
   to   { opacity: 1; transform: translate(-50%, -100%) translateY(0); }
+}
+
+/* ── Header bottom glow (dark mode) ────────────────────── */
+.dark header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(96, 165, 250, 0.15) 30%,
+    rgba(96, 165, 250, 0.25) 50%,
+    rgba(96, 165, 250, 0.15) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Table sticky column scroll shadow ─────────────────── */
+.table-scroll-shadow {
+  position: relative;
+}
+
+.table-scroll-shadow::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to left, var(--color-background), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+.table-scroll-shadow[data-can-scroll]::after {
+  opacity: 1;
+}
+
+/* ── Native <select> dark mode ─────────────────────────── */
+.dark select {
+  color-scheme: dark;
+}
+
+.dark select option {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
 }
 
 /* ── EUMap GPU-accelerated hover transitions ───────────── */

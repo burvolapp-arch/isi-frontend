@@ -31,7 +31,7 @@ export function PaperCard({
   return (
     <article
       id={paper.id}
-      className="scroll-mt-20 rounded-lg border border-border-primary bg-surface-primary transition-[border-color] hover:border-border-secondary"
+      className="scroll-mt-20 card-lift rounded-lg border border-border-primary bg-surface-primary transition-[border-color,transform,box-shadow] hover:border-border-secondary hover:shadow-[var(--shadow-card-hover)]"
       aria-labelledby={`title-${paper.id}`}
     >
       <div className="p-6 sm:p-8">

@@ -519,20 +519,20 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                       y={y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isDarkFill ? "var(--color-text-inverse)" : "var(--color-text-primary)"}
-                      fillOpacity={isDimmed ? 0.2 : isHovered ? 1 : 0.85}
+                      fill={isDarkFill ? "#ffffff" : "var(--color-text-primary)"}
+                      fillOpacity={isDimmed ? 0.15 : isHovered ? 1 : 0.9}
                       fontSize={isHovered ? size + 1.5 : size}
                       fontFamily="var(--font-sans)"
-                      fontWeight={isHovered ? 700 : 600}
-                      letterSpacing="0.03em"
+                      fontWeight={isHovered ? 600 : 500}
+                      letterSpacing="0.04em"
                       className="eumap-label"
                       style={{
                         textShadow: isDarkFill
-                          ? "0 0 3px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.4)"
-                          : "0 0 3px rgba(255,255,255,0.9), 0 1px 2px rgba(255,255,255,0.7), 0 0 6px rgba(255,255,255,0.5)",
+                          ? "0 0 4px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.5)"
+                          : "0 0 3px rgba(255,255,255,0.9), 0 1px 2px rgba(255,255,255,0.7), 0 0 6px rgba(255,255,255,0.4)",
                         paintOrder: "stroke",
-                        stroke: isDarkFill ? "rgba(0,0,0,0.25)" : "rgba(255,255,255,0.8)",
-                        strokeWidth: isDarkFill ? "2px" : "2.5px",
+                        stroke: isDarkFill ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.85)",
+                        strokeWidth: isDarkFill ? "2.5px" : "2.5px",
                         strokeLinejoin: "round",
                       }}
                     >
