@@ -685,7 +685,7 @@ export function ScenarioLaboratory({
         </div>
         {/* Scenario explanation panel */}
         {activePresetLabel && (() => {
-          const activePreset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
+          const activePreset = SCENARIO_PRESETS.find((p) => p.label === activePresetLabel);
           const explanation = activePreset ? getScenarioExplanation(activePreset.id) : null;
           if (!explanation) return null;
           return (

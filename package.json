@@ -10,7 +10,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
-    "test:watch": "vitest"
   },
   "dependencies": {
     "@microsoft/clarity": "^1.0.2",

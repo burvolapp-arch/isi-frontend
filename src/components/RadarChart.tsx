@@ -259,8 +259,6 @@ export const RadarChart = memo(function RadarChart({
 
   // Radius from authoritative constant
   const radius = RADAR_RADIUS;
-
-  const radius = RADAR_RADIUS;
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;
   const angleStep = n > 0 ? (2 * Math.PI) / n : 0;
