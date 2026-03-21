@@ -61,15 +61,6 @@ function applyToDOM(resolved: "light" | "dark") {
   html.style.colorScheme = resolved;
 }
 
-/** Enable brief CSS transition for smooth theme switch, then remove. */
-function withTransition(fn: () => void) {
-  const html = document.documentElement;
-  html.classList.add("theme-transition");
-  fn();
-  // Remove transition class after animations complete
-  const tid = setTimeout(() => html.classList.remove("theme-transition"), 200);
-  return () => clearTimeout(tid);
-}
 
 // ═══════════════════════════════════════════════════════════════════════
 // External Store — single source of truth for theme, powers
@@ -116,16 +107,12 @@ function notify() {
   for (const l of _listeners) l();
 }
 
-function setStoreTheme(t: Theme, transition = true) {
+function setStoreTheme(t: Theme, _transition = true) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, t);
   _theme = t;
   _resolved = resolve(t);
-  if (transition) {
-    withTransition(() => applyToDOM(_resolved));
-  } else {
-    applyToDOM(_resolved);
-  }
+  applyToDOM(_resolved);
   notify();
 }
 
@@ -148,7 +135,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const handler = () => {
       if (_theme !== "system") return;
       _resolved = resolve("system");
-      withTransition(() => applyToDOM(_resolved));
+      applyToDOM(_resolved);
       notify();
     };
     mq.addEventListener("change", handler);
@@ -163,7 +150,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (val === "light" || val === "dark" || val === "system") {
         _theme = val;
         _resolved = resolve(val);
-        withTransition(() => applyToDOM(_resolved));
+        applyToDOM(_resolved);
         notify();
       }
     };

@@ -353,19 +353,6 @@
   background: #345070;
 }
 
-/* ── Theme transition (opt-in, class added/removed by ThemeProvider) ──
-   CSS custom properties (--color-*) cascade instantly — child elements
-   that reference them update for free. We only need explicit transitions
-   on elements that directly use background-color, border-color, or color
-   properties. Keep the selector list short for performance. ── */
-html.theme-transition,
-html.theme-transition body,
-html.theme-transition header,
-html.theme-transition footer,
-html.theme-transition main,
-html.theme-transition nav {
-  transition: background-color 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out, box-shadow 0.12s ease-out !important;
-}
 
 /* ── Base ───────────────────────────────────────────────── */
 html {
