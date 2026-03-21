@@ -72,7 +72,7 @@ export function MobileBottomNav() {
                 flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5
                 text-[10px] font-medium transition-colors
                 ${active
-                  ? "text-navy-700 dark:text-navy-500"
+                  ? "text-link"
                   : "text-text-quaternary hover:text-text-secondary"
                 }
               `}

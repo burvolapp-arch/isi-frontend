@@ -346,7 +346,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     <div className="space-y-4">
       {/* Mismatch warning */}
       {ready && mapData.matchedCount < mapData.featureCount && (
-        <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300">
+        <div className="rounded-md border border-error-border bg-error-bg px-4 py-2 text-xs text-error-fg">
           <strong>⚠ Map data mismatch:</strong> {mapData.matchedCount}/
           {mapData.featureCount} countries matched. Unmatched:{" "}
           {mapData.unmatchedCodes.join(", ")}
@@ -387,10 +387,10 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
         {/* Error overlay */}
         {loadError && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-red-50 text-sm text-red-600 dark:bg-red-950/50 dark:text-red-400">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-error-bg text-sm text-error-fg-muted">
             <div className="text-center">
               <p className="font-medium">Map rendering failed</p>
-              <p className="mt-1 text-xs text-red-500 dark:text-red-400">{loadError}</p>
+              <p className="mt-1 text-xs text-error-fg-muted">{loadError}</p>
             </div>
           </div>
         )}
@@ -593,7 +593,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
                 {tooltip.delta !== null && (
                   <p className="mt-2 text-[11px] tabular-nums text-text-quaternary">
-                    <span className={tooltip.delta > 0 ? "text-red-400" : "text-emerald-400"}>
+                    <span className={tooltip.delta > 0 ? "text-deviation-positive" : "text-deviation-negative"}>
                       {formatDelta(tooltip.delta)}
                     </span>
                     {" "}vs EU mean

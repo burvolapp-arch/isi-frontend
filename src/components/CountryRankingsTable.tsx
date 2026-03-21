@@ -163,7 +163,7 @@ export function CountryRankingsTable({
   const sortIndicator = (colKey: SortKey) => {
     if (sortKey !== colKey) return null;
     return (
-      <span className="ml-1 text-navy-700" aria-hidden="true">
+      <span className="ml-1 text-link" aria-hidden="true">
         {sortDir === "asc" ? "↑" : "↓"}
       </span>
     );
@@ -188,7 +188,7 @@ export function CountryRankingsTable({
             aria-label="Search countries"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-primary placeholder-text-quaternary outline-none focus:border-navy-700 sm:min-h-0"
+            className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-primary placeholder-text-quaternary outline-none focus:border-accent sm:min-h-0"
           />
           <select
             value={classFilter}
@@ -198,7 +198,7 @@ export function CountryRankingsTable({
                 e.target.value as ScoreClassification | "all"
               )
             }
-            className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-secondary outline-none focus:border-navy-700 sm:min-h-0"
+            className="min-h-[44px] border-b border-border-primary bg-transparent px-0 py-1.5 text-[14px] text-text-secondary outline-none focus:border-accent sm:min-h-0"
           >
             <option value="all">All classifications</option>
             {CLASSIFICATION_OPTIONS.map((c) => (
@@ -217,7 +217,7 @@ export function CountryRankingsTable({
       <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b-2 border-navy-900">
+            <tr className="border-b-2 border-accent">
               <th
                 className={`${thBase} sticky left-0 z-10 w-12 bg-surface-primary text-center`}
                 onClick={() => handleSort("rank")}
@@ -416,7 +416,7 @@ export function CountryRankingsTable({
                   <div className="mt-3">
                     <Link
                       href={countryHref(c.country)}
-                      className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-navy-700 hover:underline"
+                      className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-link hover:underline"
                     >
                       View full country analysis →
                     </Link>
@@ -521,7 +521,7 @@ function TableRow({
         <td className={`sticky left-12 z-10 whitespace-nowrap px-3 py-2.5 text-[14px] ${rowIndex % 2 === 1 ? "bg-surface-tertiary/50" : "bg-surface-primary"}`}>
           <Link
             href={countryHref(c.country)}
-            className="font-medium text-text-primary hover:text-navy-700 transition-colors"
+            className="font-medium text-text-primary hover:text-link transition-colors"
           >
             {c.country_name}
           </Link>
@@ -609,7 +609,7 @@ function TableRow({
             <div className="mt-4">
               <Link
                 href={countryHref(c.country)}
-                className="text-[13px] font-medium text-navy-700 hover:underline"
+                className="text-[13px] font-medium text-link hover:underline"
               >
                 View full country analysis →
               </Link>

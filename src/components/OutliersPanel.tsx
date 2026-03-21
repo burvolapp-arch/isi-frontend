@@ -153,7 +153,7 @@ export default function OutliersPanel({ countries, mean }: OutliersPanelProps) {
             </p>
             <p className="mt-1 text-[11px] text-text-quaternary">{card.detail}</p>
             <div className="mt-3 pt-3 border-t border-border-subtle">
-              <p className="text-[13px] font-medium text-text-secondary transition-colors group-hover:text-navy-700">
+              <p className="text-[13px] font-medium text-text-secondary transition-colors group-hover:text-link">
                 {card.countryName}
               </p>
               <p className="mt-0.5 text-[12px] text-text-quaternary line-clamp-2">

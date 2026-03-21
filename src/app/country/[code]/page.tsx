@@ -203,7 +203,7 @@ function AxisSection({ axis }: { axis: CountryAxisDetail }) {
             <h3 className="mt-1 font-serif text-[16px] font-semibold text-text-primary sm:text-[17px]">
               <Link
                 href={axisHref(axis.axis_slug)}
-                className="hover:text-navy-700"
+                className="hover:text-link"
               >
                 {formatAxisFull(axis.axis_slug)}
               </Link>
@@ -372,9 +372,9 @@ function ChannelBlock({ channel }: { channel: ChannelDetail }) {
                     {p.partner}
                   </span>
                     <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-24 overflow-hidden bg-stone-200">
+                    <div className="h-1.5 w-24 overflow-hidden bg-progress-track">
                       <div
-                        className="h-full bg-navy-700"
+                        className="h-full bg-progress-fill"
                         style={{ width: formatPercentage(p.share, "share") }}
                       />
                     </div>
@@ -463,7 +463,7 @@ function HistorySection({ history }: { history: CountryHistory }) {
       <div className="mt-6 overflow-x-auto">
         <table className="min-w-full text-[14px]">
           <thead>
-            <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+            <tr className="border-b-2 border-accent text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
               <th className="px-4 py-3 text-left font-medium">Year</th>
               <th className="px-4 py-3 text-right font-medium">Composite</th>
               <th className="px-4 py-3 text-right font-medium">Rank</th>

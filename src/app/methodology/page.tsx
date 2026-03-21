@@ -242,7 +242,7 @@ export default async function MethodologyPage() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-[14px]">
                 <thead>
-                  <tr className="border-b-2 border-navy-900">
+                  <tr className="border-b-2 border-accent">
                     <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                       Condition
                     </th>
@@ -283,7 +283,7 @@ export default async function MethodologyPage() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-[14px]">
                 <thead>
-                  <tr className="border-b-2 border-navy-900">
+                  <tr className="border-b-2 border-accent">
                     <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                       Range
                     </th>
@@ -417,7 +417,7 @@ export default async function MethodologyPage() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-[14px]">
                 <thead>
-                  <tr className="border-b-2 border-navy-900">
+                  <tr className="border-b-2 border-accent">
                     <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                       Axis
                     </th>
@@ -466,7 +466,7 @@ export default async function MethodologyPage() {
             <P>
               Detailed channel definitions, data source citations, inclusion/exclusion criteria,
               and known limitations for each axis are published on the corresponding{" "}
-              <Link href="/" className="text-navy-700 hover:text-navy-900">axis detail pages</Link>,
+              <Link href="/" className="text-link hover:text-link-hover">axis detail pages</Link>,
               which are generated from the backend axis registry.
             </P>
           </section>
@@ -657,7 +657,7 @@ export default async function MethodologyPage() {
           {/* ══════════════════════════════════════════════════════
               VERSION DECLARATION
               ══════════════════════════════════════════════════════ */}
-          <section className="mt-16 border-t-2 border-navy-900 pt-6">
+          <section className="mt-16 border-t-2 border-accent pt-6">
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-quaternary">
                 Framework Version

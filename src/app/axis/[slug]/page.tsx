@@ -287,7 +287,7 @@ export default async function AxisPage({ params }: PageProps) {
                           href={citation.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-navy-700 underline hover:text-navy-900"
+                          className="text-link underline hover:text-link-hover"
                         >
                           {citation.url.replace(/^https?:\/\//, "").split("/")[0]}
                         </a>
@@ -394,7 +394,7 @@ export default async function AxisPage({ params }: PageProps) {
           <div className="mt-6 hidden md:block overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="border-b-2 border-navy-900">
+                <tr className="border-b-2 border-accent">
                   <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                     #
                   </th>
@@ -439,7 +439,7 @@ export default async function AxisPage({ params }: PageProps) {
                       <td className="whitespace-nowrap px-4 py-2.5 text-sm">
                         <Link
                           href={countryHref(c.country)}
-                          className="font-medium text-text-secondary hover:text-navy-700"
+                          className="font-medium text-text-secondary hover:text-link"
                         >
                           {c.country_name}
                         </Link>
@@ -487,7 +487,7 @@ export default async function AxisPage({ params }: PageProps) {
         </section>
 
         {/* ── What This Axis Does NOT Measure ──────────────── */}
-        <section className="mt-14 mb-16 border-l-2 border-l-stone-300 py-4 pl-5 pr-6">
+        <section className="mt-14 mb-16 border-l-2 border-l-border-secondary py-4 pl-5 pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Interpretive Boundaries
           </h3>

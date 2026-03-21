@@ -15,7 +15,7 @@ export function ThemeToggle() {
         flex h-8 w-8 shrink-0 items-center justify-center rounded-md
         text-stone-400 transition-colors
         hover:bg-white/10 hover:text-white
-        focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-500
+        focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
       "
     >
       {isDark ? (

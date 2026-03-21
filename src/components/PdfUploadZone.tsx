@@ -104,7 +104,7 @@ export function PdfUploadZone({
       onDragLeave={handleDragLeave}
       className={`relative rounded-md border-2 border-dashed transition-colors ${
         dragOver
-          ? "border-navy-500 bg-navy-700/5"
+          ? "border-accent bg-badge-bg"
           : "border-border-primary bg-surface-tertiary hover:border-border-secondary"
       } ${uploading ? "pointer-events-none opacity-60" : ""}`}
     >
@@ -133,7 +133,7 @@ export function PdfUploadZone({
             </svg>
             <div className="text-center">
               <p className="text-[13px] font-medium text-text-secondary">
-                Drop PDF here or <span className="text-navy-700 underline">browse</span>
+                Drop PDF here or <span className="text-link underline">browse</span>
               </p>
               <p className="mt-1 text-[11px] text-text-quaternary">
                 Replaces {existingPath} · Max 50 MB
@@ -144,12 +144,12 @@ export function PdfUploadZone({
       </label>
 
       {error && (
-        <p className="px-4 pb-3 text-center text-[12px] text-red-600" role="alert">
+        <p className="px-4 pb-3 text-center text-[12px] text-error-fg-muted" role="alert">
           {error}
         </p>
       )}
       {success && (
-        <p className="px-4 pb-3 text-center text-[12px] text-emerald-600" role="status">
+        <p className="px-4 pb-3 text-center text-[12px] text-deviation-negative" role="status">
           PDF uploaded successfully.
         </p>
       )}

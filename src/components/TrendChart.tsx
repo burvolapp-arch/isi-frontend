@@ -103,7 +103,7 @@ export function TrendChart({ history }: TrendChartProps) {
             type="checkbox"
             checked={showAxes}
             onChange={(e) => setShowAxes(e.target.checked)}
-            className="h-3 w-3 accent-navy-700"
+            className="h-3 w-3 accent-accent"
           />
           Show axis overlays
         </label>
@@ -164,7 +164,7 @@ export function TrendChart({ history }: TrendChartProps) {
           <path
             d={compositePath}
             fill="none"
-            className="stroke-navy-700 dark:stroke-navy-500"
+            className="stroke-chart-line"
             strokeWidth={2}
             strokeLinejoin="round"
           />
@@ -176,7 +176,7 @@ export function TrendChart({ history }: TrendChartProps) {
                 cx={xScale(i)}
                 cy={yScale(y.composite)}
                 r={hovered === i ? 5 : 3.5}
-                className="fill-navy-700 dark:fill-navy-500"
+                className="fill-chart-line"
                 strokeWidth={2}
                 stroke="var(--color-surface-primary)"
               />
@@ -259,7 +259,7 @@ export function TrendChart({ history }: TrendChartProps) {
             </span>
           ))}
           <span className="flex items-center gap-1">
-            <span className="inline-block h-0.5 w-3 rounded bg-navy-700 dark:bg-navy-500" />
+            <span className="inline-block h-0.5 w-3 rounded bg-progress-fill" />
             Composite
           </span>
         </div>

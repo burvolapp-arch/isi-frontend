@@ -83,7 +83,7 @@ export default function SimulationPage() {
             <select
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
-              className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
+              className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-accent focus:outline-none sm:min-h-0"
             >
               <option value="">— Select a country —</option>
               {countries.map((c) => (
@@ -102,7 +102,7 @@ export default function SimulationPage() {
               className={`
                 min-h-[44px] rounded-md px-6 py-2.5 text-[14px] font-medium transition-colors sm:min-h-0
                 ${selectedCountry
-                  ? "bg-navy-900 text-white hover:bg-navy-800"
+                  ? "bg-btn-solid-bg text-btn-solid-fg hover:bg-btn-solid-bg-hover"
                   : "cursor-not-allowed bg-border-primary text-text-quaternary"
                 }
               `}
@@ -112,7 +112,7 @@ export default function SimulationPage() {
           </section>
 
           {/* Explanation */}
-          <section className="mt-12 space-y-4 border-l-2 border-l-stone-300 py-4 pl-5 pr-6">
+          <section className="mt-12 space-y-4 border-l-2 border-l-border-secondary py-4 pl-5 pr-6">
             <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
               How It Works
             </h3>

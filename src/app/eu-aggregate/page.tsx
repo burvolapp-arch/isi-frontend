@@ -335,7 +335,7 @@ export default async function EU27Page() {
             {/* ── Desktop table (≥ md) ── */}
             <table className="hidden md:table min-w-full text-[14px]">
               <thead>
-                <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                <tr className="border-b-2 border-accent text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th scope="col" className="px-4 py-3 text-left font-medium">Axis</th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">Cohort Mean</th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">Min</th>
@@ -352,7 +352,7 @@ export default async function EU27Page() {
                   .map((a) => (
                     <tr key={a.slug} className="border-b border-border-subtle transition-colors hover:bg-surface-tertiary">
                       <td className="px-4 py-2.5 text-text-secondary">
-                        <Link href={`/axis/${a.slug}`} className="hover:text-navy-700">
+                        <Link href={`/axis/${a.slug}`} className="hover:text-link">
                           {formatAxisShort(a.slug)}
                         </Link>
                       </td>
@@ -443,7 +443,7 @@ export default async function EU27Page() {
             {/* ── Desktop table (≥ md) ── */}
             <table className="hidden md:table min-w-full text-[14px]">
               <thead>
-                <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                <tr className="border-b-2 border-accent text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th scope="col" className="px-4 py-3 text-left font-medium">#</th>
                   <th scope="col" className="px-4 py-3 text-left font-medium">Country</th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">Composite</th>
@@ -468,7 +468,7 @@ export default async function EU27Page() {
                       <td className="whitespace-nowrap px-4 py-2.5">
                         <Link
                           href={countryHref(c.country)}
-                          className="font-medium text-text-secondary hover:text-navy-700"
+                          className="font-medium text-text-secondary hover:text-link"
                         >
                           {c.country_name}
                         </Link>
@@ -501,7 +501,7 @@ export default async function EU27Page() {
         </section>
 
         {/* ── Methodological Note ── */}
-        <section className="mt-14 mb-16 border-l-2 border-l-stone-300 py-4 pl-5 pr-6">
+        <section className="mt-14 mb-16 border-l-2 border-l-border-secondary py-4 pl-5 pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Methodological Note
           </h3>

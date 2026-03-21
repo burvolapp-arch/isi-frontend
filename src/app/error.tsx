@@ -34,7 +34,7 @@ export default function RootError({
           <div className="mt-6 flex gap-3">
             <button
               onClick={reset}
-              className="rounded-md bg-navy-900 px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-navy-800"
+              className="rounded-md bg-btn-solid-bg px-5 py-2.5 text-[13px] font-medium text-btn-solid-fg transition-colors hover:bg-btn-solid-bg-hover"
             >
               Try again
             </button>

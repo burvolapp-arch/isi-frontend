@@ -137,9 +137,9 @@ export default function PressPage() {
               <a
                 key={i}
                 href={resource.href}
-                className="group rounded-md border border-border-primary bg-surface-primary p-4 transition-colors hover:border-navy-700 hover:bg-surface-tertiary"
+                className="group rounded-md border border-border-primary bg-surface-primary p-4 transition-colors hover:border-accent hover:bg-surface-tertiary"
               >
-                <p className="text-[13px] font-semibold text-text-primary group-hover:text-navy-700">
+                <p className="text-[13px] font-semibold text-text-primary group-hover:text-link">
                   {resource.label}
                 </p>
                 <p className="mt-1.5 text-[12px] leading-relaxed text-text-quaternary">
@@ -176,7 +176,7 @@ export default function PressPage() {
             <p className="mt-3 font-mono text-[13px] text-text-primary">
               <a
                 href="mailto:press@internationalsovereignty.org"
-                className="underline hover:text-navy-700"
+                className="underline hover:text-link"
               >
                 press@internationalsovereignty.org
               </a>

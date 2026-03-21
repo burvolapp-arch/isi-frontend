@@ -170,7 +170,7 @@ export default function AccessibilityPage() {
               please contact us via the project&apos;s{" "}
               <a
                 href="https://github.com/burvolapp-arch/isi-frontend/issues"
-                className="text-navy-700 underline hover:text-navy-900"
+                className="text-link underline hover:text-link-hover"
                 target="_blank"
                 rel="noopener noreferrer"
               >

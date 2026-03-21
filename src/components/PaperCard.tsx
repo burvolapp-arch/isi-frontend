@@ -37,10 +37,10 @@ export function PaperCard({
       <div className="p-6 sm:p-8">
         {/* ── Series label + badges ── */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded bg-navy-700/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-navy-700">
+          <span className="rounded bg-badge-bg px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-badge-fg">
             ISI Paper Series No. {paper.seriesNumber}
           </span>
-          <span className="rounded bg-navy-700/5 px-2 py-0.5 text-[10px] font-medium text-navy-600">
+          <span className="rounded bg-badge-secondary-bg px-2 py-0.5 text-[10px] font-medium text-badge-secondary-fg">
             {paper.badge}
           </span>
           <span className="rounded bg-surface-tertiary px-2 py-0.5 text-[10px] font-medium text-text-quaternary">
@@ -103,7 +103,7 @@ export function PaperCard({
                 href={`https://doi.org/${paper.doiVersion}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="break-all text-accent-muted underline hover:text-accent dark:text-blue-400 dark:hover:text-blue-300"
+                className="break-all text-accent-muted underline hover:text-accent"
                 aria-label={`DOI for ${paper.title}`}
               >
                 https://doi.org/{paper.doiVersion}
@@ -182,7 +182,7 @@ export function PaperCard({
                   key={f.filename}
                   href={`${RESEARCH_PATH}/${f.filename}`}
                   download
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-navy-700 bg-navy-700 px-4 py-2.5 text-[12px] font-medium text-white transition-colors hover:bg-navy-800 sm:w-auto sm:justify-start sm:py-2"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-btn-primary-bg bg-btn-primary-bg px-4 py-2.5 text-[12px] font-medium text-btn-primary-fg transition-colors hover:bg-btn-primary-bg-hover sm:w-auto sm:justify-start sm:py-2"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />

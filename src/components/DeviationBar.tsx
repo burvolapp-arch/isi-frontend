@@ -52,7 +52,7 @@ export const DeviationBar = memo(function DeviationBar({
         {...(href ? { href } : {})}
         className={`min-h-[44px] shrink-0 text-[14px] font-medium leading-tight md:min-h-0 md:w-32 flex items-center ${
           href
-            ? "text-text-secondary hover:text-navy-700"
+            ? "text-text-secondary hover:text-link"
             : "text-text-secondary"
         }`}
       >

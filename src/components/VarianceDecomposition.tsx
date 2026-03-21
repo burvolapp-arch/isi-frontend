@@ -82,7 +82,7 @@ export function VarianceDecomposition({ countries }: VarianceDecompositionProps)
       <div className="overflow-x-auto">
         <table className="min-w-full text-[13px]">
           <thead>
-            <tr className="border-b-2 border-navy-900">
+            <tr className="border-b-2 border-accent">
               <th scope="col" className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                 Axis
               </th>

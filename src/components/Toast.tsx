@@ -103,10 +103,10 @@ function ToastBubble({
 
   const variantClasses =
     item.variant === "success"
-      ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900"
+      ? "bg-toast-success-bg text-toast-success-fg"
       : item.variant === "error"
-        ? "bg-red-700 text-white dark:bg-red-400 dark:text-stone-900"
-        : "bg-navy-700 text-white dark:bg-navy-300 dark:text-stone-900";
+        ? "bg-toast-error-bg text-toast-error-fg"
+        : "bg-toast-info-bg text-toast-info-fg";
 
   return (
     <div

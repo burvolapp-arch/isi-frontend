@@ -113,14 +113,22 @@ const FOOTER_NAV = [
   { href: "/accessibility", label: "Accessibility" },
 ] as const;
 
+// ═══════════════════════════════════════════════════════════════════════
+// Anti-flicker inline script — runs before first paint.
+// Reads localStorage + system preference, applies .dark + colorScheme
+// on <html> synchronously. Zero flash, no layout shift.
+// ═══════════════════════════════════════════════════════════════════════
+const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("isi-theme");var d=(t==="dark")||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches);if(d){document.documentElement.classList.add("dark");document.documentElement.style.colorScheme="dark"}}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <link rel="preconnect" href="https://isi-backend-production.up.railway.app" crossOrigin="anonymous" />
       </head>
       <body

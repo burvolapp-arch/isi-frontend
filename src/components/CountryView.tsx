@@ -113,9 +113,9 @@ export function CountryView({
               onClick={() => setMode("baseline")}
               className={`
                 min-h-[44px] rounded px-4 py-1.5 text-[12px] font-medium transition-colors sm:min-h-0
-                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
                 ${mode === "baseline"
-                  ? "bg-navy-700 text-white shadow-sm"
+                  ? "bg-btn-primary-bg text-btn-primary-fg shadow-sm"
                   : "text-text-tertiary hover:text-text-secondary"
                 }
               `}
@@ -127,9 +127,9 @@ export function CountryView({
               onClick={() => setMode("scenario")}
               className={`
                 min-h-[44px] rounded px-4 py-1.5 text-[12px] font-medium transition-colors sm:min-h-0
-                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
                 ${mode === "scenario"
-                  ? "bg-navy-700 text-white shadow-sm"
+                  ? "bg-btn-primary-bg text-btn-primary-fg shadow-sm"
                   : "text-text-tertiary hover:text-text-secondary"
                 }
               `}
@@ -268,7 +268,7 @@ export function CountryView({
                     <div key={a.axis_id} className="flex items-center justify-between">
                       <Link
                         href={axisHref(a.axis_slug)}
-                        className="text-[13px] font-medium text-text-secondary hover:text-navy-700"
+                        className="text-[13px] font-medium text-text-secondary hover:text-link"
                       >
                         {formatAxisFull(a.axis_slug)}
                       </Link>
@@ -288,7 +288,7 @@ export function CountryView({
                     <div key={a.axis_id} className="flex items-center justify-between">
                       <Link
                         href={axisHref(a.axis_slug)}
-                        className="text-[13px] font-medium text-text-secondary hover:text-navy-700"
+                        className="text-[13px] font-medium text-text-secondary hover:text-link"
                       >
                         {formatAxisFull(a.axis_slug)}
                       </Link>

@@ -670,10 +670,10 @@ export function ScenarioLaboratory({
                 title={`${preset.shortLabel}: ${preset.description}`}
                 className={`
                   min-h-[44px] rounded border px-2.5 py-1.5 text-[11px] font-medium sm:min-h-0
-                  focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                  focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
                   disabled:opacity-40 disabled:cursor-not-allowed
                   ${isActive
-                    ? "border-navy-700 bg-navy-700 text-white"
+                    ? "border-btn-primary-bg bg-btn-primary-bg text-btn-primary-fg"
                     : "border-border-primary bg-surface-primary text-text-secondary hover:bg-surface-tertiary"
                   }
                 `}
@@ -765,12 +765,12 @@ export function ScenarioLaboratory({
                           aria-pressed={isActive}
                           className={`
                             w-[42px] rounded px-1 py-0.5 text-center font-mono text-[10px] font-medium whitespace-nowrap
-                            focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
+                            focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent
                             disabled:opacity-40 disabled:cursor-not-allowed
                             ${isActive
                               ? isBase
-                                ? "bg-stone-700 text-white"
-                                : "bg-navy-700 text-white"
+                                ? "bg-btn-solid-bg text-btn-solid-fg"
+                                : "bg-btn-primary-bg text-btn-primary-fg"
                               : "border border-border-primary bg-surface-primary text-text-tertiary hover:bg-surface-tertiary"
                             }
                           `}
@@ -793,7 +793,7 @@ export function ScenarioLaboratory({
           type="button"
           onClick={resetToBaseline}
           disabled={(!hasAdjustments && serviceState === "IDLE") || serviceState === "COMPUTING"}
-          className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-0"
+          className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:opacity-40 disabled:cursor-not-allowed sm:min-h-0"
         >
           Reset to Baseline
         </button>
@@ -801,7 +801,7 @@ export function ScenarioLaboratory({
           <button
             type="button"
             onClick={retrySimulation}
-            className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+            className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent sm:min-h-0"
           >
             Retry
           </button>
@@ -810,7 +810,7 @@ export function ScenarioLaboratory({
           <button
             type="button"
             onClick={exportSnapshot}
-            className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+            className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent sm:min-h-0"
           >
             Export JSON
           </button>

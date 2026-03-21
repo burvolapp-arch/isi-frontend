@@ -64,7 +64,7 @@ export default function DatasetPage() {
               <span className="font-serif text-lg font-semibold text-text-primary">
                 ISI v1.0 — EU-27 Founding Cohort
               </span>
-              <span className="rounded bg-navy-700 px-2 py-0.5 text-[11px] font-medium text-white">
+              <span className="rounded bg-tag-bg px-2 py-0.5 text-[11px] font-medium text-tag-fg">
                 2024 vintage
               </span>
             </div>
@@ -107,9 +107,9 @@ export default function DatasetPage() {
             <a
               href="/api/data/isi?format=csv"
               download
-              className="flex items-center gap-3 rounded-md border border-border-primary bg-surface-tertiary p-4 transition-colors hover:border-stone-300 hover:bg-surface-primary"
+              className="flex items-center gap-3 rounded-md border border-border-primary bg-surface-tertiary p-4 transition-colors hover:border-border-secondary hover:bg-surface-primary"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-navy-700 text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-tag-bg text-tag-fg">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
@@ -125,9 +125,9 @@ export default function DatasetPage() {
             <a
               href="/api/data/isi?format=json"
               download
-              className="flex items-center gap-3 rounded-md border border-border-primary bg-surface-tertiary p-4 transition-colors hover:border-stone-300 hover:bg-surface-primary"
+              className="flex items-center gap-3 rounded-md border border-border-primary bg-surface-tertiary p-4 transition-colors hover:border-border-secondary hover:bg-surface-primary"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-navy-700 text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-tag-bg text-tag-fg">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
@@ -141,7 +141,7 @@ export default function DatasetPage() {
             </a>
             {/* API */}
             <div className="flex items-center gap-3 rounded-md border border-dashed border-border-primary bg-surface-tertiary p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-stone-200 text-text-tertiary dark:bg-stone-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-border-primary text-text-tertiary">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
                 </svg>
@@ -168,7 +168,7 @@ export default function DatasetPage() {
           <div className="mt-6 overflow-x-auto">
             <table className="min-w-full text-[14px]">
               <thead>
-                <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                <tr className="border-b-2 border-accent text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th className="px-4 py-3 text-left font-medium">Field</th>
                   <th className="px-4 py-3 text-left font-medium">Type</th>
                   <th className="px-4 py-3 text-left font-medium">Description</th>
@@ -222,7 +222,7 @@ export default function DatasetPage() {
                   className="rounded-md border border-border-primary bg-surface-tertiary p-4 sm:p-5"
                 >
                   <h3 className="font-medium text-text-primary">
-                    <Link href={`/axis/${slug}`} className="hover:text-navy-700">
+                    <Link href={`/axis/${slug}`} className="hover:text-link">
                       {formatAxisShort(slug)}
                     </Link>
                   </h3>

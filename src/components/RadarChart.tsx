@@ -508,12 +508,12 @@ export const RadarChart = memo(function RadarChart({
         />
       ))}
 
-      {/* Primary polygon — solid navy, clearly visible fill */}
+      {/* Primary polygon — solid accent, clearly visible fill */}
       <path
         d={primaryPath}
-        fill="var(--color-navy-700)"
+        fill="var(--color-accent)"
         fillOpacity={hoveredAxis !== null ? 0.18 : 0.35}
-        stroke="var(--color-navy-700)"
+        stroke="var(--color-accent)"
         strokeWidth={2}
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -527,7 +527,7 @@ export const RadarChart = memo(function RadarChart({
           y1={vbCenterY}
           x2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).x}
           y2={polarToXY(resolvedAxes[hoveredAxis].value!, hoveredAxis).y}
-          stroke="var(--color-navy-700)"
+          stroke="var(--color-accent)"
           strokeWidth={2.5}
           strokeOpacity={0.45}
           strokeLinecap="round"
@@ -546,7 +546,7 @@ export const RadarChart = memo(function RadarChart({
             cx={p.x}
             cy={p.y}
             r={isHovered ? DATA_POINT_RADIUS + 1 : DATA_POINT_RADIUS}
-            fill="var(--color-navy-700)"
+            fill="var(--color-accent)"
             stroke="var(--color-surface-primary)"
             strokeWidth={isHovered ? 1.5 : 1}
             vectorEffect="non-scaling-stroke"
@@ -564,7 +564,7 @@ export const RadarChart = memo(function RadarChart({
             cx={p.x}
             cy={p.y}
             r={DATA_POINT_RADIUS - 0.5}
-            fill="var(--color-stone-500)"
+            fill="var(--color-chart-label)"
             stroke="var(--color-surface-primary)"
             strokeWidth={1}
             vectorEffect="non-scaling-stroke"
@@ -620,7 +620,7 @@ export const RadarChart = memo(function RadarChart({
       <defs>
         <style>{`
           .radar-wedge:focus-visible {
-            outline: 2px solid var(--color-navy-700);
+            outline: 2px solid var(--color-accent);
             outline-offset: -2px;
           }
         `}</style>
@@ -651,7 +651,7 @@ export const RadarChart = memo(function RadarChart({
         <g>
           {label && (
             <g>
-              <line x1={MARGIN} y1={legendY} x2={MARGIN + 14} y2={legendY} stroke="var(--color-navy-700)" strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <line x1={MARGIN} y1={legendY} x2={MARGIN + 14} y2={legendY} stroke="var(--color-accent)" strokeWidth={1.8} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
               <text x={MARGIN + 19} y={legendY + 3} fill="var(--color-text-secondary)" fontSize="8" fontFamily="var(--font-sans)" fontWeight="500">{label}</text>
             </g>
           )}

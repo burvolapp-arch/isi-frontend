@@ -28,12 +28,12 @@ interface SupplierBreakdownChartProps {
 }
 
 const COLORS = [
-  "bg-navy-700",
-  "bg-navy-600",
-  "bg-navy-500",
-  "bg-stone-500",
-  "bg-stone-400",
-  "bg-stone-300",
+  "bg-progress-fill",
+  "bg-accent-muted",
+  "bg-chart-line",
+  "bg-chart-bar-from",
+  "bg-chart-bar-to",
+  "bg-chart-label",
 ] as const;
 
 export function SupplierBreakdownChart({
@@ -73,13 +73,13 @@ export function SupplierBreakdownChart({
       )}
 
       {/* Stacked bar */}
-      <div className="mt-2 flex h-6 w-full overflow-hidden rounded-sm bg-stone-100 dark:bg-stone-800">
+      <div className="mt-2 flex h-6 w-full overflow-hidden rounded-sm bg-progress-track">
         {displayed.map((s, i) => {
           const widthPct = totalShare > 0 ? (s.share / totalShare) * 100 : 0;
           if (widthPct < 0.5) return null;
           const colorClass =
             s.partner === "Other"
-              ? "bg-stone-200 dark:bg-stone-700"
+              ? "bg-border-primary"
               : COLORS[i % COLORS.length];
           return (
             <div
@@ -89,7 +89,7 @@ export function SupplierBreakdownChart({
               title={`${s.partner}: ${formatPercentage(s.share, "share")}`}
             >
               {widthPct > 10 && (
-                <span className={`truncate px-1 text-[9px] font-medium sm:text-[10px] ${s.partner === "Other" ? "text-stone-600 dark:text-stone-200" : "text-white"}`}>
+                <span className={`truncate px-1 text-[9px] font-medium sm:text-[10px] ${s.partner === "Other" ? "text-text-tertiary" : "text-white"}`}>
                   {s.partner}
                 </span>
               )}
@@ -104,7 +104,7 @@ export function SupplierBreakdownChart({
           {displayed.map((s, i) => {
             const colorClass =
               s.partner === "Other"
-                ? "bg-stone-200 dark:bg-stone-700"
+                ? "bg-border-primary"
                 : COLORS[i % COLORS.length];
             return (
               <div
@@ -120,7 +120,7 @@ export function SupplierBreakdownChart({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <div className="h-1.5 w-20 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                  <div className="h-1.5 w-20 overflow-hidden rounded-full bg-progress-track">
                     <div
                       className={`h-full ${colorClass}`}
                       style={{ width: `${s.share * 100}%` }}

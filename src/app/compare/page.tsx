@@ -66,11 +66,11 @@ function heatIntensity(absDelta: number, maxAbsDelta: number): number {
 
 /** Divergence heatmap cell background style (dark-mode aware) */
 function heatBg(intensity: number): string {
-  if (intensity < 0.15) return "bg-stone-50 dark:bg-stone-800/30";
-  if (intensity < 0.35) return "bg-stone-100 dark:bg-stone-800/50";
-  if (intensity < 0.55) return "bg-stone-200 dark:bg-stone-700/60";
-  if (intensity < 0.75) return "bg-stone-300 dark:bg-stone-700/80";
-  return "bg-stone-400 dark:bg-stone-600/90";
+  if (intensity < 0.15) return "bg-surface-tertiary/30";
+  if (intensity < 0.35) return "bg-progress-track/50";
+  if (intensity < 0.55) return "bg-border-primary/60";
+  if (intensity < 0.75) return "bg-border-primary/80";
+  return "bg-border-secondary/90";
 }
 
 /** Ordinal suffix */
@@ -366,7 +366,7 @@ export default function ComparePage() {
         {/* ── Country Selectors ─────────────────────────────── */}
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {([
-            { id: "a", label: "Country A", value: codeA, setter: setCodeA, color: "var(--color-navy-700)" },
+            { id: "a", label: "Country A", value: codeA, setter: setCodeA, color: "var(--color-accent)" },
             { id: "b", label: "Country B", value: codeB, setter: setCodeB, color: OVERLAY_COLORS[0] },
             { id: "c", label: "Country C (optional)", value: codeC, setter: setCodeC, color: OVERLAY_COLORS[1] },
             { id: "d", label: "Country D (optional)", value: codeD, setter: setCodeD, color: OVERLAY_COLORS[2] },
@@ -380,7 +380,7 @@ export default function ComparePage() {
                 id={`compare-country-${slot.id}`}
                 value={slot.value}
                 onChange={(e) => slot.setter(e.target.value)}
-                className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-navy-700 focus:outline-none sm:min-h-0"
+                className="w-full min-h-[44px] border-b border-border-primary bg-surface-primary px-3 py-2.5 text-[14px] text-text-primary focus:border-accent focus:outline-none sm:min-h-0"
               >
                 <option value="">— Select —</option>
                 {countries.map((c) => (
@@ -596,15 +596,15 @@ export default function ComparePage() {
                       </div>
                       {/* Dual bar */}
                       <div className="mt-1.5 flex gap-1">
-                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-stone-800/40">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-progress-track">
                           <div
-                            className="h-full rounded bg-navy-700 transition-all"
+                            className="h-full rounded bg-progress-fill transition-all"
                             style={{ width: `${Math.max(shareA * 100, 0.5)}%` }}
                           />
                         </div>
-                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-stone-800/40">
+                        <div className="flex h-2 flex-1 overflow-hidden rounded bg-progress-track">
                           <div
-                            className="h-full rounded bg-stone-400 transition-all"
+                            className="h-full rounded bg-chart-bar-from transition-all"
                             style={{ width: `${Math.max(shareB * 100, 0.5)}%` }}
                           />
                         </div>
@@ -615,11 +615,11 @@ export default function ComparePage() {
               </div>
               <div className="mt-2 flex items-center gap-4 text-[10px] text-text-quaternary">
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-2 w-3 rounded bg-navy-700" />
+                  <span className="inline-block h-2 w-3 rounded bg-progress-fill" />
                   {countryA.country_name}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-2 w-3 rounded bg-stone-400" />
+                  <span className="inline-block h-2 w-3 rounded bg-chart-bar-from" />
                   {countryB.country_name}
                 </span>
               </div>
@@ -639,7 +639,7 @@ export default function ComparePage() {
               <div className="mt-4 overflow-x-auto">
                 <table className="min-w-full text-[13px]">
                   <thead>
-                    <tr className="border-b-2 border-navy-900 text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
+                    <tr className="border-b-2 border-accent text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
                       <th className="px-3 py-2.5 text-left font-medium">Axis</th>
                       <th className="px-3 py-2.5 text-right font-medium">{countryA.country_name}</th>
                       <th className="px-3 py-2.5 text-right font-medium">{countryB.country_name}</th>
@@ -675,7 +675,7 @@ export default function ComparePage() {
                       );
                     })}
                     {/* Composite row */}
-                    <tr className="border-t-2 border-navy-900">
+                    <tr className="border-t-2 border-accent">
                       <td className="px-3 py-2 font-medium text-text-primary">Composite</td>
                       <td className="px-3 py-2 text-right font-mono font-medium text-text-primary">
                         {compositePercentileA !== null ? ordinal(compositePercentileA) : "—"}
@@ -740,7 +740,7 @@ export default function ComparePage() {
                     );
                   })}
                   {/* Composite summary card */}
-                  <div className="rounded-md border-2 border-navy-900 p-3">
+                  <div className="rounded-md border-2 border-accent p-3">
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="font-medium text-[13px] text-text-primary">Composite</span>
                       <span className="font-mono text-[12px] text-text-secondary">Σ {diagnostic.structuralDistance.toFixed(4)}</span>
@@ -755,7 +755,7 @@ export default function ComparePage() {
                 {/* ── Desktop table (≥ md) ── */}
                 <table className="hidden md:table min-w-full text-[13px]">
                   <thead>
-                    <tr className="border-b-2 border-navy-900 text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
+                    <tr className="border-b-2 border-accent text-[10px] uppercase tracking-[0.1em] text-text-quaternary">
                       <th className="px-3 py-2.5 text-left font-medium">Axis</th>
                       <th className="px-3 py-2.5 text-right font-medium">{countryA.country_name}</th>
                       <th className="px-3 py-2.5 text-right font-medium">{countryB.country_name}</th>
@@ -806,7 +806,7 @@ export default function ComparePage() {
                       );
                     })}
                     {/* Composite summary row */}
-                    <tr className="border-t-2 border-navy-900">
+                    <tr className="border-t-2 border-accent">
                       <td className="px-3 py-2.5 font-medium text-text-primary">Composite</td>
                       <td className="px-3 py-2.5 text-right font-mono font-semibold text-text-primary">
                         {formatScore(countryA.isi_composite)}
@@ -828,7 +828,7 @@ export default function ComparePage() {
                           : "—"}
                       </td>
                       <td className="px-3 py-2.5 text-center">
-                        <span className="inline-block rounded bg-stone-100 dark:bg-stone-800/50 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+                        <span className="inline-block rounded bg-progress-track px-2 py-0.5 font-mono text-[11px] text-text-secondary">
                           Σ {diagnostic.structuralDistance.toFixed(4)}
                         </span>
                       </td>
@@ -917,14 +917,14 @@ export default function ComparePage() {
                 <button
                   type="button"
                   onClick={handleExportJSON}
-                  className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+                  className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent sm:min-h-0"
                 >
                   Export JSON
                 </button>
                 <button
                   type="button"
                   onClick={handleExportCSV}
-                  className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700 sm:min-h-0"
+                  className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3.5 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-tertiary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent sm:min-h-0"
                 >
                   Export CSV
                 </button>

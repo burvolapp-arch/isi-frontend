@@ -95,7 +95,7 @@ export default async function ReleasesPage() {
                       <h3 className="font-mono text-[16px] font-semibold text-text-primary">
                         v{release.version}
                       </h3>
-                      <span className="rounded bg-navy-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+                      <span className="rounded bg-tag-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-tag-fg">
                         Latest
                       </span>
                     </div>
@@ -117,7 +117,7 @@ export default async function ReleasesPage() {
                   <ul className="mt-2 space-y-1">
                     {release.changes.map((change, i) => (
                       <li key={i} className="flex items-start gap-2 text-[13px] text-text-tertiary">
-                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-navy-700" />
+                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-dot" />
                         {change}
                       </li>
                     ))}
@@ -127,7 +127,7 @@ export default async function ReleasesPage() {
                   <a
                     href="/api/data/isi?format=csv"
                     download
-                    className="inline-flex items-center gap-1.5 rounded border border-border-primary px-3 py-1.5 text-text-secondary transition-colors hover:border-navy-700 hover:text-navy-700"
+                    className="inline-flex items-center gap-1.5 rounded border border-border-primary px-3 py-1.5 text-text-secondary transition-colors hover:border-accent hover:text-link"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                     CSV
@@ -135,7 +135,7 @@ export default async function ReleasesPage() {
                   <a
                     href="/api/data/isi?format=json"
                     download
-                    className="inline-flex items-center gap-1.5 rounded border border-border-primary px-3 py-1.5 text-text-secondary transition-colors hover:border-navy-700 hover:text-navy-700"
+                    className="inline-flex items-center gap-1.5 rounded border border-border-primary px-3 py-1.5 text-text-secondary transition-colors hover:border-accent hover:text-link"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                     JSON
@@ -144,7 +144,7 @@ export default async function ReleasesPage() {
                     href="/api/data/isi"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded border border-border-primary px-3 py-1.5 text-text-secondary transition-colors hover:border-navy-700 hover:text-navy-700"
+                    className="inline-flex items-center gap-1.5 rounded border border-border-primary px-3 py-1.5 text-text-secondary transition-colors hover:border-accent hover:text-link"
                   >
                     API Endpoint
                   </a>
@@ -176,7 +176,7 @@ export default async function ReleasesPage() {
             <div className="mt-6 overflow-x-auto">
               <table className="min-w-full text-[14px]">
                 <thead>
-                  <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                  <tr className="border-b-2 border-accent text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                     <th className="px-4 py-3 text-left font-medium">Version</th>
                     <th className="px-4 py-3 text-left font-medium">Label</th>
                     <th className="px-4 py-3 text-left font-medium">Frozen At</th>

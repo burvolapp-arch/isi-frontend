@@ -5,7 +5,8 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useState,
+  useMemo,
+  useSyncExternalStore,
 } from "react";
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -30,7 +31,7 @@ export function useTheme(): ThemeContextValue {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// Storage
+// Storage + Resolution (shared module-level logic)
 // ═══════════════════════════════════════════════════════════════════════
 
 const STORAGE_KEY = "isi-theme";
@@ -40,11 +41,6 @@ function readStored(): Theme {
   const val = localStorage.getItem(STORAGE_KEY);
   if (val === "light" || val === "dark" || val === "system") return val;
   return "system";
-}
-
-function writeStored(t: Theme) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, t);
 }
 
 function getSystemPreference(): "light" | "dark" {
@@ -58,57 +54,124 @@ function resolve(theme: Theme): "light" | "dark" {
   return theme === "system" ? getSystemPreference() : theme;
 }
 
+/** Apply .dark class + colorScheme to <html>. No React state involved — pure DOM. */
+function applyToDOM(resolved: "light" | "dark") {
+  const html = document.documentElement;
+  html.classList.toggle("dark", resolved === "dark");
+  html.style.colorScheme = resolved;
+}
+
+/** Enable brief CSS transition for smooth theme switch, then remove. */
+function withTransition(fn: () => void) {
+  const html = document.documentElement;
+  html.classList.add("theme-transition");
+  fn();
+  // Remove transition class after animations complete
+  const tid = setTimeout(() => html.classList.remove("theme-transition"), 200);
+  return () => clearTimeout(tid);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// External Store — single source of truth for theme, powers
+// useSyncExternalStore for tear-free, SSR-safe reads.
+// ═══════════════════════════════════════════════════════════════════════
+
+let _listeners = new Set<() => void>();
+let _theme: Theme = "system";
+let _resolved: "light" | "dark" = "light";
+
+function getSnapshot(): { theme: Theme; resolved: "light" | "dark" } {
+  return { theme: _theme, resolved: _resolved };
+}
+
+function getServerSnapshot(): { theme: Theme; resolved: "light" | "dark" } {
+  // Server always returns system/light — the inline <script> will correct before paint
+  return { theme: "system", resolved: "light" };
+}
+
+function subscribe(listener: () => void): () => void {
+  _listeners.add(listener);
+  return () => _listeners.delete(listener);
+}
+
+function notify() {
+  for (const l of _listeners) l();
+}
+
+function setStoreTheme(t: Theme, transition = true) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, t);
+  _theme = t;
+  _resolved = resolve(t);
+  if (transition) {
+    withTransition(() => applyToDOM(_resolved));
+  } else {
+    applyToDOM(_resolved);
+  }
+  notify();
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // Provider
 // ═══════════════════════════════════════════════════════════════════════
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolved, setResolved] = useState<"light" | "dark">("light");
-
-  // Hydrate from localStorage
+  // Hydrate store from what the inline <script> already set on <html>
   useEffect(() => {
-    const stored = readStored();
-    requestAnimationFrame(() => {
-      setThemeState(stored);
-      setResolved(resolve(stored));
-    });
+    _theme = readStored();
+    _resolved = resolve(_theme);
+    // DOM is already correct from inline script — just sync the store
+    notify();
   }, []);
-
-  // Apply class on <html>
-  useEffect(() => {
-    const r = resolve(theme);
-    requestAnimationFrame(() => setResolved(r));
-    const html = document.documentElement;
-    html.classList.toggle("dark", r === "dark");
-    html.style.colorScheme = r;
-  }, [theme]);
 
   // Listen for system preference changes
   useEffect(() => {
-    if (theme !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
-      const r = resolve("system");
-      setResolved(r);
-      document.documentElement.classList.toggle("dark", r === "dark");
-      document.documentElement.style.colorScheme = r;
+      if (_theme !== "system") return;
+      _resolved = resolve("system");
+      withTransition(() => applyToDOM(_resolved));
+      notify();
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, [theme]);
-
-  const setTheme = useCallback((t: Theme) => {
-    writeStored(t);
-    setThemeState(t);
   }, []);
 
+  // Cross-tab sync via storage event
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY) return;
+      const val = e.newValue;
+      if (val === "light" || val === "dark" || val === "system") {
+        _theme = val;
+        _resolved = resolve(val);
+        withTransition(() => applyToDOM(_resolved));
+        notify();
+      }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
+
+  const { theme, resolved } = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
+
+  const setTheme = useCallback((t: Theme) => setStoreTheme(t, true), []);
+
   const toggle = useCallback(() => {
-    setTheme(resolved === "dark" ? "light" : "dark");
-  }, [resolved, setTheme]);
+    setStoreTheme(resolved === "dark" ? "light" : "dark", true);
+  }, [resolved]);
+
+  const value = useMemo<ThemeContextValue>(
+    () => ({ theme, resolved, setTheme, toggle }),
+    [theme, resolved, setTheme, toggle],
+  );
 
   return (
-    <ThemeContext value={{ theme, resolved, setTheme, toggle }}>
+    <ThemeContext value={value}>
       {children}
     </ThemeContext>
   );

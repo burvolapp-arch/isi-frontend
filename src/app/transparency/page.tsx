@@ -51,7 +51,7 @@ export default function TransparencyPage() {
           <p className="mt-2 text-[14px] leading-relaxed text-text-tertiary">
             Data provenance, versioning policy, and governance standards for the International Sovereignty Index.
             For mathematical construction and computational architecture, see{" "}
-            <Link href="/methodology" className="text-navy-700 underline hover:text-navy-900">
+            <Link href="/methodology" className="text-link underline hover:text-link-hover">
               Methodology
             </Link>.
           </p>
@@ -72,7 +72,7 @@ export default function TransparencyPage() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-[14px]">
                 <thead>
-                  <tr className="border-b-2 border-navy-900">
+                  <tr className="border-b-2 border-accent">
                     <th className="px-4 py-2 text-left text-[11px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
                       Authority
                     </th>
@@ -189,7 +189,7 @@ export default function TransparencyPage() {
             <p className="text-[14px] leading-[1.75] text-text-tertiary">
               The following limitations apply to the current published version. For structural
               limitations of the computational model, see the{" "}
-              <Link href="/methodology" className="text-navy-700 underline hover:text-navy-900">
+              <Link href="/methodology" className="text-link underline hover:text-link-hover">
                 Methodology
               </Link>{" "}
               page (Section 9).

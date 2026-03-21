@@ -51,7 +51,7 @@ export function CountryTable({ countries }: CountryTableProps) {
               <td className="whitespace-nowrap px-4 py-3 text-sm font-medium">
                 <Link
                   href={`/country/${c.country}`}
-                  className="text-navy-700 hover:text-navy-900 hover:underline dark:text-navy-400 dark:hover:text-navy-300"
+                  className="text-link hover:text-link-hover hover:underline"
                 >
                   {c.country_name}
                 </Link>

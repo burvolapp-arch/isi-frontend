@@ -131,7 +131,7 @@ export default async function EUAnalysisPage() {
         </div>
 
         {/* ── Key Finding ── */}
-        <section className="mt-10 rounded-md border-l-2 border-l-navy-700 border border-border-primary bg-surface-tertiary p-5 sm:p-6">
+        <section className="mt-10 rounded-md border-l-2 border-l-accent border border-border-primary bg-surface-tertiary p-5 sm:p-6">
           <h2 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Key Finding
           </h2>
@@ -141,7 +141,7 @@ export default async function EUAnalysisPage() {
                 <span className="font-semibold">{topDriver.axis}</span> and{" "}
                 <span className="font-semibold">{secondDriver.axis}</span>{" "}
                 together account for{" "}
-                <span className="font-mono font-bold text-navy-700">{topTwoShare}%</span>{" "}
+                <span className="font-mono font-bold text-accent">{topTwoShare}%</span>{" "}
                 of cross-country variance in the EU-27 cohort.
               </>
             ) : (
@@ -208,7 +208,7 @@ export default async function EUAnalysisPage() {
           <div className="mt-6 overflow-x-auto">
             <table className="min-w-full text-[14px]">
               <thead>
-                <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
+                <tr className="border-b-2 border-accent text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
                   <th className="px-4 py-3 text-left font-medium">Axis</th>
                   <th className="px-4 py-3 text-right font-medium">Variance</th>
                   <th className="px-4 py-3 text-right font-medium">Share of Total</th>
@@ -219,7 +219,7 @@ export default async function EUAnalysisPage() {
                 {variance.map((v) => (
                   <tr key={v.slug} className="border-b border-border-subtle transition-colors hover:bg-surface-tertiary">
                     <td className="whitespace-nowrap px-4 py-2.5 font-medium text-text-secondary">
-                      <Link href={`/axis/${v.slug}`} className="hover:text-navy-700">
+                      <Link href={`/axis/${v.slug}`} className="hover:text-link">
                         {v.axis}
                       </Link>
                     </td>
@@ -230,9 +230,9 @@ export default async function EUAnalysisPage() {
                       {(v.share * 100).toFixed(1)}%
                     </td>
                     <td className="px-4 py-2.5">
-                      <div className="h-3 w-32 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                      <div className="h-3 w-32 overflow-hidden rounded-full bg-progress-track">
                         <div
-                          className="h-full rounded-full bg-navy-700 transition-all"
+                          className="h-full rounded-full bg-progress-fill transition-all"
                           style={{ width: `${Math.min(v.share * 100, 100)}%` }}
                         />
                       </div>
@@ -259,7 +259,7 @@ export default async function EUAnalysisPage() {
                 className="rounded-md border border-border-primary bg-surface-tertiary p-4"
               >
                 <div className="flex items-baseline justify-between">
-                  <Link href={`/axis/${a.slug}`} className="font-medium text-text-secondary hover:text-navy-700">
+                  <Link href={`/axis/${a.slug}`} className="font-medium text-text-secondary hover:text-link">
                     {formatAxisShort(a.slug)}
                   </Link>
                   <span className="font-mono text-lg font-bold text-text-primary">
@@ -342,7 +342,7 @@ export default async function EUAnalysisPage() {
         </section>
 
         {/* ── Analytical Note ── */}
-        <section className="mt-14 border-l-2 border-l-stone-300 py-4 pl-5 pr-6">
+        <section className="mt-14 border-l-2 border-l-border-secondary py-4 pl-5 pr-6">
           <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-text-quaternary">
             Methodological Note
           </h3>

@@ -121,7 +121,7 @@ export default async function ExecutiveOverviewPage() {
             <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:justify-start">
               <a
                 href="#map"
-                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)] focus-visible:outline-navy-500"
+                className="group/cta inline-flex min-h-[44px] items-center gap-2 rounded-md bg-white px-5 py-2.5 text-[14px] font-medium text-navy-900 transition-all hover:bg-stone-100 hover:shadow-[0_2px_8px_rgba(255,255,255,0.15)] focus-visible:outline-accent"
               >
                 Explore the Map
                 <span aria-hidden="true" className="transition-transform group-hover/cta:translate-y-0.5">↓</span>
@@ -397,14 +397,14 @@ export default async function ExecutiveOverviewPage() {
                 className="group flex flex-col rounded-lg border border-border-primary bg-surface-primary p-5 transition-colors hover:border-border-secondary"
               >
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-navy-700/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-navy-700">
+                  <span className="rounded bg-badge-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-badge-fg">
                     Paper {paper.seriesNumber}
                   </span>
-                  <span className="rounded bg-navy-700/5 px-2 py-0.5 text-[10px] font-medium text-navy-600">
+                  <span className="rounded bg-badge-secondary-bg px-2 py-0.5 text-[10px] font-medium text-badge-secondary-fg">
                     {paper.badge}
                   </span>
                 </div>
-                <h3 className="mt-3 font-serif text-[16px] font-semibold leading-snug text-text-primary group-hover:text-navy-700 sm:text-[18px]">
+                <h3 className="mt-3 font-serif text-[16px] font-semibold leading-snug text-text-primary group-hover:text-link sm:text-[18px]">
                   {paper.title}
                 </h3>
                 <p className="mt-1.5 text-[12px] text-text-quaternary">
@@ -415,7 +415,7 @@ export default async function ExecutiveOverviewPage() {
                     DOI: {paper.doiVersion}
                   </p>
                 )}
-                <span className="mt-auto pt-3 text-[12px] font-medium text-navy-700 group-hover:underline">
+                <span className="mt-auto pt-3 text-[12px] font-medium text-link group-hover:underline">
                   View paper →
                 </span>
               </Link>
@@ -424,7 +424,7 @@ export default async function ExecutiveOverviewPage() {
           <div className="mt-4">
             <Link
               href="/research"
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-navy-700 transition-colors hover:text-navy-900 hover:underline"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-link transition-colors hover:text-link-hover hover:underline"
             >
               View all publications
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">

@@ -70,6 +70,47 @@
   --color-accent: #0b2545;
   --color-accent-muted: #1b4278;
 
+  /* ── Interactive — Buttons, Links, Badges ──────────────── */
+  --color-btn-primary-bg: #1b4278;
+  --color-btn-primary-bg-hover: #133260;
+  --color-btn-primary-fg: #ffffff;
+  --color-btn-solid-bg: #0b2545;
+  --color-btn-solid-bg-hover: #133260;
+  --color-btn-solid-fg: #ffffff;
+  --color-link: #1b4278;
+  --color-link-hover: #0b2545;
+  --color-badge-bg: rgba(27, 66, 120, 0.10);
+  --color-badge-fg: #1b4278;
+  --color-badge-secondary-bg: rgba(27, 66, 120, 0.05);
+  --color-badge-secondary-fg: #245694;
+  --color-tag-bg: #1b4278;
+  --color-tag-fg: #ffffff;
+
+  /* ── Progress & Indicator ──────────────────────────────── */
+  --color-progress-track: #f3f4f6;
+  --color-progress-fill: #1b4278;
+  --color-dot: #1b4278;
+
+  /* ── Status Badge Tints (classification bg fills) ────── */
+  --color-badge-highly-bg: #ffebee;
+  --color-badge-moderately-bg: #fff8e1;
+  --color-badge-mildly-bg: #fffde7;
+  --color-badge-unconcentrated-bg: #e8f5e9;
+
+  /* ── Error / Warning Surfaces ────────────────────────── */
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fca5a5;
+  --color-error-fg: #991b1b;
+  --color-error-fg-muted: #ef4444;
+
+  /* ── Toast ──────────────────────────────────────────── */
+  --color-toast-success-bg: #111827;
+  --color-toast-success-fg: #ffffff;
+  --color-toast-error-bg: #b91c1c;
+  --color-toast-error-fg: #ffffff;
+  --color-toast-info-bg: #1b4278;
+  --color-toast-info-fg: #ffffff;
+
   /* ── Chart / SVG System ────────────────────────────────── */
   --color-chart-line: #0b2545;
   --color-chart-line-secondary: #6b7280;
@@ -154,6 +195,47 @@
   --color-accent: #60a5fa;
   --color-accent-muted: #3b82f6;
 
+  /* ── Interactive — Buttons, Links, Badges ──────────────── */
+  --color-btn-primary-bg: #3b82f6;
+  --color-btn-primary-bg-hover: #60a5fa;
+  --color-btn-primary-fg: #ffffff;
+  --color-btn-solid-bg: #1e3a5f;
+  --color-btn-solid-bg-hover: #2a4a72;
+  --color-btn-solid-fg: #e5e7eb;
+  --color-link: #60a5fa;
+  --color-link-hover: #93c5fd;
+  --color-badge-bg: rgba(96, 165, 250, 0.15);
+  --color-badge-fg: #93c5fd;
+  --color-badge-secondary-bg: rgba(96, 165, 250, 0.08);
+  --color-badge-secondary-fg: #60a5fa;
+  --color-tag-bg: #3b82f6;
+  --color-tag-fg: #ffffff;
+
+  /* ── Progress & Indicator ──────────────────────────────── */
+  --color-progress-track: #1e2a3e;
+  --color-progress-fill: #3b82f6;
+  --color-dot: #3b82f6;
+
+  /* ── Status Badge Tints (classification bg fills) ────── */
+  --color-badge-highly-bg: rgba(239, 68, 68, 0.12);
+  --color-badge-moderately-bg: rgba(245, 158, 11, 0.12);
+  --color-badge-mildly-bg: rgba(217, 119, 6, 0.10);
+  --color-badge-unconcentrated-bg: rgba(16, 185, 129, 0.12);
+
+  /* ── Error / Warning Surfaces ────────────────────────── */
+  --color-error-bg: rgba(239, 68, 68, 0.10);
+  --color-error-border: #7f1d1d;
+  --color-error-fg: #fca5a5;
+  --color-error-fg-muted: #f87171;
+
+  /* ── Toast ──────────────────────────────────────────── */
+  --color-toast-success-bg: #e5e7eb;
+  --color-toast-success-fg: #111827;
+  --color-toast-error-bg: #f87171;
+  --color-toast-error-fg: #111827;
+  --color-toast-info-bg: #93c5fd;
+  --color-toast-info-fg: #111827;
+
   /* ── Chart / SVG System ────────────────────────────────── */
   --color-chart-line: #93c5fd;
   --color-chart-line-secondary: #8892a2;
@@ -198,6 +280,19 @@
 .dark ::selection {
   background-color: #3b82f6;
   color: white;
+}
+
+/* ── Theme transition (opt-in, applied after initial load) ── */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, fill 0.15s ease-out, stroke 0.15s ease-out, box-shadow 0.15s ease-out !important;
+}
+
+/* ── Dark mode focus ring ─────────────────────────────────── */
+.dark :focus-visible {
+  outline-color: var(--color-accent);
 }
 
 /* ── Base ───────────────────────────────────────────────── */
