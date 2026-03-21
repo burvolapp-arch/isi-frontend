@@ -71,7 +71,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     q: "How do I report an error?",
-    a: "If you believe a score is incorrect, the issue is in the backend data pipeline, not in the frontend. Please report it via the project's GitHub repository.",
+    a: "If you believe a score is incorrect, the issue is in the backend data pipeline, not in the frontend. Please report it via email at contact@internationalsovereignty.org.",
   },
 ];
 

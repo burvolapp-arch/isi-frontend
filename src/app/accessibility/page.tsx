@@ -167,14 +167,12 @@ export default function AccessibilityPage() {
             <p className="text-[14px] leading-[1.75] text-text-tertiary">
               If you encounter accessibility barriers while using the International
               Sovereignty Index, or if you require content in an alternative format,
-              please contact us via the project&apos;s{" "}
+              please contact us at{" "}
               <a
-                href="https://github.com/burvolapp-arch/isi-frontend/issues"
+                href="mailto:contact@internationalsovereignty.org"
                 className="text-link underline hover:text-link-hover"
-                target="_blank"
-                rel="noopener noreferrer"
               >
-                GitHub issue tracker
+                contact@internationalsovereignty.org
               </a>.
               We will make reasonable efforts to respond within 10 working days
               and to address identified barriers in subsequent releases.

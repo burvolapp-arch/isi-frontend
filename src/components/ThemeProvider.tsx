@@ -37,10 +37,10 @@ export function useTheme(): ThemeContextValue {
 const STORAGE_KEY = "isi-theme";
 
 function readStored(): Theme {
-  if (typeof window === "undefined") return "system";
+  if (typeof window === "undefined") return "light";
   const val = localStorage.getItem(STORAGE_KEY);
   if (val === "light" || val === "dark" || val === "system") return val;
-  return "system";
+  return "light";
 }
 
 function getSystemPreference(): "light" | "dark" {
@@ -77,7 +77,7 @@ function withTransition(fn: () => void) {
 // ═══════════════════════════════════════════════════════════════════════
 
 let _listeners = new Set<() => void>();
-let _theme: Theme = "system";
+let _theme: Theme = "light";
 let _resolved: "light" | "dark" = "light";
 
 // ── Stable snapshot references ──────────────────────────────────────

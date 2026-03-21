@@ -189,29 +189,29 @@
 
 .dark {
   /* ── Surfaces ──────────────────────────────────────────── */
-  /* Deeper, more separated layers. Canvas → Card → Elevated.
-     Linear designed this well: each step needs ~6-8 L* units. */
-  --color-surface-primary: #0c1322;    /* cards, panels — lifted off canvas */
-  --color-surface-secondary: #111a2c;  /* footer, alt sections */
-  --color-surface-tertiary: #0a0f1a;   /* page-level section bg, slightly darker than canvas for inset feel */
-  --color-surface-elevated: #162032;   /* dropdowns, tooltips, popovers */
-  --color-surface-inverse: #f9fafb;
+  /* Premium dark: rich navy-black canvas. Each surface layer is
+     precisely separated (~5-7 ΔL*) for effortless depth reading.
+     Subtle blue undertone unifies the palette. */
+  --color-surface-primary: #0d1420;    /* cards, panels — primary content surface */
+  --color-surface-secondary: #111b2d;  /* footer, alt sections — subtle differentiation */
+  --color-surface-tertiary: #080d18;   /* inset areas — slightly below canvas */
+  --color-surface-elevated: #172842;   /* dropdowns, tooltips — most elevated */
+  --color-surface-inverse: #f0f2f5;
 
   /* ── Borders ───────────────────────────────────────────── */
-  /* Slightly more visible than before — cards need edge definition */
-  --color-border-primary: #1e2b40;
-  --color-border-secondary: #2a3a52;
-  --color-border-subtle: #151e2e;
+  /* Clean edge definition without harshness. Primary visible,
+     secondary for stronger dividers, subtle for micro-separators. */
+  --color-border-primary: #1a2840;
+  --color-border-secondary: #243752;
+  --color-border-subtle: #131d30;
 
   /* ── Text ──────────────────────────────────────────────── */
-  /* Key fix: primary was #e5e7eb (too white, renders thick on dark).
-     Dropping to #cdd2d9 reduces glare and improves perceived sharpness.
-     Subpixel rendering is off in dark mode (antialiased) so lighter
-     text renders bolder than it actually is. */
-  --color-text-primary: #cdd2d9;
-  --color-text-secondary: #9aa3b1;
-  --color-text-tertiary: #6d7a8a;
-  --color-text-quaternary: #4a5568;
+  /* Clean hierarchy: primary → secondary → tertiary → quaternary.
+     Primary is bright enough for body text without glow. */
+  --color-text-primary: #d0d6de;
+  --color-text-secondary: #95a0b0;
+  --color-text-tertiary: #697b8f;
+  --color-text-quaternary: #475768;
   --color-text-inverse: #111827;
 
   /* ── Classification Bands — brighter for dark bg ───────── */
@@ -231,29 +231,29 @@
   --color-deviation-negative: #34d399;
 
   /* ── Accent ────────────────────────────────────────────── */
-  --color-accent: #60a5fa;
-  --color-accent-muted: #3b82f6;
+  --color-accent: #5b9cf5;
+  --color-accent-muted: #2563eb;
 
   /* ── Interactive — Buttons, Links, Badges ──────────────── */
-  --color-btn-primary-bg: #3b82f6;
-  --color-btn-primary-bg-hover: #60a5fa;
+  --color-btn-primary-bg: #2563eb;
+  --color-btn-primary-bg-hover: #3b82f6;
   --color-btn-primary-fg: #ffffff;
-  --color-btn-solid-bg: #172640;
-  --color-btn-solid-bg-hover: #1e3350;
-  --color-btn-solid-fg: #cdd2d9;
-  --color-link: #60a5fa;
+  --color-btn-solid-bg: #152540;
+  --color-btn-solid-bg-hover: #1c3352;
+  --color-btn-solid-fg: #d0d6de;
+  --color-link: #5b9cf5;
   --color-link-hover: #93c5fd;
-  --color-badge-bg: rgba(96, 165, 250, 0.12);
+  --color-badge-bg: rgba(91, 156, 245, 0.10);
   --color-badge-fg: #7db8fc;
-  --color-badge-secondary-bg: rgba(96, 165, 250, 0.06);
-  --color-badge-secondary-fg: #60a5fa;
+  --color-badge-secondary-bg: rgba(91, 156, 245, 0.06);
+  --color-badge-secondary-fg: #5b9cf5;
   --color-tag-bg: #2563eb;
   --color-tag-fg: #ffffff;
 
   /* ── Progress & Indicator ──────────────────────────────── */
-  --color-progress-track: #151e2e;
-  --color-progress-fill: #3b82f6;
-  --color-dot: #3b82f6;
+  --color-progress-track: #131d30;
+  --color-progress-fill: #2563eb;
+  --color-dot: #2563eb;
 
   /* ── Status Badge Tints (classification bg fills) ────── */
   --color-badge-highly-bg: rgba(239, 68, 68, 0.12);
@@ -268,25 +268,25 @@
   --color-error-fg-muted: #f87171;
 
   /* ── Toast ──────────────────────────────────────────── */
-  --color-toast-success-bg: #cdd2d9;
-  --color-toast-success-fg: #0a0f1a;
+  --color-toast-success-bg: #d0d6de;
+  --color-toast-success-fg: #080d18;
   --color-toast-error-bg: #f87171;
-  --color-toast-error-fg: #0a0f1a;
+  --color-toast-error-fg: #080d18;
   --color-toast-info-bg: #7db8fc;
-  --color-toast-info-fg: #0a0f1a;
+  --color-toast-info-fg: #080d18;
 
   /* ── Chart / SVG System ────────────────────────────────── */
   --color-chart-line: #7db8fc;
-  --color-chart-line-secondary: #6d7a8a;
-  --color-chart-grid: #1e2b40;
-  --color-chart-border: #2a3a52;
-  --color-chart-label: #4a5568;
-  --color-chart-bar-from: #4a5568;
-  --color-chart-bar-to: #333e4f;
-  --color-chart-bar-hl-from: #60a5fa;
-  --color-chart-bar-hl-to: #3b82f6;
-  --color-chart-highlight-bg: rgba(96, 165, 250, 0.08);
-  --color-chart-coastline: #4a5568;
+  --color-chart-line-secondary: #697b8f;
+  --color-chart-grid: #1a2840;
+  --color-chart-border: #243752;
+  --color-chart-label: #475768;
+  --color-chart-bar-from: #475768;
+  --color-chart-bar-to: #344050;
+  --color-chart-bar-hl-from: #5b9cf5;
+  --color-chart-bar-hl-to: #2563eb;
+  --color-chart-highlight-bg: rgba(91, 156, 245, 0.07);
+  --color-chart-coastline: #475768;
 
   /* ── Band Tints — subtle on dark background ─────────── */
   --color-band-tint-unconcentrated: rgba(16, 185, 129, 0.12);
@@ -300,9 +300,9 @@
   --color-map-water-from: #070c17;
   --color-map-water-mid: #0a1020;
   --color-map-water-to: #0d1428;
-  --color-map-land-shadow: #111a2c;
+  --color-map-land-shadow: #111b2d;
   --color-map-border-internal: rgba(255, 255, 255, 0.18);
-  --color-map-hover-glow: #60a5fa;
+  --color-map-hover-glow: #5b9cf5;
 
   /* ── Map Choropleth Fills — dark mode ──────────────────── */
   /* Boosted luminance so sequential blues remain perceptually
@@ -312,7 +312,7 @@
   --color-map-fill-mild: #3b82f6;
   --color-map-fill-moderate: #1e40af;
   --color-map-fill-high: #1e3050;
-  --color-map-fill-nodata: #1a2436;
+  --color-map-fill-nodata: #182436;
 
   /* ── Shadows ─────────────────────────────────────────── */
   --shadow-card-hover: 0 2px 12px rgba(0, 0, 0, 0.35);
@@ -329,10 +329,10 @@
   --color-axis-defense: #f87171;
   --color-axis-critical-inputs: #34d399;
   --color-axis-logistics: #22d3ee;
-  --color-axis-fallback: #8892a2;
+  --color-axis-fallback: #8090a4;
 
   /* ── Compare Overlay Palette ─────────────────────────── */
-  --color-overlay-b: #818cf8;
+  --color-overlay-b: #7c85f8;
   --color-overlay-c: #fbbf24;
   --color-overlay-d: #34d399;
 
@@ -341,23 +341,46 @@
 
   /* ── Semantic Aliases ──────────────────────────────────── */
   --color-background: #080d18;
-  --color-foreground: #cdd2d9;
+  --color-foreground: #d0d6de;
 }
 
 /* ── Dark mode scrollbar ─────────────────────────────────── */
 .dark ::-webkit-scrollbar-thumb {
-  background: #2a3a52;
+  background: #243752;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #3a4d66;
+  background: #345070;
 }
 
 /* ── Theme transition (opt-in, applied after initial load) ── */
-html.theme-transition,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, fill 0.15s ease-out, stroke 0.15s ease-out, box-shadow 0.15s ease-out !important;
+/* Targeted selectors instead of * — dramatically fewer elements
+   need transition, so switching is near-instant without jank. */
+html.theme-transition {
+  transition: background-color 0.12s ease-out, color 0.12s ease-out !important;
+}
+html.theme-transition body,
+html.theme-transition header,
+html.theme-transition footer,
+html.theme-transition main,
+html.theme-transition section,
+html.theme-transition nav,
+html.theme-transition article,
+html.theme-transition aside,
+html.theme-transition div,
+html.theme-transition p,
+html.theme-transition span,
+html.theme-transition h1,
+html.theme-transition h2,
+html.theme-transition h3,
+html.theme-transition h4,
+html.theme-transition a,
+html.theme-transition button,
+html.theme-transition table,
+html.theme-transition th,
+html.theme-transition td,
+html.theme-transition tr,
+html.theme-transition svg {
+  transition: background-color 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out, fill 0.12s ease-out, stroke 0.12s ease-out, box-shadow 0.12s ease-out !important;
 }
 
 /* ── Base ───────────────────────────────────────────────── */
@@ -382,19 +405,7 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* ── Dark mode typography compensation ─────────────────── */
-/* Light-on-dark text renders perceptually bolder due to     */
-/* irradiation illusion + subpixel-off antialiasing.         */
-/* Compensate with slightly thinner stroke and tighter       */
-/* tracking on small UI text.                                */
-.dark body {
-  -webkit-font-smoothing: antialiased;
-  font-synthesis: none;
-}
-
-.dark h1, .dark h2, .dark h3 {
-  font-weight: 600;
-}
+/* Typography is consistent between light/dark — no weight compensation. */
 
 /* ── Institutional Table ───────────────────────────────── */
 table {
@@ -523,9 +534,9 @@ tbody tr {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(96, 165, 250, 0.15) 30%,
-    rgba(96, 165, 250, 0.25) 50%,
-    rgba(96, 165, 250, 0.15) 70%,
+    rgba(91, 156, 245, 0.12) 30%,
+    rgba(91, 156, 245, 0.22) 50%,
+    rgba(91, 156, 245, 0.12) 70%,
     transparent 100%
   );
   pointer-events: none;

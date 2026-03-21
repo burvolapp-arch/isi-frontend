@@ -508,10 +508,6 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   const isHovered = hoveredIso === iso;
                   const isDimmed = hoveredIso !== null && !isHovered;
                   const size = isSmall ? lblSizeSmall : lblSize;
-                  // Determine if this country has a dark fill for label color
-                  const countryData = mapData.countries.find((c) => c.iso === iso);
-                  const score = countryData?.score ?? null;
-                  const isDarkFill = score !== null && score >= 0.25;
                   return (
                     <text
                       key={`lbl-${iso}`}
@@ -519,20 +515,19 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                       y={y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isDarkFill ? "#ffffff" : "var(--color-text-primary)"}
-                      fillOpacity={isDimmed ? 0.15 : isHovered ? 1 : 0.9}
+                      fill="#ffffff"
+                      fillOpacity={isDimmed ? 0.15 : isHovered ? 1 : 0.95}
                       fontSize={isHovered ? size + 1.5 : size}
                       fontFamily="var(--font-sans)"
                       fontWeight={isHovered ? 600 : 500}
                       letterSpacing="0.04em"
                       className="eumap-label"
                       style={{
-                        textShadow: isDarkFill
-                          ? "0 0 4px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.5)"
-                          : "0 0 3px rgba(255,255,255,0.9), 0 1px 2px rgba(255,255,255,0.7), 0 0 6px rgba(255,255,255,0.4)",
+                        textShadow:
+                          "0 0 3px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.45), 0 0 8px rgba(0,0,0,0.2)",
                         paintOrder: "stroke",
-                        stroke: isDarkFill ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.85)",
-                        strokeWidth: isDarkFill ? "2.5px" : "2.5px",
+                        stroke: "rgba(0,0,0,0.4)",
+                        strokeWidth: "2.5px",
                         strokeLinejoin: "round",
                       }}
                     >
