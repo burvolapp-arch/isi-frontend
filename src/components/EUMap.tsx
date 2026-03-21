@@ -349,7 +349,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     <div className="space-y-4">
       {/* Mismatch warning */}
       {ready && mapData.matchedCount < mapData.featureCount && (
-        <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-800">
+        <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-xs text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300">
           <strong>⚠ Map data mismatch:</strong> {mapData.matchedCount}/
           {mapData.featureCount} countries matched. Unmatched:{" "}
           {mapData.unmatchedCodes.join(", ")}
@@ -359,7 +359,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
       {/* ── STABLE CONTAINER — always mounted ─── */}
       <div
         ref={containerRef}
-        className="eumap-root relative w-full overflow-hidden rounded-xl border border-stone-200/60"
+        className="eumap-root relative w-full overflow-hidden rounded-xl border border-border-primary"
         style={{
           minHeight: "min(560px, 80vw)",
           aspectRatio: "4 / 3",
@@ -371,14 +371,14 @@ export default function EUMap({ countries, mean }: EUMapProps) {
         <div
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(ellipse 120% 100% at 50% 40%, #e9f0f8 0%, #dce5ef 55%, #d1dbe8 100%)",
+            background: "radial-gradient(ellipse 120% 100% at 50% 40%, var(--color-map-water-from) 0%, var(--color-map-water-mid) 55%, var(--color-map-water-to) 100%)",
           }}
         />
 
         {/* Loading overlay */}
         {!ready && !loadError && (
           <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <div className="flex items-center gap-2.5 text-sm text-stone-400">
+            <div className="flex items-center gap-2.5 text-sm text-text-quaternary">
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
@@ -390,10 +390,10 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
         {/* Error overlay */}
         {loadError && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-red-50 text-sm text-red-600">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-red-50 text-sm text-red-600 dark:bg-red-950/50 dark:text-red-400">
             <div className="text-center">
               <p className="font-medium">Map rendering failed</p>
-              <p className="mt-1 text-xs text-red-500">{loadError}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-red-400">{loadError}</p>
             </div>
           </div>
         )}
@@ -412,7 +412,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
               <defs>
                 {/* Subtle land shadow for depth */}
                 <filter id="land-shadow" x="-4%" y="-4%" width="108%" height="108%">
-                  <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#0b2545" floodOpacity="0.10" />
+                  <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="var(--color-chart-line)" floodOpacity="0.10" />
                 </filter>
               </defs>
 
@@ -420,7 +420,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
               {mapData.outerPath.length > 0 && (
                 <path
                   d={mapData.outerPath}
-                  fill="#ccd5de"
+                  fill="var(--color-map-land-shadow)"
                   stroke="none"
                   filter="url(#land-shadow)"
                   pointerEvents="none"
@@ -456,7 +456,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 <path
                   d={mapData.borderPath}
                   fill="none"
-                  stroke="#ffffff"
+                  stroke="var(--color-map-border-internal)"
                   strokeWidth={1}
                   strokeLinejoin="round"
                   strokeLinecap="round"
@@ -470,7 +470,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 <path
                   d={mapData.outerPath}
                   fill="none"
-                  stroke="#64748b"
+                  stroke="var(--color-chart-coastline)"
                   strokeWidth={0.7}
                   strokeLinejoin="round"
                   strokeLinecap="round"
@@ -486,7 +486,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   <path
                     d={mapData.hoverPaths.get(hoveredIso)!}
                     fill="none"
-                    stroke="#3b82f6"
+                    stroke="var(--color-map-hover-glow)"
                     strokeWidth={4}
                     strokeLinejoin="round"
                     pointerEvents="none"
@@ -496,7 +496,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                   <path
                     d={mapData.hoverPaths.get(hoveredIso)!}
                     fill="none"
-                    stroke="#0b2545"
+                    stroke="var(--color-chart-line)"
                     strokeWidth={1.8}
                     strokeLinejoin="round"
                     pointerEvents="none"
@@ -522,7 +522,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                       y={y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isDarkFill ? "#ffffff" : "#1e293b"}
+                      fill={isDarkFill ? "var(--color-text-inverse)" : "var(--color-text-primary)"}
                       fillOpacity={isDimmed ? 0.2 : isHovered ? 1 : 0.85}
                       fontSize={isHovered ? size + 1.5 : size}
                       fontFamily="var(--font-sans)"
@@ -560,7 +560,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
               >
                 <p className="text-[13px] font-semibold leading-tight tracking-tight">
                   {tooltip.name}
-                  <span className="ml-1.5 font-mono text-[11px] font-normal text-stone-400">
+                  <span className="ml-1.5 font-mono text-[11px] font-normal text-text-quaternary">
                     {tooltip.iso2}
                   </span>
                 </p>
@@ -572,18 +572,14 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                         {formatMapScore(tooltip.score)}
                       </span>
                       <span
-                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider border border-stone-200 bg-stone-50 text-navy-900"
-                        style={{
-                          backgroundColor: "#f8fafc",
-                          color: "#0b2545",
-                        }}
+                        className="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider border border-border-primary bg-surface-tertiary text-text-primary"
                       >
                         {tooltip.classification}
                       </span>
                     </div>
-                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-stone-200">
+                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-border-primary">
                       <div
-                        className="h-full rounded-full transition-all duration-150 bg-navy-900"
+                        className="h-full rounded-full transition-all duration-150 bg-accent"
                         style={{
                           width: `${Math.min(100, (tooltip.score ?? 0) * 100)}%`,
                         }}
@@ -593,13 +589,13 @@ export default function EUMap({ countries, mean }: EUMapProps) {
                 )}
 
                 {tooltip.score === null && (
-                  <p className="mt-2 font-mono text-[13px] tabular-nums text-stone-500">
+                  <p className="mt-2 font-mono text-[13px] tabular-nums text-text-quaternary">
                     No data
                   </p>
                 )}
 
                 {tooltip.delta !== null && (
-                  <p className="mt-2 text-[11px] tabular-nums text-stone-400">
+                  <p className="mt-2 text-[11px] tabular-nums text-text-quaternary">
                     <span className={tooltip.delta > 0 ? "text-red-400" : "text-emerald-400"}>
                       {formatDelta(tooltip.delta)}
                     </span>

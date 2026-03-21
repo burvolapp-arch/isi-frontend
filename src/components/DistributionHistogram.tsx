@@ -22,19 +22,19 @@ import { formatScore } from "@/lib/presentation";
  *    collision detection: ticks → band labels → highlight label.
  */
 
-/* ── Band colours (fill tints for background zones) ────────────────── */
+/* ── Band colours — use CSS variables for dark mode support ────── */
 const BAND_TINTS = {
-  unconcentrated: "#e8f5e9",
-  mild: "#fff8e1",
-  moderate: "#fff3e0",
-  high: "#ffebee",
+  unconcentrated: "var(--color-band-tint-unconcentrated)",
+  mild: "var(--color-band-tint-mild)",
+  moderate: "var(--color-band-tint-moderate)",
+  high: "var(--color-band-tint-high)",
 };
 
 const BAND_ACCENTS = {
-  unconcentrated: "#065f46",
-  mild: "#a16207",
-  moderate: "#b45309",
-  high: "#b91c1c",
+  unconcentrated: "var(--color-band-unconcentrated)",
+  mild: "var(--color-band-mildly)",
+  moderate: "var(--color-band-moderately)",
+  high: "var(--color-band-highly)",
 };
 
 interface DistributionHistogramProps {
@@ -80,21 +80,8 @@ export const DistributionHistogram = memo(function DistributionHistogram({
 
   const maxCount = Math.max(...bins.map((b) => b.count), 1);
 
-  /* ── Layout constants ──────────────────────────────────────────────
-   *
-   *  ┌───────────────────────────────────────────────────┐
-   *  │  top label strip  (μ label, N badge)              │  topStrip
-   *  ├───────────────────────────────────────────────────┤  ← chartTop
-   *  │                                                   │
-   *  │  chart area  (bars, gridlines, markers)           │  chartHeight
-   *  │                                                   │
-   *  ├───────────────────────────────────────────────────┤  ← baseline
-   *  │  row 1: tick values         (+12)                 │
-   *  │  row 2: band labels         (+25)                 │
-   *  │  row 3: highlight label     (+40)                 │  bottomZone
-   *  └───────────────────────────────────────────────────┘
-   */
-  const topStrip = 22; // reserved for μ label + N badge
+  /* ── Layout constants ────────────────────────────────────────── */
+  const topStrip = 22;
   const paddingLeft = 42;
   const paddingRight = 18;
   const bottomZone = highlight != null && highlightLabel ? 48 : 32;
@@ -126,7 +113,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
     for (let i = step; i <= maxCount; i += step) yTicks.push(i);
   }
 
-  // Unique gradient IDs (avoid collisions when multiple histograms render)
+  // Unique gradient IDs
   const reactId = useId();
   const uid = `dh${reactId.replace(/:/g, "")}`;
 
@@ -135,7 +122,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
   const highlightX = highlight != null ? xScale(highlight) : null;
   const medianX = median != null ? xScale(median) : null;
 
-  // Collision helper: is a given x within `radius` of any vertical marker?
+  // Collision helper
   const nearMarker = (x: number, radius: number) => {
     if (meanX != null && Math.abs(x - meanX) < radius) return true;
     if (highlightX != null && Math.abs(x - highlightX) < radius) return true;
@@ -152,12 +139,12 @@ export const DistributionHistogram = memo(function DistributionHistogram({
     >
       <defs>
         <linearGradient id={`${uid}-bar`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6b7280" stopOpacity={0.62} />
-          <stop offset="100%" stopColor="#9ca3af" stopOpacity={0.35} />
+          <stop offset="0%" stopColor="var(--color-chart-bar-from)" stopOpacity={0.62} />
+          <stop offset="100%" stopColor="var(--color-chart-bar-to)" stopOpacity={0.35} />
         </linearGradient>
         <linearGradient id={`${uid}-bar-hl`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0b2545" stopOpacity={0.92} />
-          <stop offset="100%" stopColor="#245694" stopOpacity={0.72} />
+          <stop offset="0%" stopColor="var(--color-chart-bar-hl-from)" stopOpacity={0.92} />
+          <stop offset="100%" stopColor="var(--color-chart-bar-hl-to)" stopOpacity={0.72} />
         </linearGradient>
       </defs>
 
@@ -187,7 +174,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
           y1={chartTop}
           x2={xScale(v)}
           y2={baseline}
-          stroke="#d1d5db"
+          stroke="var(--color-chart-border)"
           strokeWidth={0.75}
           strokeDasharray="4,3"
         />
@@ -203,14 +190,14 @@ export const DistributionHistogram = memo(function DistributionHistogram({
               y1={y}
               x2={svgWidth - paddingRight}
               y2={y}
-              stroke="#e5e7eb"
+              stroke="var(--color-chart-grid)"
               strokeWidth={0.5}
             />
             <text
               x={paddingLeft - 7}
               y={y + 3}
               textAnchor="end"
-              fill="#9ca3af"
+              fill="var(--color-chart-label)"
               fontSize="9"
               fontFamily="var(--font-mono)"
             >
@@ -230,15 +217,10 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         const barHeight = baseline - by;
         const r = Math.min(2, bw / 4);
 
-        // Suppress count label if:
-        //  - bar too short
-        //  - a vertical marker line passes through this bar (would overlap)
-        //  - adjacent bin also has a count label and they'd collide
         const barCenterX = bx + bw / 2;
         const suppressCount =
           barHeight < 12 ||
           nearMarker(barCenterX, barW * 0.6) ||
-          // Adjacent-label collision: suppress if neighbour exists and bar is narrow
           (barW < 35 &&
             ((i > 0 && bins[i - 1].count > 0 && baseline - yScale(bins[i - 1].count) >= 12) ||
              (i < binCount - 1 && bins[i + 1].count > 0 && baseline - yScale(bins[i + 1].count) >= 12)));
@@ -257,13 +239,12 @@ export const DistributionHistogram = memo(function DistributionHistogram({
               `}
               fill={isHighlighted ? `url(#${uid}-bar-hl)` : `url(#${uid}-bar)`}
             />
-            {/* Count label — only when no overlap risk */}
             {!suppressCount && (
               <text
                 x={barCenterX}
                 y={by - 5}
                 textAnchor="middle"
-                fill={isHighlighted ? "#0b2545" : "#9ca3af"}
+                fill={isHighlighted ? "var(--color-chart-line)" : "var(--color-chart-label)"}
                 fontSize="8"
                 fontWeight={isHighlighted ? "600" : "400"}
                 fontFamily="var(--font-mono)"
@@ -283,12 +264,11 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             y1={chartTop}
             x2={meanX}
             y2={baseline}
-            stroke="#0b2545"
+            stroke="var(--color-chart-line)"
             strokeWidth={1.25}
             strokeDasharray="5,3"
             opacity={0.55}
           />
-          {/* Label in top strip — safe from bar/marker overlap */}
           {(() => {
             const tooCloseHL = highlightX != null && Math.abs(meanX - highlightX) < 50;
             const anchor = tooCloseHL
@@ -297,7 +277,6 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             const dx = tooCloseHL
               ? meanX < highlightX! ? -5 : 5
               : 0;
-            // Also avoid N-badge (at right edge)
             const nBadgeX = svgWidth - paddingRight;
             const tooCloseN = Math.abs(meanX + dx - nBadgeX) < 50;
             const finalAnchor = tooCloseN ? "start" : anchor;
@@ -307,7 +286,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                 x={meanX + finalDx}
                 y={topStrip - 6}
                 textAnchor={finalAnchor}
-                fill="#0b2545"
+                fill="var(--color-chart-line)"
                 fontSize="8.5"
                 fontFamily="var(--font-mono)"
                 fontWeight="600"
@@ -328,16 +307,14 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             y1={chartTop}
             x2={medianX}
             y2={baseline}
-            stroke="#6b7280"
+            stroke="var(--color-chart-line-secondary)"
             strokeWidth={0.75}
             strokeDasharray="2,3"
             opacity={0.5}
           />
-          {/* Place median label inside chart area, top-third, nudged away from neighbours */}
           {(() => {
             let nudgeX = 5;
             let anchor: "start" | "end" = "start";
-            // Avoid mean line
             if (meanX != null && meanX > medianX && Math.abs(meanX - medianX) < 50) {
               nudgeX = -5;
               anchor = "end";
@@ -346,7 +323,6 @@ export const DistributionHistogram = memo(function DistributionHistogram({
               nudgeX = 5;
               anchor = "start";
             }
-            // Avoid highlight line
             if (highlightX != null && Math.abs(highlightX - medianX) < 35) {
               nudgeX = highlightX > medianX ? -5 : 5;
               anchor = highlightX > medianX ? "end" : "start";
@@ -356,7 +332,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                 x={medianX + nudgeX}
                 y={chartTop + 14}
                 textAnchor={anchor}
-                fill="#6b7280"
+                fill="var(--color-chart-line-secondary)"
                 fontSize="8"
                 fontFamily="var(--font-mono)"
                 opacity={0.7}
@@ -376,18 +352,17 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             y1={chartTop}
             x2={highlightX}
             y2={baseline}
-            stroke="#0b2545"
+            stroke="var(--color-chart-line)"
             strokeWidth={1.75}
             opacity={0.85}
           />
-          {/* Small triangle at chart-top edge, pointing down into chart */}
           <polygon
             points={`
               ${highlightX},${chartTop + 5}
               ${highlightX - 3.5},${chartTop}
               ${highlightX + 3.5},${chartTop}
             `}
-            fill="#0b2545"
+            fill="var(--color-chart-line)"
           />
         </g>
       )}
@@ -398,7 +373,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         y1={baseline}
         x2={svgWidth - paddingRight}
         y2={baseline}
-        stroke="#d1d5db"
+        stroke="var(--color-chart-border)"
         strokeWidth={1}
       />
 
@@ -408,7 +383,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         y1={chartTop}
         x2={paddingLeft}
         y2={baseline}
-        stroke="#e5e7eb"
+        stroke="var(--color-chart-grid)"
         strokeWidth={0.5}
       />
 
@@ -417,7 +392,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
         x={svgWidth - paddingRight}
         y={topStrip - 6}
         textAnchor="end"
-        fill="#9ca3af"
+        fill="var(--color-chart-label)"
         fontSize="8"
         fontFamily="var(--font-mono)"
         letterSpacing="0.04em"
@@ -427,16 +402,14 @@ export const DistributionHistogram = memo(function DistributionHistogram({
 
       {/* ── Bottom axis: ticks → band labels → highlight label ─── */}
       {(() => {
-        const row1Y = baseline + 12; // tick values
-        const row2Y = baseline + 25; // band labels
-        const row3Y = baseline + 40; // highlight label
+        const row1Y = baseline + 12;
+        const row2Y = baseline + 25;
+        const row3Y = baseline + 40;
 
-        // Highlight label geometry
         const hlX = highlightX;
         const hlLabelLen = highlightLabel ? highlightLabel.length : 0;
         const hlHalfW = hlLabelLen * 3.0 + 8;
 
-        // Band definitions — shortened labels to prevent inter-band overlap
         const bands: { cx: number; label: string; color: string }[] = [
           { cx: 0.075, label: "Unconc.", color: BAND_ACCENTS.unconcentrated },
           { cx: 0.2, label: "Mild", color: BAND_ACCENTS.mild },
@@ -446,25 +419,20 @@ export const DistributionHistogram = memo(function DistributionHistogram({
 
         const ticks = [0, 0.15, 0.25, 0.5, 0.75, 1.0];
 
-        // Horizontal overlap helper
         const overlaps = (ax: number, ahw: number, bx: number, bhw: number) =>
           Math.abs(ax - bx) < ahw + bhw;
 
-        // Approx half-widths (conservative estimates)
         const tickHW = (v: number) => v.toFixed(2).length * 3 + 3;
         const bandHW = (label: string) => label.length * 2.4 + 4;
 
-        // Check tick-to-tick collisions: suppress if too close to neighbours
         const tickXPositions = ticks.map((v) => ({ v, x: xScale(v) }));
 
         return (
           <>
             {/* Row 1: Tick marks + numeric values */}
             {tickXPositions.map(({ v, x: tx }, idx) => {
-              // Suppress if collides with highlight label (on row 1 vertical alignment)
               const hideHL =
                 hlX != null && overlaps(tx, tickHW(v), hlX, hlHalfW);
-              // Suppress if too close to adjacent tick
               const prevTx = idx > 0 ? tickXPositions[idx - 1].x : -999;
               const nextTx = idx < tickXPositions.length - 1 ? tickXPositions[idx + 1].x : 9999;
               const hideAdj =
@@ -478,7 +446,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                     y1={baseline}
                     x2={tx}
                     y2={baseline + 3}
-                    stroke="#d1d5db"
+                    stroke="var(--color-chart-border)"
                     strokeWidth={1}
                   />
                   {!hideHL && !hideAdj && (
@@ -486,7 +454,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                       x={tx}
                       y={row1Y}
                       textAnchor="middle"
-                      fill="#9ca3af"
+                      fill="var(--color-chart-label)"
                       fontSize="8.5"
                       fontFamily="var(--font-mono)"
                     >
@@ -500,10 +468,8 @@ export const DistributionHistogram = memo(function DistributionHistogram({
             {/* Row 2: Classification band labels */}
             {bands.map(({ cx, label, color }) => {
               const bx = xScale(cx);
-              // Suppress if overlaps highlight label
               const hideHL =
                 hlX != null && overlaps(bx, bandHW(label), hlX, hlHalfW);
-              // Suppress if band labels would overlap each other
               const hidePeer = bands.some(
                 (other) =>
                   other.label !== label &&
@@ -513,7 +479,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                     xScale(other.cx),
                     bandHW(other.label)
                   )
-                  && xScale(other.cx) < bx // only suppress the right-side one
+                  && xScale(other.cx) < bx
               );
               return (
                 <text
@@ -533,7 +499,7 @@ export const DistributionHistogram = memo(function DistributionHistogram({
               );
             })}
 
-            {/* Row 3: Highlight country label — always visible, dedicated row */}
+            {/* Row 3: Highlight country label */}
             {highlight != null && highlightLabel && hlX != null && (
               <g>
                 <rect
@@ -542,14 +508,13 @@ export const DistributionHistogram = memo(function DistributionHistogram({
                   width={hlHalfW * 2}
                   height={13}
                   rx={3}
-                  fill="#0b2545"
-                  opacity={0.07}
+                  fill="var(--color-chart-highlight-bg)"
                 />
                 <text
                   x={hlX}
                   y={row3Y}
                   textAnchor="middle"
-                  fill="#0b2545"
+                  fill="var(--color-chart-line)"
                   fontSize="9"
                   fontWeight="700"
                   fontFamily="var(--font-sans)"

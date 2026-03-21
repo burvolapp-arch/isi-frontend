@@ -105,7 +105,7 @@ export function PdfUploadZone({
       className={`relative rounded-md border-2 border-dashed transition-colors ${
         dragOver
           ? "border-navy-500 bg-navy-700/5"
-          : "border-border-primary bg-surface-tertiary hover:border-stone-300"
+          : "border-border-primary bg-surface-tertiary hover:border-border-secondary"
       } ${uploading ? "pointer-events-none opacity-60" : ""}`}
     >
       <label className="flex cursor-pointer flex-col items-center gap-3 px-6 py-8">

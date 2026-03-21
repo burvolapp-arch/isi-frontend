@@ -103,7 +103,7 @@ export default function SimulationPage() {
                 min-h-[44px] rounded-md px-6 py-2.5 text-[14px] font-medium transition-colors sm:min-h-0
                 ${selectedCountry
                   ? "bg-navy-900 text-white hover:bg-navy-800"
-                  : "cursor-not-allowed bg-stone-200 text-stone-400"
+                  : "cursor-not-allowed bg-border-primary text-text-quaternary"
                 }
               `}
             >

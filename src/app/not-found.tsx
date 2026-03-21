@@ -23,7 +23,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/methodology"
-            className="rounded-md border border-border-primary px-5 py-2.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-stone-50"
+            className="rounded-md border border-border-primary px-5 py-2.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-tertiary"
           >
             Methodology
           </Link>

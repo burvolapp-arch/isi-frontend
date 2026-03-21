@@ -60,7 +60,7 @@ export const DeviationBar = memo(function DeviationBar({
       </LabelTag>
       <div className="relative h-5 flex-1 bg-surface-tertiary">
         {/* Center line (mean) */}
-        <div className="absolute left-1/2 top-0 h-full w-px bg-stone-300" />
+        <div className="absolute left-1/2 top-0 h-full w-px bg-border-secondary" />
         {/* Deviation bar */}
         <div
           className={`absolute top-0.5 bottom-0.5 ${

@@ -692,7 +692,7 @@ export function ScenarioLaboratory({
               <div
                 key={slug}
                 className={`rounded border border-border-primary px-3 py-2 ${
-                  controlsLocked ? "bg-stone-50 opacity-70" : "bg-surface-tertiary"
+                  controlsLocked ? "bg-surface-tertiary opacity-70" : "bg-surface-tertiary"
                 }`}
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
@@ -777,8 +777,8 @@ export function ScenarioLaboratory({
 
       {/* ═══ FAILURE PANEL ═══ */}
       {(serviceState === "SERVICE_DOWN" || serviceState === "ERROR") && (
-        <div role="alert" className="rounded border border-stone-200 bg-stone-50 px-4 py-3">
-          <p className="text-[13px] font-medium text-stone-600">
+        <div role="alert" className="rounded border border-border-primary bg-surface-tertiary px-4 py-3">
+          <p className="text-[13px] font-medium text-text-secondary">
             {failureInfo.status === 404
               ? "Country not available for simulation."
               : failureInfo.status === 400
@@ -790,7 +790,7 @@ export function ScenarioLaboratory({
                     : "Simulation error."}
           </p>
           {showingCached && (
-            <p className="mt-1.5 text-[11px] text-stone-500">
+            <p className="mt-1.5 text-[11px] text-text-quaternary">
               Displaying last successful result.
             </p>
           )}
@@ -798,23 +798,23 @@ export function ScenarioLaboratory({
             <button
               type="button"
               onClick={retrySimulation}
-              className="min-h-[44px] rounded border border-stone-300 bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
+              className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={resetToBaseline}
-              className="min-h-[44px] rounded border border-stone-300 bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
+              className="min-h-[44px] rounded border border-border-primary bg-surface-primary px-3 py-1 text-[11px] font-medium text-text-secondary hover:bg-surface-tertiary sm:min-h-0"
             >
               Reset
             </button>
           </div>
           <details className="mt-2">
-            <summary className="cursor-pointer text-[10px] text-stone-400 hover:text-stone-500">
+            <summary className="cursor-pointer text-[10px] text-text-quaternary hover:text-text-tertiary">
               Technical details
             </summary>
-            <div className="mt-1 font-mono text-[10px] text-stone-400">
+            <div className="mt-1 font-mono text-[10px] text-text-quaternary">
               <p>HTTP: {failureInfo.status ?? "N/A"} · {failureInfo.timestamp ?? new Date().toISOString()}</p>
             </div>
           </details>
@@ -888,9 +888,9 @@ export function ScenarioLaboratory({
                       {item.label}
                     </span>
                     <div className="relative flex h-3 flex-1 items-center">
-                      <div className="absolute inset-0 rounded bg-stone-100" />
+                      <div className="absolute inset-0 rounded bg-surface-tertiary" />
                       <div
-                        className={`relative h-full rounded ${isPositive ? "bg-stone-400" : "bg-stone-300"}`}
+                        className={`relative h-full rounded ${isPositive ? "bg-text-quaternary" : "bg-border-secondary"}`}
                         style={{ width: `${Math.max(pct, 2)}%` }}
                       />
                     </div>
@@ -933,7 +933,7 @@ export function ScenarioLaboratory({
               </thead>
               <tbody>
                 {timeline.map((entry) => (
-                  <tr key={entry.id} className="border-b border-stone-100 text-text-secondary">
+                  <tr key={entry.id} className="border-b border-border-subtle text-text-secondary">
                     <td className="py-1.5 pr-3 font-mono text-[10px] text-text-quaternary">
                       {new Date(entry.timestamp).toLocaleTimeString()}
                     </td>
@@ -950,7 +950,7 @@ export function ScenarioLaboratory({
                         type="button"
                         onClick={() => restoreTimelineEntry(entry)}
                         disabled={controlsLocked}
-                        className="text-[10px] font-medium text-stone-500 hover:text-stone-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="text-[10px] font-medium text-text-quaternary hover:text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Restore
                       </button>

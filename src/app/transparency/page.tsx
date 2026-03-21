@@ -255,14 +255,14 @@ export default function TransparencyPage() {
               <a
                 href="/api/export/csv"
                 download
-                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-stone-100"
+                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-surface-elevated"
               >
                 Download CSV
               </a>
               <a
                 href="/api/export/json"
                 download
-                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-stone-100"
+                className="rounded-md border border-border-primary bg-surface-tertiary px-4 py-2.5 text-[13px] text-text-secondary transition-colors hover:bg-surface-elevated"
               >
                 Download JSON
               </a>
