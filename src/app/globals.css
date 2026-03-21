@@ -411,4 +411,27 @@ tbody tr {
   /* Deviation colors — ensure print readability */
   .text-deviation-positive { color: #b91c1c !important; }
   .text-deviation-negative { color: #065f46 !important; }
+
+  /* Print-only citation footer */
+  .print-citation-footer {
+    display: block !important;
+    margin-top: 2cm;
+    padding-top: 0.5cm;
+    border-top: 1px solid #d1d5db;
+    font-size: 9pt;
+    color: #6b7280;
+    page-break-before: avoid;
+  }
+
+  /* Print-only timestamp */
+  .print-timestamp::after {
+    content: " — Printed " attr(data-print-date);
+  }
+
+  /* Force light mode colors for print */
+  .dark * {
+    color: #111827 !important;
+    background-color: transparent !important;
+    border-color: #d1d5db !important;
+  }
 }

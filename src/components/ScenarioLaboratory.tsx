@@ -21,6 +21,7 @@ import {
   type AxisSlug,
 } from "@/lib/axisRegistry";
 import { formatAxisLabel, formatScore, formatDelta } from "@/lib/presentation";
+import { SCENARIO_PRESETS, type ScenarioPreset } from "@/lib/scenarioPresets";
 import type {
   CountryDetail,
   ScenarioResponse,
@@ -49,48 +50,8 @@ const MAX_AUTO_RETRIES = 2;
 const MAX_TIMELINE_ENTRIES = 10;
 
 // ═══════════════════════════════════════════════════════════════════════
-// Structural Shock Presets
+// Structural Shock Presets — sourced from scenarioPresets registry
 // ═══════════════════════════════════════════════════════════════════════
-
-interface StructuralPreset {
-  id: string;
-  label: string;
-  description: string;
-  adjustments: Partial<Record<AxisSlug, number>>;
-}
-
-const STRUCTURAL_PRESETS: StructuralPreset[] = [
-  {
-    id: "energy-diversification",
-    label: "Energy Diversification",
-    description: "−15% energy concentration",
-    adjustments: { energy: -0.15 },
-  },
-  {
-    id: "defense-reindustrialization",
-    label: "Defense Reindustrialization",
-    description: "−20% defense concentration",
-    adjustments: { defense: -0.20 },
-  },
-  {
-    id: "logistics-disruption",
-    label: "Logistics Disruption",
-    description: "+20% logistics concentration",
-    adjustments: { logistics: 0.20 },
-  },
-  {
-    id: "technology-decoupling",
-    label: "Technology Decoupling",
-    description: "+15% tech concentration",
-    adjustments: { technology: 0.15 },
-  },
-  {
-    id: "financial-fragmentation",
-    label: "Financial Fragmentation",
-    description: "+10% financial concentration",
-    adjustments: { financial: 0.10 },
-  },
-];
 
 // ═══════════════════════════════════════════════════════════════════════
 // State Machine
@@ -422,7 +383,7 @@ export function ScenarioLaboratory({
     setActivePresetLabel(null);
   }, []);
 
-  const applyPreset = useCallback((preset: StructuralPreset) => {
+  const applyPreset = useCallback((preset: ScenarioPreset) => {
     const next: Record<string, number> = {};
     for (const slug of ALL_AXIS_SLUGS) next[slug] = 0;
     for (const [slug, val] of Object.entries(preset.adjustments)) next[slug] = val;
@@ -684,7 +645,7 @@ export function ScenarioLaboratory({
             Active Simulation:{" "}
             <span className="font-medium text-text-secondary">{activePresetLabel}</span>
             {(() => {
-              const preset = STRUCTURAL_PRESETS.find((p) => p.label === activePresetLabel);
+              const preset = SCENARIO_PRESETS.find((p) => p.label === activePresetLabel);
               return preset ? (
                 <span className="ml-1 text-text-quaternary">({preset.description})</span>
               ) : null;
@@ -692,7 +653,7 @@ export function ScenarioLaboratory({
           </p>
         )}
         <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {STRUCTURAL_PRESETS.map((preset) => {
+          {SCENARIO_PRESETS.map((preset) => {
             const isActive = activePresetLabel === preset.label;
             return (
               <button
@@ -700,7 +661,7 @@ export function ScenarioLaboratory({
                 type="button"
                 disabled={controlsLocked}
                 onClick={() => applyPreset(preset)}
-                title={preset.description}
+                title={`${preset.shortLabel}: ${preset.description}`}
                 className={`
                   min-h-[44px] rounded border px-2.5 py-1.5 text-[11px] font-medium sm:min-h-0
                   focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-navy-700
@@ -711,7 +672,7 @@ export function ScenarioLaboratory({
                   }
                 `}
               >
-                {preset.label}
+                {preset.shortLabel}
               </button>
             );
           })}
@@ -962,12 +923,12 @@ export function ScenarioLaboratory({
             <table className="w-full text-left text-[11px]">
               <thead>
                 <tr className="border-b border-border-primary text-[10px] font-medium uppercase tracking-[0.1em] text-text-quaternary">
-                  <th className="pb-1.5 pr-3">Time</th>
-                  <th className="pb-1.5 pr-3">Composite</th>
-                  <th className="pb-1.5 pr-3">Rank</th>
-                  <th className="pb-1.5 pr-3">Classification</th>
-                  <th className="pb-1.5 pr-3">Simulation</th>
-                  <th className="pb-1.5" />
+                  <th scope="col" className="pb-1.5 pr-3">Time</th>
+                  <th scope="col" className="pb-1.5 pr-3">Composite</th>
+                  <th scope="col" className="pb-1.5 pr-3">Rank</th>
+                  <th scope="col" className="pb-1.5 pr-3">Classification</th>
+                  <th scope="col" className="pb-1.5 pr-3">Simulation</th>
+                  <th scope="col" className="pb-1.5" />
                 </tr>
               </thead>
               <tbody>

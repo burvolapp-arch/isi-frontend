@@ -16,6 +16,7 @@ import {
 import { formatScore, formatAxisShort, formatDelta } from "@/lib/presentation";
 import { AXIS_FIELD_MAP, type AxisSlug } from "@/lib/axisRegistry";
 import type { ISICompositeCountry } from "@/lib/types";
+import { VarianceDecomposition } from "@/components/VarianceDecomposition";
 
 export const revalidate = 300;
 
@@ -283,6 +284,19 @@ export default async function EU27Page() {
           </div>
         </section>
 
+        {/* ── Cross-Country Variance Decomposition ── */}
+        <section className="mt-12">
+          <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
+            Variance Decomposition
+          </h2>
+          <p className="mt-1.5 text-[14px] text-text-tertiary">
+            Contribution of each strategic axis to cross-country variation in ISI composite scores.
+          </p>
+          <div className="mt-6 overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)] sm:p-6">
+            <VarianceDecomposition countries={isi.countries} />
+          </div>
+        </section>
+
         {/* ── Axis-Level Bloc Aggregates ── */}
         <section className="mt-14 content-auto">
           <h2 className="font-serif text-[22px] font-semibold tracking-tight text-text-primary sm:text-[26px]">
@@ -333,13 +347,13 @@ export default async function EU27Page() {
             <table className="hidden md:table min-w-full text-[14px]">
               <thead>
                 <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
-                  <th className="px-4 py-3 text-left font-medium">Axis</th>
-                  <th className="px-4 py-3 text-right font-medium">Cohort Mean</th>
-                  <th className="px-4 py-3 text-right font-medium">Min</th>
-                  <th className="px-4 py-3 text-right font-medium">Max</th>
-                  <th className="px-4 py-3 text-right font-medium">Std Dev</th>
-                  <th className="px-4 py-3 text-center font-medium">Countries</th>
-                  <th className="px-4 py-3 text-center font-medium">Classification</th>
+                  <th scope="col" className="px-4 py-3 text-left font-medium">Axis</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Cohort Mean</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Min</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Max</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Std Dev</th>
+                  <th scope="col" className="px-4 py-3 text-center font-medium">Countries</th>
+                  <th scope="col" className="px-4 py-3 text-center font-medium">Classification</th>
                 </tr>
               </thead>
               <tbody>
@@ -441,11 +455,11 @@ export default async function EU27Page() {
             <table className="hidden md:table min-w-full text-[14px]">
               <thead>
                 <tr className="border-b-2 border-navy-900 text-[11px] uppercase tracking-[0.1em] text-text-quaternary">
-                  <th className="px-4 py-3 text-left font-medium">#</th>
-                  <th className="px-4 py-3 text-left font-medium">Country</th>
-                  <th className="px-4 py-3 text-right font-medium">Composite</th>
-                  <th className="px-4 py-3 text-right font-medium">Δ EU Mean</th>
-                  <th className="px-4 py-3 text-center font-medium">Classification</th>
+                  <th scope="col" className="px-4 py-3 text-left font-medium">#</th>
+                  <th scope="col" className="px-4 py-3 text-left font-medium">Country</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Composite</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Δ EU Mean</th>
+                  <th scope="col" className="px-4 py-3 text-center font-medium">Classification</th>
                 </tr>
               </thead>
               <tbody>
