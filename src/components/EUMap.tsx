@@ -265,7 +265,7 @@ export default function EUMap({ countries, mean }: EUMapProps) {
   // ── RAF-throttled hover handler ───────────────────────────────────
   // Stores pending mouse data in a ref, commits at most once per frame.
 
-  const pendingMove = useRef<{ e: React.MouseEvent; c: PrecomputedCountry } | null>(null);
+  const pendingMove = useRef<{ clientX: number; clientY: number; c: PrecomputedCountry } | null>(null);
 
   const commitHover = useCallback(() => {
     const p = pendingMove.current;
@@ -275,16 +275,16 @@ export default function EUMap({ countries, mean }: EUMapProps) {
     const el = containerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const { e, c } = p;
+    const { clientX, clientY, c } = p;
     const band = classifyBand(c.score);
 
     const tooltipW = 260;
     const tooltipH = 96;
-    let tx = e.clientX - rect.left;
-    let ty = e.clientY - rect.top - 16;
+    let tx = clientX - rect.left;
+    let ty = clientY - rect.top - 16;
     if (tx - tooltipW / 2 < 12) tx = tooltipW / 2 + 12;
     if (tx + tooltipW / 2 > rect.width - 12) tx = rect.width - tooltipW / 2 - 12;
-    if (ty - tooltipH < 12) ty = e.clientY - rect.top + 28;
+    if (ty - tooltipH < 12) ty = clientY - rect.top + 28;
 
     const nextIso = c.iso || null;
     // Only update hoveredIso state if it actually changed
@@ -308,12 +308,9 @@ export default function EUMap({ countries, mean }: EUMapProps) {
 
   const onMove = useCallback(
     (e: React.MouseEvent, c: PrecomputedCountry) => {
-      // Persist the synthetic event's position data
-      // (React pools synthetic events, but clientX/Y are read synchronously
-      // in the rAF callback because we capture them on the native event object
-      // through the persisted reference — safe because we only read, never call
-      // methods on the event.)
-      pendingMove.current = { e, c };
+      // Extract coordinates synchronously — React may recycle the
+      // SyntheticEvent before the rAF callback fires.
+      pendingMove.current = { clientX: e.clientX, clientY: e.clientY, c };
       cancelAnimationFrame(rafHover.current);
       rafHover.current = requestAnimationFrame(commitHover);
     },

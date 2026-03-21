@@ -62,15 +62,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.3,
     },
+    {
+      url: `${BASE}/dataset`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/analysis/eu`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${BASE}/press`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${BASE}/releases`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
   ];
-
-  // Paper-anchored URLs — deep links into the research page
-  const paperPages: MetadataRoute.Sitemap = PAPERS.map((paper) => ({
-    url: `${BASE}/research#${paper.id}`,
-    lastModified: paper.publicationDate,
-    changeFrequency: "monthly" as const,
-    priority: 0.85,
-  }));
 
   // Direct PDF URLs — ensures search engines and academic crawlers index PDFs
   const pdfUrls: MetadataRoute.Sitemap = PAPERS.flatMap((paper) =>
@@ -85,7 +101,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // EU-27 country pages
   const EU27_CODES = [
     "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR",
-    "DE","GR","HU","IE","IT","LV","LT","LU","MT","NL",
+    "DE","EL","HU","IE","IT","LV","LT","LU","MT","NL",
     "PL","PT","RO","SK","SI","ES","SE",
   ];
   const countryPages: MetadataRoute.Sitemap = EU27_CODES.map((code) => ({
@@ -103,5 +119,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...countryPages, ...axisPages, ...paperPages, ...pdfUrls];
+  return [...staticPages, ...countryPages, ...axisPages, ...pdfUrls];
 }

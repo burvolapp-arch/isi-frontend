@@ -7,6 +7,22 @@ const RESEARCH_DIR = join(process.cwd(), "public", "research");
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function POST(request: Request): Promise<NextResponse> {
+  // ── Auth guard — require UPLOAD_SECRET bearer token ──
+  const secret = process.env.UPLOAD_SECRET;
+  if (!secret) {
+    return NextResponse.json(
+      { error: "Upload endpoint not configured" },
+      { status: 503 },
+    );
+  }
+  const auth = request.headers.get("authorization");
+  if (!auth || auth !== `Bearer ${secret}`) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;

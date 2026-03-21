@@ -342,10 +342,12 @@ export function allHighwireMetaTags() {
       }
     }
   }
-  // Deduplicate single-value keys
+  // Deduplicate values — e.g. citation_author, citation_language, citation_publisher
+  // appear identically for every paper and should not be repeated.
   const result: Record<string, string | string[]> = {};
   for (const [key, values] of Object.entries(merged)) {
-    result[key] = values.length === 1 ? values[0] : values;
+    const unique = [...new Set(values)];
+    result[key] = unique.length === 1 ? unique[0] : unique;
   }
   return result;
 }

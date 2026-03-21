@@ -222,9 +222,10 @@ export const RadarChart = memo(function RadarChart({
 }: RadarChartProps) {
   const router = useRouter();
 
-  // ── Interaction state ──
+  // ── Interaction state (all hooks MUST run before any early return) ──
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Safety invariant: filter out undefined/invalid axis entries ──
   const safeAxes = useMemo(
@@ -259,6 +260,7 @@ export const RadarChart = memo(function RadarChart({
   // Radius from authoritative constant
   const radius = RADAR_RADIUS;
 
+  const radius = RADAR_RADIUS;
   const vbCenterX = VB_SIZE / 2;
   const vbCenterY = VB_SIZE / 2;
   const angleStep = n > 0 ? (2 * Math.PI) / n : 0;
@@ -327,6 +329,23 @@ export const RadarChart = memo(function RadarChart({
     setHoveredAxis(null);
   }, []);
 
+  // Touch support: show tooltip on tap, auto-dismiss after 2s
+  const handleAxisTouch = useCallback(
+    (e: React.TouchEvent, index: number) => {
+      // Prevent immediate click-through on touch devices
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (touch) {
+        setMousePos({ x: touch.clientX, y: touch.clientY });
+      }
+      setHoveredAxis(index);
+      // Clear any previous auto-dismiss timer
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = setTimeout(() => setHoveredAxis(null), 2000);
+    },
+    [],
+  );
+
   const handleAxisClick = useCallback(
     (index: number) => {
       if (!countryCode) return;
@@ -374,6 +393,8 @@ export const RadarChart = memo(function RadarChart({
 
   // ── Early return AFTER all hooks ──
   if (n === 0) return null;
+  // ── Early returns AFTER all hooks ──
+  if (axes.length === 0 || safeAxes.length === 0) return null;
 
   const svg = (
     <svg
@@ -385,6 +406,7 @@ export const RadarChart = memo(function RadarChart({
       textRendering="optimizeLegibility"
       strokeLinejoin="round"
       role="img"
+      aria-roledescription="radar chart"
       aria-label={
         label
           ? `Radar chart showing multi-axis profile for ${label}`
@@ -534,6 +556,24 @@ export const RadarChart = memo(function RadarChart({
         );
       })}
 
+      {/* Comparison data points */}
+      {compareAxes && compareAxes.length > 0 && compareAxes.map((axis, i) => {
+        if (axis?.value == null) return null;
+        const p = polarToXY(axis.value, i);
+        return (
+          <circle
+            key={`cmp-${i}`}
+            cx={p.x}
+            cy={p.y}
+            r={DATA_POINT_RADIUS - 0.5}
+            fill="var(--color-stone-500)"
+            stroke="var(--color-surface-primary)"
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+          />
+        );
+      })}
+
       {/* Axis labels — dim non-hovered on interaction */}
       {resolvedAxes.map((axis, i) => {
         const labelPoint = polarToXY(LABEL_OFFSET, i);
@@ -579,9 +619,18 @@ export const RadarChart = memo(function RadarChart({
       })}
 
       {/* Interactive wedge overlay — transparent pie-slice hit areas per axis */}
+      <defs>
+        <style>{`
+          .radar-wedge:focus-visible {
+            outline: 2px solid var(--color-navy-700);
+            outline-offset: -2px;
+          }
+        `}</style>
+      </defs>
       {resolvedAxes.map((axis, i) => (
         <path
           key={`wedge-${i}`}
+          className="radar-wedge"
           d={buildWedge(i, n, vbCenterX, vbCenterY, wedgeReach)}
           fill="transparent"
           cursor={countryCode ? "pointer" : "default"}
@@ -591,8 +640,11 @@ export const RadarChart = memo(function RadarChart({
           onMouseEnter={() => handleAxisHover(i)}
           onMouseMove={handleAxisMove}
           onMouseLeave={handleAxisLeave}
+          onTouchStart={(e) => handleAxisTouch(e, i)}
           onClick={() => handleAxisClick(i)}
           onKeyDown={(e) => handleAxisKeyDown(e, i)}
+          onFocus={() => handleAxisHover(i)}
+          onBlur={handleAxisLeave}
         />
       ))}
 

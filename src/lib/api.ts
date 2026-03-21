@@ -116,10 +116,12 @@ export function classifyFetchError(err: unknown): FailureKind {
 
 const isDev = typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
 const _loggedKeys = new Set<string>();
+const MAX_LOGGED_KEYS = 200;
 
 function logOnce(key: string, ...args: unknown[]) {
   if (!isDev) return;
   if (_loggedKeys.has(key)) return;
+  if (_loggedKeys.size >= MAX_LOGGED_KEYS) _loggedKeys.clear();
   _loggedKeys.add(key);
   console.error("[ISI Scenario]", ...args);
 }

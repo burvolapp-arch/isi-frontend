@@ -10,7 +10,7 @@ import EUMap from "@/components/EUMap";
 import SovereigntyMatrix from "@/components/SovereigntyMatrix";
 import { generateBreadcrumbJsonLd } from "@/lib/breadcrumbs";
 import { ScrollRevealActivator } from "@/components/ScrollRevealActivator";
-import { PAPERS, RESEARCH_PATH, formatPaperDate } from "@/lib/papers";
+import { PAPERS, formatPaperDate } from "@/lib/papers";
 import {
   classificationLabel,
   extractCompositeScores,
