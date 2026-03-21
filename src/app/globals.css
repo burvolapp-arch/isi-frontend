@@ -6,8 +6,9 @@
    Visual reference: IMF Working Papers × ECB Statistical Dashboard ×
    OECD Data Portal × Government Research Briefing.
 
-   Pure white background. No gradients. No glow. No glass.
-   Authority through restraint.
+   Light mode: pure white, restrained, institutional.
+   Dark mode: deep navy-black, token-driven overlay on same structure.
+   Authority through restraint. Semantic tokens throughout.
    ============================================================================ */
 
 @theme inline {
@@ -352,35 +353,18 @@
   background: #345070;
 }
 
-/* ── Theme transition (opt-in, applied after initial load) ── */
-/* Targeted selectors instead of * — dramatically fewer elements
-   need transition, so switching is near-instant without jank. */
-html.theme-transition {
-  transition: background-color 0.12s ease-out, color 0.12s ease-out !important;
-}
+/* ── Theme transition (opt-in, class added/removed by ThemeProvider) ──
+   CSS custom properties (--color-*) cascade instantly — child elements
+   that reference them update for free. We only need explicit transitions
+   on elements that directly use background-color, border-color, or color
+   properties. Keep the selector list short for performance. ── */
+html.theme-transition,
 html.theme-transition body,
 html.theme-transition header,
 html.theme-transition footer,
 html.theme-transition main,
-html.theme-transition section,
-html.theme-transition nav,
-html.theme-transition article,
-html.theme-transition aside,
-html.theme-transition div,
-html.theme-transition p,
-html.theme-transition span,
-html.theme-transition h1,
-html.theme-transition h2,
-html.theme-transition h3,
-html.theme-transition h4,
-html.theme-transition a,
-html.theme-transition button,
-html.theme-transition table,
-html.theme-transition th,
-html.theme-transition td,
-html.theme-transition tr,
-html.theme-transition svg {
-  transition: background-color 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out, fill 0.12s ease-out, stroke 0.12s ease-out, box-shadow 0.12s ease-out !important;
+html.theme-transition nav {
+  transition: background-color 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out, box-shadow 0.12s ease-out !important;
 }
 
 /* ── Base ───────────────────────────────────────────────── */

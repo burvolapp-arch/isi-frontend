@@ -58,7 +58,7 @@ export default function StructuralFrameworkDiagram() {
       <polygon
         points={hexPoints}
         fill="none"
-        stroke="#334155"
+        stroke="var(--color-chart-border)"
         strokeWidth={0.5}
         opacity={0.5}
       />
@@ -73,7 +73,7 @@ export default function StructuralFrameworkDiagram() {
             y1={l.y1}
             x2={l.x2}
             y2={l.y2}
-            stroke="#475569"
+            stroke="var(--color-chart-coastline)"
             strokeWidth={1}
             strokeDasharray="3 3"
           />
@@ -85,8 +85,8 @@ export default function StructuralFrameworkDiagram() {
         cx={cx}
         cy={cy}
         r={centerR}
-        fill="#0f172a"
-        stroke="#94a3b8"
+        fill="var(--color-surface-inverse)"
+        stroke="var(--color-text-quaternary)"
         strokeWidth={1.5}
       />
       <text
@@ -94,7 +94,7 @@ export default function StructuralFrameworkDiagram() {
         y={cy - 8}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="#f1f5f9"
+        fill="var(--color-text-inverse)"
         fontSize={13}
         fontWeight={600}
         fontFamily="var(--font-serif, Georgia, serif)"
@@ -107,11 +107,12 @@ export default function StructuralFrameworkDiagram() {
         y={cy + 10}
         textAnchor="middle"
         dominantBaseline="central"
-        fill="#cbd5e1"
+        fill="var(--color-text-inverse)"
         fontSize={12}
         fontWeight={400}
         fontFamily="var(--font-serif, Georgia, serif)"
         letterSpacing="0.02em"
+        opacity={0.75}
       >
         Exposure
       </text>
@@ -126,8 +127,8 @@ export default function StructuralFrameworkDiagram() {
               cx={n.x}
               cy={n.y}
               r={nodeR}
-              fill="#0f172a"
-              stroke="#475569"
+              fill="var(--color-surface-inverse)"
+              stroke="var(--color-chart-coastline)"
               strokeWidth={1}
             />
             {/* Axis abbreviation — small, above */}
@@ -136,7 +137,7 @@ export default function StructuralFrameworkDiagram() {
               y={n.y - (isMulti ? 14 : 8)}
               textAnchor="middle"
               dominantBaseline="central"
-              fill="#64748b"
+              fill="var(--color-text-quaternary)"
               fontSize={8}
               fontWeight={500}
               fontFamily="var(--font-mono, monospace)"
@@ -152,11 +153,12 @@ export default function StructuralFrameworkDiagram() {
                   y={n.y + 1}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fill="#cbd5e1"
+                  fill="var(--color-text-inverse)"
                   fontSize={10}
                   fontWeight={500}
                   fontFamily="var(--font-sans, system-ui, sans-serif)"
                   letterSpacing="0.04em"
+                  opacity={0.85}
                 >
                   {lines[0]}
                 </text>
@@ -165,11 +167,12 @@ export default function StructuralFrameworkDiagram() {
                   y={n.y + 13}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fill="#cbd5e1"
+                  fill="var(--color-text-inverse)"
                   fontSize={10}
                   fontWeight={500}
                   fontFamily="var(--font-sans, system-ui, sans-serif)"
                   letterSpacing="0.04em"
+                  opacity={0.85}
                 >
                   {lines[1]}
                 </text>
@@ -180,11 +183,12 @@ export default function StructuralFrameworkDiagram() {
                 y={n.y + 5}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="#cbd5e1"
+                fill="var(--color-text-inverse)"
                 fontSize={10}
                 fontWeight={500}
                 fontFamily="var(--font-sans, system-ui, sans-serif)"
                 letterSpacing="0.04em"
+                opacity={0.85}
               >
                 {n.label}
               </text>
@@ -210,7 +214,7 @@ export default function StructuralFrameworkDiagram() {
             y1={my - py * 3}
             x2={mx + px * 3}
             y2={my + py * 3}
-            stroke="#334155"
+            stroke="var(--color-chart-border)"
             strokeWidth={0.5}
             opacity={0.5}
           />

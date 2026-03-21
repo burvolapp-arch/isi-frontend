@@ -90,7 +90,7 @@ let _snapshot: { theme: Theme; resolved: "light" | "dark" } = {
 };
 
 const _serverSnapshot: { theme: Theme; resolved: "light" | "dark" } = {
-  theme: "system",
+  theme: "light",
   resolved: "light",
 };
 

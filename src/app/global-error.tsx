@@ -30,13 +30,13 @@ export default function GlobalError({
               .ge-btn-primary { color: #fff; background: #0b2545; }
               .ge-btn-secondary { color: #4b5563; background: transparent; border: 1px solid #d1d5db; text-decoration: none; display: inline-flex; align-items: center; }
               @media (prefers-color-scheme: dark) {
-                body { background: #0f1724; color: #e5e7eb; }
-                .ge-title { color: #e5e7eb; }
-                .ge-msg { color: #8892a2; }
-                .ge-label { color: #5f697a; }
-                .ge-digest { color: #5f697a; }
-                .ge-btn-primary { background: #3b82f6; color: #fff; }
-                .ge-btn-secondary { color: #b0b8c4; border-color: #374357; }
+                body { background: #080d18; color: #d0d6de; }
+                .ge-title { color: #d0d6de; }
+                .ge-msg { color: #697b8f; }
+                .ge-label { color: #475768; }
+                .ge-digest { color: #475768; }
+                .ge-btn-primary { background: #2563eb; color: #fff; }
+                .ge-btn-secondary { color: #95a0b0; border-color: #1a2840; }
               }
             `,
           }}

@@ -58,7 +58,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-primary bg-surface-primary/95 backdrop-blur-md sm:hidden dark:border-t-white/[0.06]"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-primary bg-surface-primary/95 backdrop-blur-md sm:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="flex items-center justify-around px-2 py-1.5">

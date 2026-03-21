@@ -174,7 +174,7 @@ export default function RootLayout({
           <main id="main-content" className="flex-1">{children}</main>
 
           {/* ── Footer ─────────────────────────────────────── */}
-          <footer className="border-t border-border-primary bg-surface-tertiary dark:bg-surface-secondary">
+          <footer className="border-t border-border-primary bg-surface-tertiary">
             <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12 lg:px-16">
 
               {/* Block A (top): Citation + Downloads */}
